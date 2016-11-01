@@ -39,24 +39,16 @@ def read_and_index_pubchem_bioassays(infile, es, indexfunc):
 def read_and_index_pubchem_bioassays_zipfile(zipfile, es, indexfunc):
     print("\nProcessing %s " % zipfile)
     i = 0
-    j = 0
+    r = 0
     with ZipFile(zipfile) as myzip:
         for fname in myzip.namelist():
+            #TODO: check whether the entry is already indexed here id=fname
             with myzip.open(fname) as jfile:
                 f = gzip.open(jfile, 'rt')
                 ba = json.load(f)
-                r = indexfunc(es, ba, f.tell())
-                if r == 1:
-                    print(".", end='', flush=True)
+                r = indexfunc(es, ba, f.tell(), r)
+                if r != 0:
                     i += 1
-                    j += f.tell()
-                else:
-                    print("-", end='', flush=True)
-                if j > 6666*4:  # since some entries are huge refresh often
-                    print("r", end='', flush=True)
-                    es.indices.refresh(index=args.index)
-                    es.indices.clear_cache(index=args.index)
-                    j = 0
     return i
 
 
@@ -72,18 +64,20 @@ def read_and_index_pubchem_bioassays_file(infile, es, indexfunc):
     return r
 
 
-def es_index_bioassay(es, ba, entrysize):
+def es_index_bioassay(es, ba, entrysize, r):
     aid = ba['PC_AssaySubmit']['assay']['descr']['aid']['id']
-    r = 0
     try:
         if not es.exists(index=args.index, doc_type='bioassay', id=aid):
-            if entrysize > 6666:  # since some entries are huge refresh often
+            r += entrysize
+            if r > 6666*6:  # since some entries are huge refresh often
                 print("r", end='', flush=True)
                 es.indices.refresh(index=args.index)
                 es.indices.clear_cache(index=args.index)
+                r = 0
+            print(".", end='', flush=True)
             es.index(index=args.index, doc_type='bioassay',
                      id=aid, body=json.dumps(ba))
-            r = 1
+        else: print("-", end='', flush=True)
     except Exception as e:
         print(e)
     return r
