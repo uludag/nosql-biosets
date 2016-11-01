@@ -13,18 +13,6 @@ for indexing
 [index-pubchem-bioassays.py](index-pubchem-bioassays.py) script reads
 the zipped and compressed PubChem BioAssay json files,
 without extracting them to temporary files, and indexes them.
-
-We have few simple queries in script [query-pubchem-bioassays.py],
-here two simple/sample queries with curl:
-
-Get number of assays with at least one outcome marked 'active':
-
-  curl "http://farna.cbrc.kaust.edu.sa:9301/pubchem-bioassays-test10/_search?q=PC_AssaySubmit.data.outcome:active&pretty&size=0"
-
-Get number of assays with at least one outcome marked 'inactive', and return the entry with most inactive outcomes:
-
-  curl "http://farna.cbrc.kaust.edu.sa:9301/pubchem-bioassays-test10/_search?q=PC_AssaySubmit.data.outcome:inactive&pretty&size=1"
-
  
 ### Notest on WikiPathways dataset 
 
@@ -50,6 +38,4 @@ todo: ES_JAVA_OPTS
 ### Datasets we are considering to include: 
 * Biocyc?, REACTOME?, Rhea?
 * Gene names and synonyms?
-* Sample seq similarity search results, in BLAST xml2 and SAM formats? 
-
-
+* Sample seq similarity search results, in BLAST xml2 and SAM formats?
