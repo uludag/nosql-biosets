@@ -42,13 +42,15 @@ def read_and_index_pubchem_bioassays_zipfile(zipfile, es, indexfunc):
     r = 0
     with ZipFile(zipfile) as myzip:
         for fname in myzip.namelist():
-            #TODO: check whether the entry is already indexed here id=fname
-            with myzip.open(fname) as jfile:
-                f = gzip.open(jfile, 'rt')
-                ba = json.load(f)
-                r = indexfunc(es, ba, f.tell(), r)
-                if r != 0:
+            aid = fname[fname.find('/')+1:fname.find(".json")]
+            # check whether the entry is already indexed
+            if not es.exists(index=args.index, doc_type='bioassay', id=aid):
+                with myzip.open(fname) as jfile:
+                    f = gzip.open(jfile, 'rt')
+                    ba = json.load(f)
+                    r = indexfunc(es, ba, r+f.tell(), aid)
                     i += 1
+            else: print("-", end='', flush=True)
     return i
 
 
@@ -64,20 +66,19 @@ def read_and_index_pubchem_bioassays_file(infile, es, indexfunc):
     return r
 
 
-def es_index_bioassay(es, ba, entrysize, r):
-    aid = ba['PC_AssaySubmit']['assay']['descr']['aid']['id']
+def es_index_bioassay(es, ba, r, aid):
+    if aid != ba['PC_AssaySubmit']['assay']['descr']['aid']['id']:
+        print("filename and Assay ids are different, please check '%s'" % aid)
+        exit(-1)
     try:
-        if not es.exists(index=args.index, doc_type='bioassay', id=aid):
-            r += entrysize
-            if r > 6666*6:  # since some entries are huge refresh often
-                print("r", end='', flush=True)
-                es.indices.refresh(index=args.index)
-                es.indices.clear_cache(index=args.index)
-                r = 0
-            print(".", end='', flush=True)
-            es.index(index=args.index, doc_type='bioassay',
-                     id=aid, body=json.dumps(ba))
-        else: print("-", end='', flush=True)
+        if r > 6666*6:  # since some entries are huge refresh often
+            print("r", end='', flush=True)
+            es.indices.refresh(index=args.index)
+            es.indices.clear_cache(index=args.index)
+            r = 0
+        print(".", end='', flush=True)
+        es.index(index=args.index, doc_type='bioassay',
+                 id=aid, body=json.dumps(ba))
     except Exception as e:
         print(e)
     return r
