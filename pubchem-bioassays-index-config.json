@@ -1,0 +1,234 @@
+{
+    "aliases": { },
+    "mappings": {
+        "bioassay": {
+            "properties": {
+                "PC_AssaySubmit": {
+                    "properties": {
+                        "assay": {
+                            "properties": {
+                                "descr": {
+                                    "properties": {
+                                        "aid": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "long"
+                                                },
+                                                "version": {
+                                                    "type": "long"
+                                                }
+                                            }
+                                        },
+                                        "aid_source": {
+                                            "properties": {
+                                                "db": {
+                                                    "properties": {
+                                                        "name": {
+                                                            "type": "string"
+                                                        },
+                                                        "source_id": {
+                                                            "properties": {
+                                                                "str": {
+                                                                    "type": "string"
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "assay_group": {
+                                            "type": "string"
+                                        },
+                                        "categorized_comment": {
+                                            "properties": {
+                                                "comment": {
+                                                    "type": "string"
+                                                },
+                                                "title": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        },
+                                        "comment": {
+                                            "type": "string"
+                                        },
+                                        "description": {
+                                            "type": "string"
+                                        },
+                                        "name": {
+                                            "type": "string"
+                                        },
+                                        "project_category": {
+                                            "type": "string"
+                                        },
+                                        "results": {
+                                            "properties": {
+                                                "description": {
+                                                    "type": "string"
+                                                },
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "tid": {
+                                                    "type": "long"
+                                                },
+                                                "type": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        },
+                                        "revision": {
+                                            "type": "long"
+                                        },
+                                        "target": {
+                                            "properties": {
+                                                "comment": {
+                                                    "type": "string"
+                                                },
+                                                "descr": {
+                                                    "type": "string"
+                                                },
+                                                "mol_id": {
+                                                    "type": "long"
+                                                },
+                                                "molecule_type": {
+                                                    "type": "string"
+                                                },
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "organism": {
+                                                    "properties": {
+                                                        "org": {
+                                                            "properties": {
+                                                                "db": {
+                                                                    "properties": {
+                                                                        "db": {
+                                                                            "type": "string"
+                                                                        },
+                                                                        "tag": {
+                                                                            "properties": {
+                                                                                "id": {
+                                                                                    "type": "long"
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                },
+                                                                "orgname": {
+                                                                    "properties": {
+                                                                        "name": {
+                                                                            "properties": {
+                                                                                "binomial": {
+                                                                                    "properties": {
+                                                                                        "genus": {
+                                                                                            "type": "string"
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "xref": {
+                                            "properties": {
+                                                "comment": {
+                                                    "type": "string"
+                                                },
+                                                "type": {
+                                                    "type": "string"
+                                                },
+                                                "xref": {
+                                                    "properties": {
+                                                        "asurl": {
+                                                            "type": "string"
+                                                        },
+                                                        "dburl": {
+                                                            "type": "string"
+                                                        },
+                                                        "pmid": {
+                                                            "type": "long"
+                                                        },
+                                                        "protein_gi": {
+                                                            "type": "long"
+                                                        },
+                                                        "taxonomy": {
+                                                            "type": "long"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "data": {
+                            "properties": {
+                                "data": {
+                                    "properties": {
+                                        "tid": {
+                                            "type": "long"
+                                        },
+                                        "value": {
+                                            "properties": {
+                                                "sval": {
+                                                    "type": "string"
+                                                },
+                                                "fval": {
+                                                    "type": "double",
+                                                    "coerce": true
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "date": {
+                                    "properties": {
+                                        "std": {
+                                            "properties": {
+                                                "day": {
+                                                    "type": "long"
+                                                },
+                                                "month": {
+                                                    "type": "long"
+                                                },
+                                                "year": {
+                                                    "type": "long"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "outcome": {
+                                    "type": "string"
+                                },
+                                "sid": {
+                                    "type": "long"
+                                },
+                                "version": {
+                                    "type": "long"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "settings": {
+        "index": {
+            "number_of_shards": "4",
+            "number_of_replicas": "0",
+            "refresh_interval": -1
+        }
+    },
+    "warmers": { }
+}
