@@ -191,21 +191,8 @@
                                     }
                                 },
                                 "date": {
-                                    "properties": {
-                                        "std": {
-                                            "properties": {
-                                                "day": {
-                                                    "type": "long"
-                                                },
-                                                "month": {
-                                                    "type": "long"
-                                                },
-                                                "year": {
-                                                    "type": "long"
-                                                }
-                                            }
-                                        }
-                                    }
+                                    "type": "date",
+                                    "format": "yyyy-MM-dd"
                                 },
                                 "outcome": {
                                     "type": "string"

@@ -47,31 +47,40 @@ def read_and_index_pubchem_bioassays_zipfile(zipfile, es, indexfunc):
             if not es.exists(index=args.index, doc_type='bioassay', id=aid):
                 with myzip.open(fname) as jfile:
                     f = gzip.open(jfile, 'rt')
-                    ba = json.load(f)
-                    r = indexfunc(es, ba, r+f.tell(), aid)
-                    i += 1
+                    # TODO: support for large entries, >800mb
+                    if f.tell() < 802000100:
+                        r = indexfunc(es, f, r, aid)
+                        i += 1
             else: print("-", end='', flush=True)
     return i
 
 
 # Read PubChem Bioassays file, index using the index function specified
 def read_and_index_pubchem_bioassays_file(infile, es, indexfunc):
-    print("Reading %s " % infile)
     if infile.endswith(".gz"):
         f = gzip.open(infile, 'rt')
     else:
         f = open(infile, 'r')
-    ba = json.load(f)
-    r = indexfunc(es, ba)
+    aid = infile[infile.find('/') + 1:infile.find(".json")]
+    r = indexfunc(es, f, 0, aid)
     return r
 
 
-def es_index_bioassay(es, ba, r, aid):
-    if aid != ba['PC_AssaySubmit']['assay']['descr']['aid']['id']:
-        print("filename and Assay ids are different, please check '%s'" % aid)
-        exit(-1)
+def es_index_bioassay(es, f, r, aid_):
+    ba = json.load(f)
+    r += f.tell()
+    for data in ba["PC_AssaySubmit"]["data"]:
+        date = data["date"]["std"]
+        d = "{}-{}-{}".format(date["year"], date["month"], date["day"])
+        del(data["date"]["std"])
+        data["date"] = d
+    aid = ba['PC_AssaySubmit']['assay']['descr']['aid']['id']
+    if str(aid) != aid_:
+        print("filename and Assay ids are different, please check '%s' vs '%s'"
+              % (aid, aid_))
+        return r
     try:
-        if r > 6666*6:  # since some entries are huge refresh often
+        if r > 6666*12:  # since some entries are huge refresh often
             print("r", end='', flush=True)
             es.indices.refresh(index=args.index)
             es.indices.clear_cache(index=args.index)
@@ -97,13 +106,12 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Index PubChem Bioassays, using Elasticsearch')
     parser.add_argument('--infile',
-                        # default="1158083.json",
-                        # default="pubchem/1158001_1159000/",
+                        # default="1158822.json.gz",
                         default="/reference/NCBI/pubchem/Bioassay/JSON/",
-                        #default="/reference/NCBI/pubchem/Bioassay/JSON/0000001_0001000.zip",
+                        # default="/reference/NCBI/pubchem/Bioassay/JSON/0000001_0001000.zip",
                         help='input file to index')
     parser.add_argument('--index',
-                        default="pubchem-bioassays-test12",
+                        default="pubchem-bioassays-test14",
                         help='name of the elasticsearch index')
     parser.add_argument('--host', default="esnode-khadija",
                         help='Elasticsearch server hostname')
