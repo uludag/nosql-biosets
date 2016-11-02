@@ -97,7 +97,7 @@ def main(es, infile, index):
     # es.indices.delete(index=index, params={"timeout": "10s"})
     iconfig = json.load(open("pubchem-bioassays-index-config.json", "rt"))
     es.indices.create(index=index, params={"timeout": "20s"},
-                      ignore=400, body=iconfig)
+                      ignore=400, body=iconfig, wait_for_active_shards=1)
     read_and_index_pubchem_bioassays(infile, es, es_index_bioassay)
     es.indices.refresh(index=index)
 
