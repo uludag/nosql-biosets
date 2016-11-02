@@ -1,5 +1,5 @@
 {
-    "aliases": { },
+    "aliases": {},
     "mappings": {
         "bioassay": {
             "properties": {
@@ -56,24 +56,53 @@
                                         "description": {
                                             "type": "string"
                                         },
+                                        "grant_number": {
+                                            "type": "string"
+                                        },
                                         "name": {
                                             "type": "string"
                                         },
                                         "project_category": {
                                             "type": "string"
                                         },
+                                        "protocol": {
+                                            "type": "string"
+                                        },
                                         "results": {
                                             "properties": {
+                                                "ac": {
+                                                    "type": "boolean"
+                                                },
                                                 "description": {
                                                     "type": "string"
                                                 },
                                                 "name": {
                                                     "type": "string"
                                                 },
+                                                "sunit": {
+                                                    "type": "string"
+                                                },
+                                                "tc": {
+                                                    "properties": {
+                                                        "concentration": {
+                                                            "type": "double",
+                                                            "coerce": true
+                                                        },
+                                                        "unit": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                },
                                                 "tid": {
                                                     "type": "long"
                                                 },
+                                                "transform": {
+                                                    "type": "string"
+                                                },
                                                 "type": {
+                                                    "type": "string"
+                                                },
+                                                "unit": {
                                                     "type": "string"
                                                 }
                                             }
@@ -118,11 +147,36 @@
                                                                 },
                                                                 "orgname": {
                                                                     "properties": {
+                                                                        "div": {
+                                                                            "type": "string"
+                                                                        },
+                                                                        "gcode": {
+                                                                            "type": "long"
+                                                                        },
+                                                                        "lineage": {
+                                                                            "type": "string"
+                                                                        },
+                                                                        "mod": {
+                                                                            "properties": {
+                                                                                "attrib": {
+                                                                                    "type": "string"
+                                                                                },
+                                                                                "subname": {
+                                                                                    "type": "string"
+                                                                                },
+                                                                                "subtype": {
+                                                                                    "type": "string"
+                                                                                }
+                                                                            }
+                                                                        },
                                                                         "name": {
                                                                             "properties": {
                                                                                 "binomial": {
                                                                                     "properties": {
                                                                                         "genus": {
+                                                                                            "type": "string"
+                                                                                        },
+                                                                                        "species": {
                                                                                             "type": "string"
                                                                                         }
                                                                                     }
@@ -130,6 +184,9 @@
                                                                             }
                                                                         }
                                                                     }
+                                                                },
+                                                                "taxname": {
+                                                                    "type": "string"
                                                                 }
                                                             }
                                                         }
@@ -147,11 +204,23 @@
                                                 },
                                                 "xref": {
                                                     "properties": {
+                                                        "aid": {
+                                                            "type": "long"
+                                                        },
                                                         "asurl": {
                                                             "type": "string"
                                                         },
                                                         "dburl": {
                                                             "type": "string"
+                                                        },
+                                                        "gene": {
+                                                            "type": "long"
+                                                        },
+                                                        "mim": {
+                                                            "type": "long"
+                                                        },
+                                                        "mmdb": {
+                                                            "type": "long"
                                                         },
                                                         "pmid": {
                                                             "type": "long"
@@ -172,6 +241,9 @@
                         },
                         "data": {
                             "properties": {
+                                "comment": {
+                                    "type": "string"
+                                },
                                 "data": {
                                     "properties": {
                                         "tid": {
@@ -217,5 +289,5 @@
             "refresh_interval": -1
         }
     },
-    "warmers": { }
+    "warmers": {}
 }
