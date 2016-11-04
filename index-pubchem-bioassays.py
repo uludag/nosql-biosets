@@ -47,10 +47,8 @@ def read_and_index_pubchem_bioassays_zipfile(zipfile, es, indexfunc):
             if not es.exists(index=args.index, doc_type='bioassay', id=aid):
                 with myzip.open(fname) as jfile:
                     f = gzip.open(jfile, 'rt')
-                    # TODO: support for large entries, >800mb
-                    if f.tell() < 802000100:
-                        r = indexfunc(es, f, r, aid)
-                        i += 1
+                    r = indexfunc(es, f, r, aid)
+                    i += 1
             else: print("-", end='', flush=True)
     return i
 
@@ -68,28 +66,32 @@ def read_and_index_pubchem_bioassays_file(infile, es, indexfunc):
 
 def es_index_bioassay(es, f, r, aid_):
     ba = json.load(f)
-    r += f.tell()
-    for data in ba["PC_AssaySubmit"]["data"]:
-        date = data["date"]["std"]
-        d = "{}-{}-{}".format(date["year"], date["month"], date["day"])
-        del(data["date"]["std"])
-        data["date"] = d
-    aid = ba['PC_AssaySubmit']['assay']['descr']['aid']['id']
-    if str(aid) != aid_:
-        print("filename and Assay ids are different, please check '%s' vs '%s'"
-              % (aid, aid_))
-        return r
-    try:
-        if r > 6666*12:  # since some entries are huge refresh often
-            print("r", end='', flush=True)
-            es.indices.refresh(index=args.index)
-            es.indices.clear_cache(index=args.index)
-            r = 0
-        print(".", end='', flush=True)
-        es.index(index=args.index, doc_type='bioassay',
-                 id=aid, body=json.dumps(ba))
-    except Exception as e:
-        print(e)
+    # TODO: support for large entries, >800mb; ex:0540001_0541000/540253.json.gz
+    if f.tell() < 800400400:
+        for data in ba["PC_AssaySubmit"]["data"]:
+            date = data["date"]["std"]
+            d = "{}-{}-{}".format(date["year"], date["month"], date["day"])
+            del(data["date"]["std"])
+            data["date"] = d
+        aid = ba['PC_AssaySubmit']['assay']['descr']['aid']['id']
+        if str(aid) != aid_:
+            print("filename and Assay ids not same, please check '%s' vs '%s'"
+                  % (aid, aid_))
+            return r
+        try:
+            if r>0 and (r+f.tell() > 6666*12):  # refresh as needed
+                print("r", end='', flush=True)
+                es.indices.refresh(index=args.index)
+                es.indices.clear_cache(index=args.index)
+                r = 0
+            print(".", end='', flush=True)
+            es.index(index=args.index, doc_type='bioassay',
+                     id=aid, body=json.dumps(ba))
+            r += f.tell()
+        except Exception as e:
+            print(e)
+    else:
+        print("large entry %s %d" % (aid_, f.tell()))
     return r
 
 
@@ -111,7 +113,7 @@ if __name__ == '__main__':
                         # default="/reference/NCBI/pubchem/Bioassay/JSON/0000001_0001000.zip",
                         help='input file to index')
     parser.add_argument('--index',
-                        default="pubchem-bioassays-test14",
+                        default="pubchem-bioassays-test15",
                         help='name of the elasticsearch index')
     parser.add_argument('--host', default="esnode-khadija",
                         help='Elasticsearch server hostname')
