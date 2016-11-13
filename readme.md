@@ -36,15 +36,18 @@ todo: ES_JAVA_OPTS
 * Set `ES_MIN_MEM` AND `ES_MAX_MEM` environment variables to at least 1 and 14 GBs,
   defaults are 256mb and 1GB, before calling your Elasticsearch server
   start script `bin\elasticsearch`
-```
+```Shell
   export ES_MIN_MEM=1g
   export ES_MAX_MEM=14g
 ```  
 * Set `http.max_content_length: 800mb`, default 100mb,
   in your Elasticsearch configuration file `config/elasticsearch.yml`
-
+* Large entries mean much garbage collection activity;
+  [make sure garbage collection is fast](https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-configuration-memory.html) 
+  by preventing any Elasticsearch memory from being swapped out
+  
 
 ### Datasets we are considering to include: 
 * Biocyc?, REACTOME?, Rhea?
 * Gene names and synonyms?
-* Sample seq similarity search results, in BLAST xml2 and SAM formats?
+* Sample sequence similarity search results, in BLAST xml2 and SAM formats?
