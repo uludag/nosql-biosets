@@ -9,6 +9,9 @@
                             "properties": {
                                 "descr": {
                                     "properties": {
+                                        "activity_outcome_method": {
+                                            "type": "keyword"
+                                        },
                                         "aid": {
                                             "properties": {
                                                 "id": {
@@ -23,8 +26,12 @@
                                             "properties": {
                                                 "db": {
                                                     "properties": {
+                                                        "date": {
+                                                            "type": "date",
+                                                            "format": "yyyy-MM-dd"
+                                                        },
                                                         "name": {
-                                                            "type": "string"
+                                                            "type": "keyword"
                                                         },
                                                         "source_id": {
                                                             "properties": {
@@ -73,11 +80,38 @@
                                                 "ac": {
                                                     "type": "boolean"
                                                 },
+                                                "annot": {
+                                                    "type": "text"
+                                                },
+                                                "constraints": {
+                                                    "properties": {
+                                                        "frange": {
+                                                            "properties": {
+                                                                "max": {
+                                                                    "type": "long"
+                                                                },
+                                                                "min": {
+                                                                    "type": "long"
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                },
                                                 "description": {
                                                     "type": "string"
                                                 },
                                                 "name": {
                                                     "type": "string"
+                                                },
+                                                "panel_info": {
+                                                    "properties": {
+                                                        "mid": {
+                                                            "type": "long"
+                                                        },
+                                                        "readout_annot": {
+                                                            "type": "text"
+                                                        }
+                                                    }
                                                 },
                                                 "sunit": {
                                                     "type": "string"
@@ -87,6 +121,9 @@
                                                         "concentration": {
                                                             "type": "double",
                                                             "coerce": true
+                                                        },
+                                                        "dr_id": {
+                                                            "type": "long"
                                                         },
                                                         "unit": {
                                                             "type": "string"
@@ -109,6 +146,9 @@
                                         },
                                         "revision": {
                                             "type": "long"
+                                        },
+                                        "substance_type": {
+                                            "type": "keyword"
                                         },
                                         "target": {
                                             "properties": {
@@ -134,7 +174,7 @@
                                                                 "db": {
                                                                     "properties": {
                                                                         "db": {
-                                                                            "type": "string"
+                                                                            "type": "keyword"
                                                                         },
                                                                         "tag": {
                                                                             "properties": {
@@ -148,7 +188,7 @@
                                                                 "orgname": {
                                                                     "properties": {
                                                                         "div": {
-                                                                            "type": "string"
+                                                                            "type": "keyword"
                                                                         },
                                                                         "gcode": {
                                                                             "type": "long"
@@ -174,7 +214,7 @@
                                                                                 "binomial": {
                                                                                     "properties": {
                                                                                         "genus": {
-                                                                                            "type": "string"
+                                                                                            "type": "keyword"
                                                                                         },
                                                                                         "species": {
                                                                                             "type": "string"
@@ -186,7 +226,7 @@
                                                                     }
                                                                 },
                                                                 "taxname": {
-                                                                    "type": "string"
+                                                                    "type": "keyword"
                                                                 }
                                                             }
                                                         }
@@ -197,10 +237,10 @@
                                         "xref": {
                                             "properties": {
                                                 "comment": {
-                                                    "type": "string"
+                                                    "type": "text"
                                                 },
                                                 "type": {
-                                                    "type": "string"
+                                                    "type": "keyword"
                                                 },
                                                 "xref": {
                                                     "properties": {
@@ -210,11 +250,17 @@
                                                         "asurl": {
                                                             "type": "string"
                                                         },
+                                                        "cid": {
+                                                            "type": "long"
+                                                        },
                                                         "dburl": {
                                                             "type": "string"
                                                         },
                                                         "gene": {
                                                             "type": "long"
+                                                        },
+                                                        "mesh": {
+                                                            "type": "keyword"
                                                         },
                                                         "mim": {
                                                             "type": "long"
@@ -222,10 +268,22 @@
                                                         "mmdb": {
                                                             "type": "long"
                                                         },
+                                                        "nucleotide_gi": {
+                                                            "type": "long"
+                                                        },
                                                         "pmid": {
                                                             "type": "long"
                                                         },
                                                         "protein_gi": {
+                                                            "type": "long"
+                                                        },
+                                                        "regid": {
+                                                            "type": "keyword"
+                                                        },
+                                                        "sburl": {
+                                                            "type": "keyword"
+                                                        },
+                                                        "sid": {
                                                             "type": "long"
                                                         },
                                                         "taxonomy": {
@@ -257,6 +315,12 @@
                                                 "fval": {
                                                     "type": "double",
                                                     "coerce": true
+                                                },
+                                                "ival": {
+                                                    "type": "long"
+                                                },
+                                                "sval": {
+                                                    "type": "text"
                                                 }
                                             }
                                         }
@@ -268,6 +332,9 @@
                                 },
                                 "outcome": {
                                     "type": "string"
+                                },
+                                "rank": {
+                                    "type": "long"
                                 },
                                 "sid": {
                                     "type": "long"
