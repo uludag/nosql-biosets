@@ -10,24 +10,25 @@ We are in early stages of the project and we have scripts for two datasets only
 
 ### Notes on PubChem dataset 
 
-[index-pubchem-bioassays.py](index-pubchem-bioassays.py) script reads
+[index-pubchem-bioassays.py](index-pubchem-bioassays.py) script reads and indexes
 the zipped and compressed PubChem BioAssay json files,
-without extracting them to temporary files, and indexes them.
+without extracting them to temporary files.
 
 TODO:
 
 * Support for entries larger than 800mb
-* Use bulk queries, vary number of entries in the bulks depending on size 
- 
+* Use bulk queries, vary number of entries in the bulks depending on size
+of entries
+
 ### Notes on WikiPathways dataset 
 
-[index-wikipathways.py](index-wikipathways.py) script reads
+[index-wikipathways.py](index-wikipathways.py) script reads and indexes
 the zipped WikiPathways gpml files,
-without extracting them to temporary files, and indexes them.
+without extracting them to temporary files.
 
 ### Elasticsearch server settings
 Since some of the PubChem BioAssay json files are large we need to change
-two Elasticsearch default settings to higher values:
+few Elasticsearch default settings to higher values:
 
 * Heap memory
 
@@ -38,7 +39,7 @@ two Elasticsearch default settings to higher values:
     (defaults are 256mb and 1GB), before calling your Elasticsearch server
     start script `bin\elasticsearch`
 
-- Set `http.max_content_length: 800mb`, default 100mb,
+* Set `http.max_content_length: 800mb`, default 100mb,
   in your Elasticsearch configuration file `config/elasticsearch.yml`
 * Large entries mean much garbage collection activity;
   [make sure garbage collection is fast](https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-configuration-memory.html) 
