@@ -35,7 +35,8 @@ def parse_pub2gene_lines(f, r):
             yield {
                 '_id': r,
                 "pmid": a[0], "geneid": geneids,
-                "mentions": a[2], "resource": a[3]
+                "mentions": a[2].split('|'),
+                "resource": a[3].split('|')
             }
 
 
