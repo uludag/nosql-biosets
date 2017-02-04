@@ -1,21 +1,20 @@
 #!/usr/bin/env python
-""" Script to index Ensembl regulatory build TF binding sites """
+""" Index Ensembl regulatory build GFF files """
 from __future__ import print_function
 
 import argparse
+import json
 from os import path
 
 import gffutils
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import streaming_bulk
 
-# Document type name for the Elascticsearch index entries
-doctype = 'ensembl-tfbs'
-chunksize = 2 * 1024
-gff = "./data/hg38.ensrb_motiffeatures.r87.gff"
+chunksize = 2048
 
 
-def connectgffdb():
+# Return db connection to the gffutils sqlite db for the given gff file
+def connectgffdb(gff):
     gffdb = gff + ".db"
     if path.exists(gffdb):
         dbc = gffutils.FeatureDB(gffdb)
@@ -28,10 +27,10 @@ def connectgffdb():
     return dbc
 
 
-def iterate_over_tfbs(l):
+# Reader for transcription factors
+def tfs(db):
     for i in db.all_features():
-        print(i)
-        yield {
+        r = {
             '_id': i.id,
             "chr": i.seqid,
             "strand": i.strand,
@@ -39,42 +38,65 @@ def iterate_over_tfbs(l):
             "end": i.end,
             "tf": i.attributes["motif_feature_type"]
         }
+        yield r
 
 
-def es_index_tfbs(es, l):
-    r = 0
+# Reader for regulatory regions
+def regregions(db):
+    for i in db.all_features():
+        r = {
+            '_id': i.id,
+            "chr": i.seqid,
+            "strand": i.strand,
+            "start": i.start,
+            "end": i.end,
+            "feature_type": i.attributes["feature_type"]
+        }
+        yield r
+
+
+def es_index(es, l, reader, doctype):
     for ok, result in streaming_bulk(
             es,
-            iterate_over_tfbs(l),
+            reader(l),
             index=args.index,
             doc_type=doctype,
             chunk_size=chunksize
     ):
         action, result = result.popitem()
         doc_id = '/%s/commits/%s' % (args.index, result['_id'])
-        # process the information returned from ES whether the document has been
-        # successfully indexed
         if not ok:
             print('Failed to %s document %s: %r' % (action, doc_id, result))
     return 1
 
 
 if __name__ == '__main__':
+    conf = {"host": "localhost", "port": 9200}
+    try:
+        conf = json.load(open("conf/elasticsearch.json", "rt"))
+    finally:
+        pass
+
     parser = argparse.ArgumentParser(
         description='Index Ensembl TF binding sites using Elasticsearch')
-    parser.add_argument('--infile',
-                        default=gff,
+    parser.add_argument('--motifsgff',
+                        default="./data/hg38.ensrb_motiffeatures.r87.gff",
+                        help='input file to index')
+    parser.add_argument('--regregsgff',
+                        default="./data/hg38.ensrb_features.r87.gff",
                         help='input file to index')
     parser.add_argument('--index',
-                        default="ensembl-tfbs",
+                        default="ensregbuild",
                         help='name of the Elasticsearch index')
-    parser.add_argument('--host', default="esnode-khadija",
+    parser.add_argument('--host', default=conf['host'],
                         help='Elasticsearch server hostname')
-    parser.add_argument('--port', default="9200",
+    parser.add_argument('--port', default=conf['port'],
                         help="Elasticsearch server port")
     args = parser.parse_args()
     host = args.host
     port = args.port
     con = Elasticsearch(host=host, port=port, timeout=3600)
-    db = connectgffdb()
-    es_index_tfbs(con, db)
+    tfbsdb = connectgffdb(args.motifsgff)
+    es_index(con, tfbsdb, tfs, "transcriptionfactor")
+    regregionsdb = connectgffdb("./data/hg38.ensrb_features.r87.gff")
+    es_index(con, regregionsdb, regregions, "regulatoryregion")
