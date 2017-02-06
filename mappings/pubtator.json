@@ -1,0 +1,34 @@
+{
+  "aliases": { },
+  "mappings": {
+
+    "gene2pub": {
+      "properties": {
+        "geneid": {
+          "type": "integer"
+        },
+        "mentions": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword"
+            }
+          }
+        },
+        "pmid": {
+          "type": "integer"
+        },
+        "resource": {
+          "type": "keyword"
+        }
+      }
+    }
+  },
+  "settings": {
+    "index": {
+      "number_of_shards": "5",
+      "number_of_replicas": "0"
+    }
+  },
+  "warmers": { }
+}

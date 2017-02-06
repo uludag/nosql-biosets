@@ -1,5 +1,5 @@
-#!/usr/bin/python3
-# Index NCBI PubTator association files with Elasticsearch
+#!/usr/bin/env python
+# Index NCBI PubTator gene2pub association file with Elasticsearch
 
 import argparse
 import gzip
@@ -29,8 +29,7 @@ def parse_pub2gene_lines(f, r):
         if len(a) != 4:
             print("Line has more than 4 fields: %s" % line)
             exit(-1)
-        r += 1
-        if r > 1: # skip header line
+        if r > 0: # skip header line
             geneids = a[1].replace(';', ',').split(',')
             yield {
                 '_id': r,
@@ -38,6 +37,7 @@ def parse_pub2gene_lines(f, r):
                 "mentions": a[2].split('|'),
                 "resource": a[3].split('|')
             }
+        r += 1
 
 
 def es_index_links(es, f):
@@ -62,7 +62,12 @@ def es_index_links(es, f):
 
 def main(es, infile, index):
     #es.indices.delete(index=index, params={"timeout": "10s"})
-    iconfig = json.load(open("./mappings/pubtator-es2.json", "rt"))
+    i = es.info()
+    v = int(i['version']['number'][0])
+    if v >= 5:
+        iconfig = json.load(open("./mappings/pubtator.json", "rt"))
+    else:
+        iconfig = json.load(open("./mappings/pubtator-es2.json", "rt"))
     es.indices.create(index=index, params={"timeout": "20s"},
                       ignore=400, body=iconfig, wait_for_active_shards=1)
     read_and_index_pubtator_file(infile, es, es_index_links)
@@ -76,9 +81,9 @@ if __name__ == '__main__':
                         default="./data/gene2pubtator.sample",
                         help='input file to index')
     parser.add_argument('--index',
-                        default="pubtator-test1",
+                        default="pubtator-gene2pub",
                         help='name of the Elasticsearch index')
-    parser.add_argument('--host', default="localhost",
+    parser.add_argument('--host', default="esnode-khadija",
                         help='Elasticsearch server hostname')
     parser.add_argument('--port', default="9200",
                         help="Elasticsearch server port")
