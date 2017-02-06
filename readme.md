@@ -11,9 +11,9 @@ We are in early stages of the project and we have scripts for 5 sample datasets
 * [Ensembl regulatory build GFF files](ftp://ftp.ensembl.org/pub/release-87/regulation/homo_sapiens/)
 * [NCBI PubTator gene2pub mapping](ftp://ftp.ncbi.nlm.nih.gov/pub/lu/PubTator/)
 
-### Notes on PMC dataset 
+### Notes on PMC articles
 
-[index-pmc-articles.py](index-pmc-articles.py) script reads and indexes
+[index-pmc-articles.py](index-pmc-articles.py) reads and indexes
 the tarred PMC articles xml files.
 
 git clone https://github.com/titipata/pubmed_parser.git
@@ -24,32 +24,27 @@ pip3 install --user git+https://github.com/titipata/pubmed_parser.git
 
 ### Notes on PubTator datasets 
 
-[index-pubchem-bioassays.py](index-pubchem-bioassays.py) script reads and indexes
-the zipped and compressed PubChem BioAssay json files,
-without extracting them to temporary files.
+[index-pubtator-files.py](index-pubtator-files.py) reads and indexes NCBI
+PubTator gene2pub mappings
 
 TODO:
-
-* Support for entries larger than 800mb
-* Use bulk queries, vary number of entries in the bulks depending on size
-of entries
-
+* Support for all PubTator mappings
 
 ### Notes on PubChem dataset
 
-[index-pubchem-bioassays.py](index-pubchem-bioassays.py) script reads and indexes
+[index-pubchem-bioassays.py](index-pubchem-bioassays.py) reads and indexes
 the zipped and compressed PubChem BioAssay json files,
 without extracting them to temporary files.
 
 TODO:
-
 * Support for entries larger than 800mb
-* Use bulk queries, vary number of entries in the bulks depending on size
-of entries
+* Use bulk indexer
+* Mappings for Elasticsearch 2
+* Python2 support
 
 ### Notes on WikiPathways datasets
 
-[index-wikipathways.py](index-wikipathways.py) script reads and indexes
+[index-wikipathways.py](index-wikipathways.py) reads and indexes
 the zipped WikiPathways gpml files,
 without extracting them to temporary files.
 
@@ -79,5 +74,5 @@ few Elasticsearch default settings to higher values:
 * Sample sequence similarity search results, in BLAST xml2 and SAM formats?
 
 ## Copyright
-Scripts in this project have been developed in King Abdullah University of Science
+This project have been developed in King Abdullah University of Science
 and Technology (http://www.kaust.edu.sa)

@@ -1,9 +1,5 @@
-#!/usr/bin/python3
-'''
-Index PubChem Bioassay json files with Elasticsearch
-
-TODO: support for large entries, >200mb; ex:540253.json.gz
-'''
+#!/usr/bin/env python3
+""" Index PubChem Bioassay json files with Elasticsearch """
 import argparse
 import gzip
 import json
@@ -61,7 +57,8 @@ def read_and_index_pubchem_bioassays_zipfile(zipfile, es, indexfunc):
                     f = gzip.open(jfile, 'rt')
                     r = indexfunc(es, f, r, aid)
                     i += 1
-            else: print("-", end='', flush=True)
+            else:
+                print("-", end='', flush=True)
     return i
 
 
@@ -127,7 +124,7 @@ def es_index_bioassay(es, f, r, aid_):
 
 def main(es, infile, index):
     #es.indices.delete(index=index, params={"timeout": "10s"})
-    iconfig = json.load(open("pubchem-bioassays-index-config.json", "rt"))
+    iconfig = json.load(open("./mappings/pubchem-bioassays.json", "rt"))
     es.indices.create(index=index, params={"timeout": "20s"},
                       ignore=400, body=iconfig, wait_for_active_shards=1)
     read_and_index_pubchem_bioassays(infile, es, es_index_bioassay)
@@ -143,9 +140,9 @@ if __name__ == '__main__':
                         default="/reference/NCBI/pubchem/Bioassay/JSON/1158001_1159000.zip",
                         help='input file to index')
     parser.add_argument('--index',
-                        default="pubchem-bioassays-test1",
+                        default="pubchem-bioassays",
                         help='name of the elasticsearch index')
-    parser.add_argument('--host', default="esnode-khadija",
+    parser.add_argument('--host', default="localhost",
                         help='Elasticsearch server hostname')
     parser.add_argument('--port', default="9200",
                         help="Elasticsearch server port")
