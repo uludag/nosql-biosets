@@ -1,5 +1,6 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """ Index PubChem Bioassay json files with Elasticsearch """
+from __future__ import print_function
 import argparse
 import gzip
 import json
