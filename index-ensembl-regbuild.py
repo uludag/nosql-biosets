@@ -81,10 +81,10 @@ if __name__ == '__main__':
         description='Index Ensembl TF binding sites using Elasticsearch')
     parser.add_argument('--motifsgff',
                         default="./data/hg38.ensrb_motiffeatures.r87.gff",
-                        help='input file to index')
-    parser.add_argument('--regregsgff',
+                        help='Transcription factor binding sites gff file to index')
+    parser.add_argument('--regregionssgff',
                         default="./data/hg38.ensrb_features.r87.gff",
-                        help='input file to index')
+                        help='Regulatory regions gff file to index')
     parser.add_argument('--index',
                         default="ensregbuild",
                         help='name of the Elasticsearch index')
@@ -98,5 +98,5 @@ if __name__ == '__main__':
     con = Elasticsearch(host=host, port=port, timeout=3600)
     tfbsdb = connectgffdb(args.motifsgff)
     es_index(con, tfbsdb, tfs, "transcriptionfactor")
-    regregionsdb = connectgffdb("./data/hg38.ensrb_features.r87.gff")
+    regregionsdb = connectgffdb(args.regregionsgff)
     es_index(con, regregionsdb, regregions, "regulatoryregion")
