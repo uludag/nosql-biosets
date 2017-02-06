@@ -14,12 +14,14 @@ We are in early stages of the project and we have scripts for 5 sample datasets
 ### Notes on PMC articles
 
 [index-pmc-articles.py](index-pmc-articles.py) reads and indexes archives of PMC articles xml files.
+
+Install `pubmed_parser` library using its `setup.py` file or using `pip`
 ```
 git clone https://github.com/titipata/pubmed_parser.git
-sudo python3 setup.py install
-
-sudo pip3 install --upgrade git+https://github.com/titipata/pubmed_parser.git
-pip3 install --user git+https://github.com/titipata/pubmed_parser.git
+python setup.py install --user
+```
+```
+pip install --upgrade --user git+https://github.com/titipata/pubmed_parser.git
 ```
 ### Notes on PubTator datasets 
 

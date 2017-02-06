@@ -1,4 +1,6 @@
-#!/usr/bin/python3
+#!/usr/bin/env python
+from __future__ import print_function
+
 import argparse
 import gzip
 import json
@@ -6,9 +8,8 @@ import os
 import tarfile
 import time
 
-from elasticsearch import Elasticsearch
-
 import pubmed_parser as pp
+from elasticsearch import Elasticsearch
 
 
 # Read PMC article xml files, index using the function indexf
