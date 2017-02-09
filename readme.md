@@ -3,7 +3,8 @@
 Inspired by the [nosql-tests](https://github.com/weinberger/nosql-tests/)
 project we want to develop scripts for NoSQL indexing and querying of
 sample bioinformatics datasets.
-We are in early stages of the project and we have scripts for 5 sample datasets
+We are in early stages of the project and we have scripts for indexing
+5 sample datasets with using Elasticsearch.
 
 * PubChem BioAssay json files: ftp://ftp.ncbi.nlm.nih.gov/pubchem/Bioassay/JSON
 * WikiPathways gpml files: http://www.wikipathways.org/index.php/Download_Pathways
@@ -30,12 +31,12 @@ PubTator gene2pub mappings
 
 TODO:
 
-* Support for all PubTator mappings
+* Support for other PubTator mappings
 
 ### Notes on PubChem dataset
 
 [index-pubchem-bioassays.py](index-pubchem-bioassays.py) reads and indexes
-the zipped and compressed PubChem BioAssay json files,
+the compressed and archived PubChem BioAssay json files,
 without extracting them to temporary files.
 
 TODO:
@@ -43,12 +44,11 @@ TODO:
 * Support for entries larger than 800mb
 * Use bulk indexer
 * Mappings for Elasticsearch 2
-* Python2 support
 
 ### Notes on WikiPathways datasets
 
 [index-wikipathways.py](index-wikipathways.py) reads and indexes
-the zipped WikiPathways gpml files,
+the archived WikiPathways gpml files,
 without extracting them to temporary files.
 
 ### Elasticsearch server settings
@@ -66,7 +66,7 @@ few Elasticsearch default settings to higher values:
 
 * Set `http.max_content_length: 800mb`, default 100mb,
   in your Elasticsearch configuration file `config/elasticsearch.yml`
-* Large entries mean much garbage collection activity;
+* Large entries mean more garbage collection activity;
   [make sure garbage collection is fast](https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-configuration-memory.html) 
   by preventing any Elasticsearch memory from being swapped out
   
@@ -77,5 +77,5 @@ few Elasticsearch default settings to higher values:
 * Sample sequence similarity search results, in BLAST xml2 and SAM formats?
 
 ## Copyright
-NoSQL-biosets project have been developed as part of other projects in King Abdullah University of Science
-and Technology (http://www.kaust.edu.sa)
+This project has been developed
+in King Abdullah University of Science and Technology (http://www.kaust.edu.sa)
