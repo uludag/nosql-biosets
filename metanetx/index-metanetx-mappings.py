@@ -14,23 +14,30 @@ chunksize = 2048
 
 # Index chem_prop.tsv which has the following header
 # #MNX_ID	Description	Formula	Charge	Mass	InChi	SMILES	Source
-def read_metanetx_mappings(infile):
+def getcompoundrecord(row):
+    sourcelib = None
+    sourceid = None
+    j = row[7].find(':')
+    if j > 0:
+        sourcelib = row[7][0:j];
+        sourceid = row[7][j + 1:]
+    r = {
+        '_id': row[0], 'desc': row[1],
+        'formula': row[2], 'charge': row[3],
+        'mass': row[4], 'inchi': row[5],
+        'smiles': row[6],
+        'source': {'lib': sourcelib, 'id': sourceid}
+    }
+    return r
+
+
+def read_metanetx_mappings(infile, metanetxparser):
     with open(infile, newline='') as csvfile:
         reader = csv.reader(csvfile, delimiter='\t', quotechar='|')
         for row in reader:
             if row[0][0] == '#':
                 continue
-            sourcelib = None; sourceid = None
-            j = row[7].find(':')
-            if j > 0:
-                sourcelib = row[7][0:j]; sourceid = row[7][j+1:]
-            r = {
-                '_id': row[0], 'desc': row[1],
-                'formula': row[2], 'charge': row[3],
-                'mass': row[4], 'inchi': row[5],
-                'smiles': row[6],
-                'source': {'lib': sourcelib, 'id': sourceid}
-            }
+            r = metanetxparser(row)
             yield r
 
 
@@ -81,5 +88,6 @@ if __name__ == '__main__':
     es.indices.delete(index=args.index, params={"timeout": "10s"})
     es.indices.create(index=args.index, params={"timeout": "10s"},
                       ignore=400)
-    es_index(es, read_metanetx_mappings(args.infile), "metanet-compound")
+    es_index(es, read_metanetx_mappings(args.infile, getcompoundrecord),
+             "metanet-compound")
     es.indices.refresh(index=args.index)
