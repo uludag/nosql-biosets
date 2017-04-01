@@ -45,11 +45,13 @@ def read_and_index_wikipathways_file(infile_, es, indexf):
         f = gzip.open(infile, 'rt')
     else:
         f = open(infile, 'r')
-    xml = f.read()
+    xml_ = f.read()
+    xml = re.sub(' xmlns="[^"]+"', '', xml_, count=1)
     # ba = xmltodict.parse(xml)
     #ba = untangle.parse(xml)
-    #r = indexf(es, ba, infile_)
-    r = "todo: new function to avoid code duplicate"
+    ba = yahoo.data(fromstring(xml))
+    r = indexf(es, ba, infile_)
+    # todo: new function to avoid code duplicate
     return r
 
 
@@ -100,14 +102,13 @@ if __name__ == '__main__':
         description='Index WikiPathways entries, using Elasticsearch')
     parser.add_argument('-infile', '--infile',
                         # default="Hs_SUMOylation_of_chromatin_organization_proteins_WP3799_86403.gpml",
-                        # default="/home/uludagm/wpathways/hs",
-                        default="/home/uludagm/snapdragon/wikipathways",
+                        default="./wikipathways/data/",
                         #default="./wikipathways_Arabidopsis_thaliana_Curation-AnalysisCollection__gpml.zip",
                         help='input file name or folder with WikiPathways files')
     parser.add_argument('--index',
-                        default="wikipathways-test8",
+                        default="wikipathways",
                         help='name of the Elasticsearch index')
-    parser.add_argument('--host', default="farnacell",
+    parser.add_argument('--host', default="localhost",
                         help='Elasticsearch server hostname')
     parser.add_argument('--port', default="9200",
                         help="Elasticsearch server port")
