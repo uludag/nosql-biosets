@@ -4,13 +4,14 @@ Inspired by the [nosql-tests](https://github.com/weinberger/nosql-tests/)
 project we want to develop scripts for NoSQL indexing and querying of
 sample bioinformatics datasets.
 We are in early stages of the project and we have scripts for indexing
-5 sample datasets with using Elasticsearch.
+6 sample datasets with using Elasticsearch.
 
 * PubChem BioAssay json files: ftp://ftp.ncbi.nlm.nih.gov/pubchem/Bioassay/JSON
 * WikiPathways gpml files: http://www.wikipathways.org/index.php/Download_Pathways
 * PMC articles: ftp://ftp.ebi.ac.uk/pub/databases/pmc/manuscripts
 * Ensembl regulatory build GFF files: ftp://ftp.ensembl.org/pub/release-87/regulation/homo_sapiens
 * NCBI PubTator gene2pub mapping: ftp://ftp.ncbi.nlm.nih.gov/pub/lu/PubTator
+* MetanetX compound/reaction data files: http://www.metanetx.org/mnxdoc/mnxref.html
 
 ### Notes on PMC articles
 
@@ -37,19 +38,19 @@ TODO:
 
 [index-pubchem-bioassays.py](index-pubchem-bioassays.py) reads and indexes
 the compressed and archived PubChem BioAssay json files,
-without extracting them to temporary files.
+without extracting them to temporary files
 
 TODO:
 
 * Support for entries larger than 800mb
 * Use bulk indexer
-* Mappings for Elasticsearch 2
+* Mappings for Elasticsearch 2?
 
 ### Notes on WikiPathways datasets
 
 [index-wikipathways.py](index-wikipathways.py) reads and indexes
 the archived WikiPathways gpml files,
-without extracting them to temporary files.
+without extracting them to temporary files
 
 ### Elasticsearch server settings
 Since some of the PubChem BioAssay json files are large we need to change
@@ -75,6 +76,7 @@ few Elasticsearch default settings to higher values:
 * Kegg?, Biocyc?, REACTOME?, Rhea?
 * Gene names and synonyms?
 * Sample sequence similarity search results, in BLAST xml2 and SAM formats?
+  (SeQC project has python reader for SAM/BAM files??)
 
 ## Copyright
 This project has been developed
