@@ -1,0 +1,5 @@
+{
+  "comment": "Elasticsearch server URL",
+  "host": "localhost",
+  "port": 9200
+}
