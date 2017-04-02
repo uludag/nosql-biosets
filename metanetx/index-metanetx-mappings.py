@@ -12,9 +12,9 @@ from elasticsearch.helpers import streaming_bulk
 chunksize = 2048
 
 
-# Index chem_prop.tsv which has the following header
+# Parse chem_prop.tsv which has the following header
 # #MNX_ID	Description	Formula	Charge	Mass	InChi	SMILES	Source
-def getcompoundrecord(row):
+def getcompoundrecord(row, _):
     sourcelib = None
     sourceid = None
     j = row[7].find(':')
@@ -25,15 +25,33 @@ def getcompoundrecord(row):
         '_id':     row[0], 'desc':   row[1],
         'formula': row[2], 'charge': row[3],
         'mass':    row[4], 'inchi':  row[5],
-        'smiles':  row[6],
+        'smiles':  row[6], '_type':  'compound',
         'source': {'lib': sourcelib, 'id': sourceid}
     }
     return r
 
 
-# Index react_prop.tsv file which has the following header
+# Parse chem_xref.tsv file which has the following header
+# #XREF   MNX_ID  Evidence        Description
+def getcompoundxrefrecord(row, i):
+    sourcelib = None
+    sourceid = None
+    j = row[0].find(':')
+    if j > 0:
+        sourcelib = row[0][0:j]
+        sourceid = row[0][j + 1:]
+    r = {
+        '_id':      i,
+        'metanetxid': row[1], 'evidence': row[2],
+        'desc':       row[3], '_type':    "compoundxref",
+        'xref': {'lib': sourcelib, 'id': sourceid}
+    }
+    return r
+
+
+# Parse react_prop.tsv file which has the following header
 # #MNX_ID Equation        Description     Balance EC      Source
-def getreactionrecord(row):
+def getreactionrecord(row, _):
     sourcelib = None
     sourceid = None
     j = row[5].find(':')
@@ -43,31 +61,33 @@ def getreactionrecord(row):
     r = {
         '_id':  row[0], 'equation': row[1],
         'desc': row[2], 'balance':  row[3],
-        'ecno': row[4],
+        'ecno': row[4], '_type':    "reaction",
         'source': {'lib': sourcelib, 'id': sourceid}
     }
     return r
 
 
 def read_metanetx_mappings(infile, metanetxparser):
-    with open(infile, newline='') as csvfile:
+    i = 0
+    with open(infile) as csvfile:
         reader = csv.reader(csvfile, delimiter='\t', quotechar='|')
         for row in reader:
             if row[0][0] == '#':
                 continue
-            r = metanetxparser(row)
+            i += 1
+            r = metanetxparser(row, i)
             yield r
 
 
-def es_index(escon, reader, doctype):
-    print("Reading and indexing %s records" % doctype)
+def es_index(escon, reader):
+    # TODO: recommended/safer way to read 'infile'
+    print("Reading from %s" % reader.gi_frame.f_locals['infile'])
     i = 0
     t1 = time.time()
     for ok, result in streaming_bulk(
             escon,
             reader,
             index=args.index,
-            doc_type=doctype,
             chunk_size=chunksize
     ):
         action, result = result.popitem(); i += 1
@@ -92,6 +112,9 @@ if __name__ == '__main__':
     parser.add_argument('--compoundsfile',
                         default="./data/chem_prop.tsv",
                         help='Metanetx chem_prop.tsv file')
+    parser.add_argument('--compoundsxreffile',
+                        default="./data/chem_xref.tsv",
+                        help='Metanetx chem_xref.tsv file')
     parser.add_argument('--reactionsfile',
                         default="./data/reac_prop.tsv",
                         help='Metanetx reac_prop.tsv file')
@@ -110,8 +133,8 @@ if __name__ == '__main__':
         es.indices.delete(index=args.index, params={"timeout": "10s"})
     es.indices.create(index=args.index, params={"timeout": "10s"},
                       ignore=400)
-    es_index(es, read_metanetx_mappings(args.compoundsfile, getcompoundrecord),
-             "compound")
-    es_index(es, read_metanetx_mappings(args.reactionsfile, getreactionrecord),
-             "reaction")
+    es_index(es, read_metanetx_mappings(args.compoundsfile, getcompoundrecord))
+    es_index(es, read_metanetx_mappings(args.compoundsxreffile,
+                                        getcompoundxrefrecord))
+    es_index(es, read_metanetx_mappings(args.reactionsfile, getreactionrecord))
     es.indices.refresh(index=args.index)
