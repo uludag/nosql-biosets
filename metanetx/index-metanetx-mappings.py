@@ -12,7 +12,7 @@ from elasticsearch.helpers import streaming_bulk
 chunksize = 2048
 
 
-# Parse chem_prop.tsv which has the following header
+# Parse records in chem_prop.tsv file which has the following header
 # #MNX_ID	Description	Formula	Charge	Mass	InChi	SMILES	Source
 def getcompoundrecord(row, _):
     sourcelib = None
@@ -31,7 +31,7 @@ def getcompoundrecord(row, _):
     return r
 
 
-# Parse chem_xref.tsv file which has the following header
+# Parse records in chem_xref.tsv file which has the following header
 # #XREF   MNX_ID  Evidence        Description
 def getcompoundxrefrecord(row, i):
     sourcelib = None
@@ -49,7 +49,35 @@ def getcompoundxrefrecord(row, i):
     return r
 
 
-# Parse react_prop.tsv file which has the following header
+# Parse records in reac_xref.tsv file which has the following header
+# #XREF   MNX_ID
+def getreactionxrefrecord(row):
+    reflib = None
+    refid = None
+    j = row[0].find(':')
+    if j > 0:
+        reflib = row[0][0:j]
+        refid = row[0][j + 1:]
+    metanetxid = row[1]
+    return metanetxid, [reflib, refid]
+
+
+# Get reaction xrefs in a map
+def getreactionxrefs(infile):
+    map = dict()
+    with open(infile) as csvfile:
+        reader = csv.reader(csvfile, delimiter='\t', quotechar='|')
+        for row in reader:
+            if row[0][0] == '#':
+                continue
+            key, val = getreactionxrefrecord(row)
+            if key not in map:
+                map[key] = []
+            map[key].append(val)
+    return map
+
+
+# Parse records in react_prop.tsv file which has the following header
 # #MNX_ID Equation        Description     Balance EC      Source
 def getreactionrecord(row, _):
     sourcelib = None
@@ -62,7 +90,8 @@ def getreactionrecord(row, _):
         '_id':  row[0], 'equation': row[1],
         'desc': row[2], 'balance':  row[3],
         'ecno': row[4], '_type':    "reaction",
-        'source': {'lib': sourcelib, 'id': sourceid}
+        'source': {'lib': sourcelib, 'id': sourceid},
+        'xrefs': xrefsmap[row[0]]
     }
     return r
 
@@ -118,9 +147,12 @@ if __name__ == '__main__':
     parser.add_argument('--reactionsfile',
                         default="./data/reac_prop.tsv",
                         help='Metanetx reac_prop.tsv file')
+    parser.add_argument('--reactionsxreffile',
+                        default="./data/reac_xref.tsv",
+                        help='Metanetx reac_xref.tsv file')
     parser.add_argument('--index',
-                        default="metanet",
-                        help='name of the elasticsearch index')
+                        default="metanetx",
+                        help='name of the Elasticsearch index')
     parser.add_argument('--host', default=conf['host'],
                         help='Elasticsearch server hostname')
     parser.add_argument('--port', default=conf['port'],
@@ -136,5 +168,7 @@ if __name__ == '__main__':
     es_index(es, read_metanetx_mappings(args.compoundsfile, getcompoundrecord))
     es_index(es, read_metanetx_mappings(args.compoundsxreffile,
                                         getcompoundxrefrecord))
+    xrefsmap = getreactionxrefs(args.reactionsxreffile)
     es_index(es, read_metanetx_mappings(args.reactionsfile, getreactionrecord))
+
     es.indices.refresh(index=args.index)
