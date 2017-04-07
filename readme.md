@@ -3,8 +3,8 @@
 Inspired by the [nosql-tests](https://github.com/weinberger/nosql-tests/)
 project we want to develop scripts for NoSQL indexing and querying of
 sample bioinformatics datasets.
-We are in early stages of the project and we have scripts for indexing
-6 sample datasets with using Elasticsearch.
+We are in early stages of the project and we have draft scripts for indexing
+the following sample datasets with Elasticsearch.
 
 * PubChem BioAssay json files: ftp://ftp.ncbi.nlm.nih.gov/pubchem/Bioassay/JSON
 * WikiPathways gpml files: http://www.wikipathways.org/index.php/Download_Pathways
@@ -12,6 +12,9 @@ We are in early stages of the project and we have scripts for indexing
 * Ensembl regulatory build GFF files: ftp://ftp.ensembl.org/pub/release-87/regulation/homo_sapiens
 * NCBI PubTator gene2pub mapping: ftp://ftp.ncbi.nlm.nih.gov/pub/lu/PubTator
 * MetanetX compound/reaction data files: http://www.metanetx.org/mnxdoc/mnxref.html
+* HGNC, genenames.org data files: http://www.genenames.org/cgi-bin/statistics,
+  ftp://ftp.ebi.ac.uk/pub/databases/genenames/new/json/
+
 
 ### Notes on PMC articles
 
