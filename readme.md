@@ -3,8 +3,9 @@
 Inspired by the [nosql-tests](https://github.com/weinberger/nosql-tests/)
 project we want to develop scripts for NoSQL indexing and querying of
 sample bioinformatics datasets.
-We are in early stages of the project and we have draft scripts for indexing
-the following sample datasets with Elasticsearch.
+We are in early stages of the project, now we have draft scripts for indexing
+the following sample datasets with Elasticsearch, later we want to implement
+sample scripts to query individual indexes as well as multiple indexes. 
 
 * PubChem BioAssay json files: ftp://ftp.ncbi.nlm.nih.gov/pubchem/Bioassay/JSON
 * WikiPathways gpml files: http://www.wikipathways.org/index.php/Download_Pathways
@@ -30,7 +31,7 @@ pip install --upgrade --user git+https://github.com/titipata/pubmed_parser.git
 ```
 ### Notes on PubTator datasets 
 
-[index-pubtator-files.py](index-pubtator-files.py) reads and indexes NCBI
+[index-pubtator-files.py](pubtator/index-pubtator-files.py) reads and indexes NCBI
 PubTator gene2pub mappings
 
 TODO:

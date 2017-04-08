@@ -1,6 +1,5 @@
-#!/usr/bin/python3
-
-# Sample queries for PubChem Bioassays indices
+#!/usr/bin/env python3
+""" Sample queries for PubChem Bioassays indices """
 
 import argparse
 
@@ -40,7 +39,7 @@ class Tests:
 
     # Check number of tested substances for sample assays
     def check_numberoftestedsubstances(self):
-        tsubts = ((638250, 5), (1120060, 27))
+        tsubts = ((638250, 5), (1120060, 27), (1224859, 5683))
         for (aid, n) in tsubts:
             qc = { "match": {"assay.descr.aid.id": aid}}
             aggqc = {
@@ -133,9 +132,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Query PubChem Bioassays Elasticsearch index')
     parser.add_argument('--index',
-                        default="pubchem-bioassays-test21",
+                        default="pubchem-bioassays-test1",
                         help='name of the elasticsearch index')
-    parser.add_argument('--host', default="esnode-ruqayyah",
+    parser.add_argument('--host', default="localhost",
                         help='Elasticsearch server hostname')
     parser.add_argument('--port', default="9200",
                         help="Elasticsearch server port")
