@@ -4,8 +4,7 @@ Inspired by the [nosql-tests](https://github.com/weinberger/nosql-tests/)
 project we want to develop scripts for NoSQL indexing and querying of
 sample bioinformatics datasets.
 We are in early stages of the project, now we have draft scripts for indexing
-the following sample datasets with Elasticsearch, later we want to implement
-sample scripts to query individual indexes as well as multiple indexes. 
+the following sample datasets with Elasticsearch.
 
 * PubChem BioAssay json files: ftp://ftp.ncbi.nlm.nih.gov/pubchem/Bioassay/JSON
 * WikiPathways gpml files: http://www.wikipathways.org/index.php/Download_Pathways
@@ -16,6 +15,12 @@ sample scripts to query individual indexes as well as multiple indexes.
 * HGNC, genenames.org data files: http://www.genenames.org/cgi-bin/statistics,
   ftp://ftp.ebi.ac.uk/pub/databases/genenames/new/json/
 
+In addition to above indexers we have developed index scripts for sequence
+similarity search results either in BLAST xml2/json format or in SAM/BAM format,
+https://github.com/uludag/hspsdb-indexer
+
+In the next stage of the project we want to implement
+sample scripts to query individual indexes as well as multiple indexes.
 
 ### Notes on PMC articles
 
@@ -78,9 +83,6 @@ few Elasticsearch default settings to higher values:
 
 ### Datasets we are considering to include: 
 * Kegg?, Biocyc?, REACTOME?, Rhea?
-* Gene names and synonyms?
-* Sample sequence similarity search results, in BLAST xml2 and SAM formats?
-  (SeQC project has python reader for SAM/BAM files??)
 
 ## Copyright
 This project has been developed
