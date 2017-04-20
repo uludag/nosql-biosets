@@ -26,27 +26,38 @@ def getcompoundrecord(row, _):
         'formula': row[2], 'charge': row[3],
         'mass':    row[4], 'inchi':  row[5],
         'smiles':  row[6], '_type':  'compound',
-        'source': {'lib': sourcelib, 'id': sourceid}
+        'source': {'lib': sourcelib, 'id': sourceid},
+        'xrefs': xrefsmap[row[0]]
     }
     return r
 
 
 # Parse records in chem_xref.tsv file which has the following header
 # #XREF   MNX_ID  Evidence        Description
-def getcompoundxrefrecord(row, i):
+def getcompoundxrefrecord(row):
     sourcelib = None
     sourceid = None
     j = row[0].find(':')
     if j > 0:
         sourcelib = row[0][0:j]
         sourceid = row[0][j + 1:]
-    r = {
-        '_id':      i,
-        'metanetxid': row[1], 'evidence': row[2],
-        'desc':       row[3], '_type':    "compoundxref",
-        'xref': {'lib': sourcelib, 'id': sourceid}
-    }
-    return r
+    metanetxid = row[1]
+    return metanetxid, [sourcelib, sourceid, row[2], row[3]]
+
+
+# Collect compound xrefs in a map
+def getcompoundxrefs(infile):
+    cxrefs = dict()
+    with open(infile) as csvfile:
+        reader = csv.reader(csvfile, delimiter='\t', quotechar='|')
+        for row in reader:
+            if row[0][0] == '#':
+                continue
+            key, val = getcompoundxrefrecord(row)
+            if key not in cxrefs:
+                cxrefs[key] = []
+            cxrefs[key].append(val)
+    return cxrefs
 
 
 # Parse records in reac_xref.tsv file which has the following header
@@ -62,19 +73,19 @@ def getreactionxrefrecord(row):
     return metanetxid, [reflib, refid]
 
 
-# Get reaction xrefs in a map
+# Collect reaction xrefs in a map
 def getreactionxrefs(infile):
-    map = dict()
+    rxrefs = dict()
     with open(infile) as csvfile:
         reader = csv.reader(csvfile, delimiter='\t', quotechar='|')
         for row in reader:
             if row[0][0] == '#':
                 continue
             key, val = getreactionxrefrecord(row)
-            if key not in map:
-                map[key] = []
-            map[key].append(val)
-    return map
+            if key not in rxrefs:
+                rxrefs[key] = []
+            rxrefs[key].append(val)
+    return rxrefs
 
 
 # Parse records in react_prop.tsv file which has the following header
@@ -109,7 +120,6 @@ def read_metanetx_mappings(infile, metanetxparser):
 
 
 def es_index(escon, reader):
-    # TODO: recommended/safer way to read 'infile'
     print("Reading from %s" % reader.gi_frame.f_locals['infile'])
     i = 0
     t1 = time.time()
@@ -119,7 +129,8 @@ def es_index(escon, reader):
             index=args.index,
             chunk_size=chunksize
     ):
-        action, result = result.popitem(); i += 1
+        action, result = result.popitem()
+        i += 1
         doc_id = '/%s/commits/%s' % (args.index, result['_id'])
         if not ok:
             print('Failed to %s document %s: %r' % (action, doc_id, result))
@@ -133,7 +144,7 @@ def es_index(escon, reader):
 if __name__ == '__main__':
     conf = {"host": "localhost", "port": 9200}
     try:
-        conf = json.load(open("../conf/elasticsearch.json", "rt"))
+        conf = json.load(open("../conf/elasticsearch.json", "r"))
     finally:
         pass
     parser = argparse.ArgumentParser(
@@ -151,7 +162,7 @@ if __name__ == '__main__':
                         default="./data/reac_xref.tsv",
                         help='Metanetx reac_xref.tsv file')
     parser.add_argument('--index',
-                        default="metanetx",
+                        default="metanetx-0.2",
                         help='name of the Elasticsearch index')
     parser.add_argument('--host', default=conf['host'],
                         help='Elasticsearch server hostname')
@@ -165,9 +176,9 @@ if __name__ == '__main__':
         es.indices.delete(index=args.index, params={"timeout": "10s"})
     es.indices.create(index=args.index, params={"timeout": "10s"},
                       ignore=400)
+
+    xrefsmap = getcompoundxrefs(args.compoundsxreffile)
     es_index(es, read_metanetx_mappings(args.compoundsfile, getcompoundrecord))
-    es_index(es, read_metanetx_mappings(args.compoundsxreffile,
-                                        getcompoundxrefrecord))
     xrefsmap = getreactionxrefs(args.reactionsxreffile)
     es_index(es, read_metanetx_mappings(args.reactionsfile, getreactionrecord))
 
