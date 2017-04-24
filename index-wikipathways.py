@@ -37,7 +37,7 @@ def read_and_index_pathways(infile, es, indexf):
     return None
 
 
-# Read Wikipathways file, index using the function indexf
+# Read WikiPathways file, index using the function indexf
 def read_and_index_wikipathways_file(infile_, es, indexf):
     infile = str(infile_)
     print("Reading %s " % infile)
@@ -69,16 +69,7 @@ def es_index_pathway(es, ba, docid):
     return r
 
 
-def main(es, infile, index):
-    # es.indices.delete(index=index, params={"timeout": "10s"})
-    iconfig = json.load(open("wikipathways-index-config.json", "rt"))
-    es.indices.create(index=index, params={"timeout": "10s"},
-                      ignore=400, body=iconfig)
-    read_and_index_pathways(infile, es, es_index_pathway)
-    es.indices.refresh(index=index)
-
-
-# Read Wikipathways zipfile, index using the index-function
+# Read WikiPathways zipfile, index using the function indexf
 def read_and_index_wikipathways_zipfile(zipfile, es, indexf):
     print("Reading %s " % zipfile)
     i = 0
@@ -97,21 +88,30 @@ def read_and_index_wikipathways_zipfile(zipfile, es, indexf):
     return i
 
 
+def main(es, infile, index):
+    # es.indices.delete(index=index, params={"timeout": "10s"})
+    iconfig = json.load(open("wikipathways-index-config.json", "rt"))
+    es.indices.create(index=index, params={"timeout": "10s"},
+                      ignore=400, body=iconfig)
+    read_and_index_pathways(infile, es, es_index_pathway)
+    es.indices.refresh(index=index)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Index WikiPathways entries, using Elasticsearch')
     parser.add_argument('-infile', '--infile',
-                        # default="Hs_SUMOylation_of_chromatin_organization_proteins_WP3799_86403.gpml",
+        # default="Hs_SUMOylation_of_chromatin_organization_proteins_WP3799_86403.gpml",
+        #default="./wikipathways_Arabidopsis_thaliana_Curation-AnalysisCollection__gpml.zip",
                         default="./wikipathways/data/",
-                        #default="./wikipathways_Arabidopsis_thaliana_Curation-AnalysisCollection__gpml.zip",
-                        help='input file name or folder with WikiPathways files')
+                        help='Input file or folder name with WikiPathways file(s)')
     parser.add_argument('--index',
                         default="wikipathways",
-                        help='name of the Elasticsearch index')
+                        help='Name of the Elasticsearch index')
     parser.add_argument('--host', default="localhost",
                         help='Elasticsearch server hostname')
     parser.add_argument('--port', default="9200",
-                        help="Elasticsearch server port")
+                        help="Elasticsearch server port number")
     args = parser.parse_args()
     infile = args.infile
     index = args.index

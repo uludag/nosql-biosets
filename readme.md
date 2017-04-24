@@ -15,11 +15,11 @@ the following sample datasets with Elasticsearch.
 * HGNC, genenames.org data files: http://www.genenames.org/cgi-bin/statistics,
   ftp://ftp.ebi.ac.uk/pub/databases/genenames/new/json/
 
-In addition to above indexers we have developed index scripts for sequence
+In addition to above datasets we have developed index scripts for sequence
 similarity search results either in BLAST xml2/json format or in SAM/BAM format,
 https://github.com/uludag/hspsdb-indexer
 
-In the next stage of the project we want to implement
+In the next stage of the project we want to develop
 sample scripts to query individual indexes as well as multiple indexes.
 
 ### Notes on PMC articles
@@ -37,7 +37,7 @@ pip install --upgrade --user git+https://github.com/titipata/pubmed_parser.git
 ### Notes on PubTator datasets 
 
 [index-pubtator-files.py](pubtator/index-pubtator-files.py) reads and indexes NCBI
-PubTator gene2pub mappings
+PubTator gene2pub and disease2pub mappings
 
 TODO:
 
@@ -83,6 +83,7 @@ few Elasticsearch default settings to higher values:
 
 ### Datasets we are considering to include: 
 * Kegg?, Biocyc?, REACTOME?, Rhea?
+* HMDB? http://www.hmdb.ca/
 
 ## Copyright
 This project has been developed

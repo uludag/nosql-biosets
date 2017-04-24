@@ -4,7 +4,7 @@
 
     "gene2pub": {
       "properties": {
-        "geneid": {
+        "geneids": {
           "type": "integer"
         },
         "mentions": {
