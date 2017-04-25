@@ -3,7 +3,7 @@
 Inspired by the [nosql-tests](https://github.com/weinberger/nosql-tests/)
 project we want to develop scripts for NoSQL indexing and querying of
 sample bioinformatics datasets.
-We are in early stages of the project, now we have draft scripts for indexing
+We are in early stages of the project, we have draft scripts for indexing
 the following sample datasets with Elasticsearch.
 
 * PubChem BioAssay json files: ftp://ftp.ncbi.nlm.nih.gov/pubchem/Bioassay/JSON
@@ -19,7 +19,7 @@ In addition to above datasets we have developed index scripts for sequence
 similarity search results either in BLAST xml2/json format or in SAM/BAM format,
 https://github.com/uludag/hspsdb-indexer
 
-In the next stage of the project we want to develop
+In later stages of the project we want to develop
 sample scripts to query individual indexes as well as multiple indexes.
 
 ### Notes on PMC articles
@@ -40,20 +40,19 @@ pip install --upgrade --user git+https://github.com/titipata/pubmed_parser.git
 PubTator gene2pub and disease2pub mappings
 
 TODO:
-
 * Support for other PubTator mappings
+* Gene-disease network? (neo4j?, networkx?)
 
-### Notes on PubChem dataset
+### Notes on PubChem datasets
 
 [index-pubchem-bioassays.py](index-pubchem-bioassays.py) reads and indexes
 the compressed and archived PubChem BioAssay json files,
 without extracting them to temporary files
 
 TODO:
-
 * Support for entries larger than 800mb
 * Use bulk indexer
-* Mappings for Elasticsearch 2?
+* Index PubChem Substances (skip Compound Atoms?)
 
 ### Notes on WikiPathways datasets
 

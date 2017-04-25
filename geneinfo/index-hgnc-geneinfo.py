@@ -3,7 +3,7 @@
 
 import argparse
 import gzip
-import json
+import json, os
 
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import streaming_bulk
@@ -52,9 +52,9 @@ def es_index_genes(es, l):
 
 def main(es, infile, index):
     # es.indices.delete(index=index, params={"timeout": "10s"})
-    # iconfig = json.load(open("./mappings/protein-coding-genes.json", "rt"))
     es.indices.create(index=index, params={"timeout": "20s"},
-                      ignore=400,  # body=iconfig,
+                      ignore=400,  body={
+            "settings": {"number_of_replicas": 0}},
                       wait_for_active_shards=1)
     read_and_index_hgnc_file(infile, es, es_index_genes)
     es.indices.refresh(index=index)
@@ -63,7 +63,8 @@ def main(es, infile, index):
 if __name__ == '__main__':
     conf = {"host": "localhost", "port": 9200}
     try:
-        conf = json.load(open("../conf/elasticsearch.json", "rt"))
+        d = os.path.dirname(os.path.abspath(__file__))
+        conf = json.load(open(d+"/../conf/elasticsearch.json", "r"))
     finally:
         pass
     parser = argparse.ArgumentParser(
@@ -72,7 +73,7 @@ if __name__ == '__main__':
                         default="./data/protein-coding_gene.json",
                         help='input file to index')
     parser.add_argument('--index',
-                        default="hgnc-geneinfo",
+                        default="geneinfo",
                         help='Elasticsearch index')
     parser.add_argument('--host', default=conf['host'],
                         help='Elasticsearch server hostname')

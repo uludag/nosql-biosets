@@ -83,7 +83,6 @@ if __name__ == '__main__':
     conf = {"host": "localhost", "port": 9200}
     try:
         d = os.path.dirname(os.path.abspath(__file__))
-        print(d)
         conf = json.load(open(d + "/../conf/elasticsearch.json", "rt"))
     finally:
         pass
