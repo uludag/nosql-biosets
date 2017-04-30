@@ -1,9 +1,11 @@
 #!/usr/bin/env python
+""" Index Metanetx compound/reaction files with Elasticsearch """
 from __future__ import print_function
 
 import argparse
 import csv
 import json
+import os
 import time
 
 from elasticsearch import Elasticsearch
@@ -143,23 +145,24 @@ def es_index(escon, reader):
 
 if __name__ == '__main__':
     conf = {"host": "localhost", "port": 9200}
+    d = os.path.dirname(os.path.abspath(__file__))
     try:
-        conf = json.load(open("../conf/elasticsearch.json", "r"))
+        conf = json.load(open(d + "/../conf/elasticsearch.json", "r"))
     finally:
         pass
     parser = argparse.ArgumentParser(
         description='Index Metanetx compound/reaction files with Elasticsearch')
     parser.add_argument('--compoundsfile',
-                        default="./data/chem_prop.tsv",
+                        default=d + "/data/chem_prop.tsv",
                         help='Metanetx chem_prop.tsv file')
     parser.add_argument('--compoundsxreffile',
-                        default="./data/chem_xref.tsv",
+                        default=d + "/data/chem_xref.tsv",
                         help='Metanetx chem_xref.tsv file')
     parser.add_argument('--reactionsfile',
-                        default="./data/reac_prop.tsv",
+                        default=d + "/data/reac_prop.tsv",
                         help='Metanetx reac_prop.tsv file')
     parser.add_argument('--reactionsxreffile',
-                        default="./data/reac_xref.tsv",
+                        default=d + "/data/reac_xref.tsv",
                         help='Metanetx reac_xref.tsv file')
     parser.add_argument('--index',
                         default="metanetx-0.2",
