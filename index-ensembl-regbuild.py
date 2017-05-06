@@ -78,10 +78,11 @@ if __name__ == '__main__':
         pass
 
     parser = argparse.ArgumentParser(
-        description='Index Ensembl TF binding sites using Elasticsearch')
+        description='Index Ensembl Transcription Factors binding sites '
+                    'gff file using Elasticsearch')
     parser.add_argument('--motifsgff',
                         default="./data/hg38.ensrb_motiffeatures.r87.gff",
-                        help='Transcription factor binding sites gff file to index')
+                        help='Transcription Factors binding sites gff file')
     parser.add_argument('--regregionssgff',
                         default="./data/hg38.ensrb_features.r87.gff",
                         help='Regulatory regions gff file to index')

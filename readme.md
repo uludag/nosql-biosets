@@ -16,8 +16,8 @@ the following sample datasets with Elasticsearch.
   ftp://ftp.ebi.ac.uk/pub/databases/genenames/new/json/
 
 In addition to above datasets we have developed index scripts for sequence
-similarity search results either in BLAST xml2/json format or in SAM/BAM format,
-https://github.com/uludag/hspsdb-indexer
+similarity search results either in NCBI-BLAST xml/json formats
+or in SAM/BAM formats, https://github.com/uludag/hspsdb-indexer
 
 In later stages of the project we want to develop
 sample scripts to query individual indexes as well as multiple indexes.
@@ -75,7 +75,7 @@ few Elasticsearch default settings to higher values:
 
 * Set `http.max_content_length: 800mb`, default 100mb,
   in your Elasticsearch configuration file `config/elasticsearch.yml`
-* Large entries mean more garbage collection activity;
+* Large entries mean more garbage collection;
   [make sure garbage collection is fast](https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-configuration-memory.html) 
   by preventing any Elasticsearch memory from being swapped out
   
@@ -86,4 +86,4 @@ few Elasticsearch default settings to higher values:
 
 ## Copyright
 This project has been developed
-in King Abdullah University of Science and Technology (http://www.kaust.edu.sa)
+at King Abdullah University of Science and Technology (http://www.kaust.edu.sa)
