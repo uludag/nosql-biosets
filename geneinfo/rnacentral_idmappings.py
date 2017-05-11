@@ -22,7 +22,8 @@ def mappingreader(infile):
     else:
         f = open(infile, 'rt')
     csvfile = f
-    mappings = []; previd = None
+    mappings = []
+    previd = None
     for row in csv.reader(csvfile, delimiter='\t'):
         rid = row[0]
         if i != 0 and previd != rid:
@@ -37,17 +38,14 @@ def mappingreader(infile):
     f.close()
     t2 = time.time()
     logging.debug("-- %d id mappings line processed, in %dms"
-          % (i, (t2 - t1) * 1000))
+                  % (i, (t2 - t1) * 1000))
 
 
 # Index RNAcentral id mappings csvfile with Elasticsearch
 def es_index_idmappings(es, csvfile, reader):
     for ok, result in streaming_bulk(
-            es,
-            reader(csvfile),
-            index=args.index,
-            doc_type='rnacentralidmapping',
-            chunk_size=512
+            es, reader(csvfile),
+            index=args.index, doc_type='rnacentralidmapping', chunk_size=512
     ):
         if not ok:
             action, result = result.popitem()
@@ -81,7 +79,7 @@ if __name__ == '__main__':
     parser.add_argument('--infile', help='input file to index')
     parser.add_argument('--index',
                         default="rnacentral-idmapping",
-                        help='name of the elasticsearch index')
+                        help='Name of the Elasticsearch index')
     parser.add_argument('--host', default="bio2rdf",
                         help='Elasticsearch server hostname')
     parser.add_argument('--port', default="9200",

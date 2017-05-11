@@ -55,19 +55,28 @@ def regregions(db):
         yield r
 
 
-def es_index(es, l, reader, doctype):
+def checkindex(es, index):
+    if es.indices.exists(index=index):
+        es.indices.delete(index=index, params={"timeout": "10s"})
+    indxcfg = {"settings": {
+        "index.number_of_replicas": 0, "index.refresh_interval": '360s'}}
+    es.indices.create(index=index, params={"timeout": "10s"},
+                      ignore=400, wait_for_active_shards=1)
+    es.indices.put_settings(index=index, body=indxcfg)
+
+
+def es_index(es, index, gffdb, reader, doctype):
+    checkindex(es, index)
     for ok, result in streaming_bulk(
-            es,
-            reader(l),
-            index=args.index,
-            doc_type=doctype,
-            chunk_size=chunksize
+            es, reader(gffdb),
+            index=index, doc_type=doctype, chunk_size=chunksize
     ):
-        action, result = result.popitem()
-        doc_id = '/%s/commits/%s' % (args.index, result['_id'])
         if not ok:
+            action, result = result.popitem()
+            doc_id = '/%s/commits/%s' % (args.index, result['_id'])
             print('Failed to %s document %s: %r' % (action, doc_id, result))
-    return 1
+    es.indices.refresh(index=index)
+    return
 
 
 if __name__ == '__main__':
@@ -78,17 +87,17 @@ if __name__ == '__main__':
         pass
 
     parser = argparse.ArgumentParser(
-        description='Index Ensembl Transcription Factors binding sites '
-                    'gff file using Elasticsearch')
+        description='Index Ensembl regulatory build '
+                    'gff files using Elasticsearch')
     parser.add_argument('--motifsgff',
-                        default="./data/hg38.ensrb_motiffeatures.r87.gff",
+                        default="./data/hg38.ensrb_motiffeatures.r88.gff.gz",
                         help='Transcription Factors binding sites gff file')
-    parser.add_argument('--regregionssgff',
-                        default="./data/hg38.ensrb_features.r87.gff",
-                        help='Regulatory regions gff file to index')
+    parser.add_argument('--regregionsgff',
+                        default="./data/hg38.ensrb_features.r88.gff.gz",
+                        help='Regulatory regions gff file')
     parser.add_argument('--index',
                         default="ensregbuild",
-                        help='name of the Elasticsearch index')
+                        help='Name of the Elasticsearch index')
     parser.add_argument('--host', default=conf['host'],
                         help='Elasticsearch server hostname')
     parser.add_argument('--port', default=conf['port'],
@@ -96,6 +105,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
     con = Elasticsearch(host=args.host, port=args.port, timeout=3600)
     tfbsdb = connectgffdb(args.motifsgff)
-    es_index(con, tfbsdb, tfs, "transcriptionfactor")
+    es_index(con, args.index, tfbsdb, tfs, "transcriptionfactor")
     regregionsdb = connectgffdb(args.regregionsgff)
-    es_index(con, regregionsdb, regregions, "regulatoryregion")
+    es_index(con, args.index, regregionsdb, regregions, "regulatoryregion")

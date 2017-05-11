@@ -9,13 +9,15 @@ the following sample datasets with Elasticsearch.
 * PubChem BioAssay json files: ftp://ftp.ncbi.nlm.nih.gov/pubchem/Bioassay/JSON
 * WikiPathways gpml files: http://www.wikipathways.org/index.php/Download_Pathways
 * PMC articles: ftp://ftp.ebi.ac.uk/pub/databases/pmc/manuscripts
-* Ensembl regulatory build GFF files:
-  ftp://ftp.ensembl.org/pub/release-87/regulation/homo_sapiens
+* Ensembl regulatory build GFF files
+  ([ensembl_regbuild.py](geneinfo/ensembl_regbuild.py))
+  ftp://ftp.ensembl.org/pub/current_regulation/homo_sapiens
 * NCBI PubTator gene2pub mapping: ftp://ftp.ncbi.nlm.nih.gov/pub/lu/PubTator
 * MetanetX compound/reaction data files: http://www.metanetx.org/mnxdoc/mnxref.html
 * HGNC, genenames.org data files: http://www.genenames.org/cgi-bin/statistics,
   ftp://ftp.ebi.ac.uk/pub/databases/genenames/new/json/
-* [RNAcentral identifier mappings](geneinfo/rnacentral_idmappings.py)
+* RNAcentral identifier mappings
+  ([rnacentral_idmappings.py](geneinfo/rnacentral_idmappings.py))
   ftp://ftp.ebi.ac.uk/pub/databases/RNAcentral/current_release/id_mapping/
 
 In addition to above datasets we have developed index scripts for sequence
