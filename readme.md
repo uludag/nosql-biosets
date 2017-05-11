@@ -9,22 +9,26 @@ the following sample datasets with Elasticsearch.
 * PubChem BioAssay json files: ftp://ftp.ncbi.nlm.nih.gov/pubchem/Bioassay/JSON
 * WikiPathways gpml files: http://www.wikipathways.org/index.php/Download_Pathways
 * PMC articles: ftp://ftp.ebi.ac.uk/pub/databases/pmc/manuscripts
-* Ensembl regulatory build GFF files: ftp://ftp.ensembl.org/pub/release-87/regulation/homo_sapiens
+* Ensembl regulatory build GFF files:
+  ftp://ftp.ensembl.org/pub/release-87/regulation/homo_sapiens
 * NCBI PubTator gene2pub mapping: ftp://ftp.ncbi.nlm.nih.gov/pub/lu/PubTator
 * MetanetX compound/reaction data files: http://www.metanetx.org/mnxdoc/mnxref.html
 * HGNC, genenames.org data files: http://www.genenames.org/cgi-bin/statistics,
   ftp://ftp.ebi.ac.uk/pub/databases/genenames/new/json/
+* [RNAcentral identifier mappings](geneinfo/rnacentral_idmappings.py)
+  ftp://ftp.ebi.ac.uk/pub/databases/RNAcentral/current_release/id_mapping/
 
 In addition to above datasets we have developed index scripts for sequence
 similarity search results either in NCBI-BLAST xml/json formats
 or in SAM/BAM formats, https://github.com/uludag/hspsdb-indexer
 
-In later stages of the project we want to develop
-sample scripts to query individual indexes as well as multiple indexes.
+In later stages of the project we want to connect these datasets as much as possible
+and develop sample scripts to query individual indexes as well as connected data
 
 ### Notes on PMC articles
 
-[index-pmc-articles.py](index-pmc-articles.py) reads and indexes archives of PMC articles xml files.
+[index-pmc-articles.py](index-pmc-articles.py) reads and indexes archives
+of PMC articles xml files.
 
 Install `pubmed_parser` library using its `setup.py` file or using `pip`
 ```
@@ -67,18 +71,19 @@ few Elasticsearch default settings to higher values:
 * Heap memory
 
     * _Elasticsearch-5_: Set `-Xms` AND `-Xmx` JVM settings to at least 14 GB,
-    in configuration file `config\jvm.options`
+    in configuration file `config/jvm.options`
 
-    * _Elasticsearch-2_: Set `ES_MIN_MEM` AND `ES_MAX_MEM` environment variables to at least 1 and 14 GBs,
-    (defaults are 256mb and 1GB), before calling your Elasticsearch server
-    start script `bin\elasticsearch`
+    * _Elasticsearch-2_: Set `ES_MIN_MEM` AND `ES_MAX_MEM` environment variables
+     to at least 1 and 14 GBs,
+     (defaults are 256mb and 1GB), before calling your Elasticsearch server
+    start script `bin/elasticsearch`
 
 * Set `http.max_content_length: 800mb`, default 100mb,
   in your Elasticsearch configuration file `config/elasticsearch.yml`
 * Large entries mean more garbage collection;
-  [make sure garbage collection is fast](https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-configuration-memory.html) 
-  by preventing any Elasticsearch memory from being swapped out
-  
+  [make sure garbage collection is fast](
+https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-configuration-memory.html) 
+  by preventing any Elasticsearch memory from being swapped out 
 
 ### Datasets we are considering to include: 
 * Kegg?, Biocyc?, REACTOME?, Rhea?
@@ -87,3 +92,6 @@ few Elasticsearch default settings to higher values:
 ## Copyright
 This project has been developed
 at King Abdullah University of Science and Technology (http://www.kaust.edu.sa)
+
+## Acknowledgement
+Computers and storages used in developing this work has been maintained by John Hanks

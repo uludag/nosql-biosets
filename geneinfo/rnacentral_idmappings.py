@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Index RNAcentral id mappings with Elasticsearch"""
 import argparse
 import csv
 import gzip
@@ -39,27 +40,31 @@ def mappingreader(infile):
           % (i, (t2 - t1) * 1000))
 
 
-# Index RNAcentral id mappings with Elasticsearch
+# Index RNAcentral id mappings csvfile with Elasticsearch
 def es_index_idmappings(es, csvfile, reader):
-    i = 0
     for ok, result in streaming_bulk(
             es,
             reader(csvfile),
             index=args.index,
             doc_type='rnacentralidmapping',
-            chunk_size=2048
+            chunk_size=512
     ):
-        action, result = result.popitem()
-        doc_id = '/%s/commits/%s' % (args.index, result['_id'])
         if not ok:
+            action, result = result.popitem()
+            doc_id = '/%s/commits/%s' % (args.index, result['_id'])
             print('Failed to %s document %s: %r' % (action, doc_id, result))
-    return i
+    return
 
 
 def main(es, infile, index):
-    # es.indices.delete(index=index, params={"timeout": "10s"})
-    es.indices.create(index=index, params={"timeout": "10s"},
-                      ignore=400)
+    if es.indices.exists(index=index):
+        es.indices.delete(index=index, params={"timeout": "10s"})
+    indxcfg = {"settings": {
+        "index.number_of_replicas": 0, "index.refresh_interval": '360s'}}
+    r = es.indices.create(index=index, params={"timeout": "10s"},
+                          ignore=400, wait_for_active_shards=1)
+    logging.debug(r)
+    es.indices.put_settings(index=index, body=indxcfg)
     es_index_idmappings(es, infile, mappingreader)
     es.indices.refresh(index=index)
 
@@ -73,10 +78,7 @@ if __name__ == '__main__':
         pass
     parser = argparse.ArgumentParser(
         description='Index RNAcentral id mappings with Elasticsearch')
-    parser.add_argument('--infile',
-                        #default="./data/rnacentral-6.0-id_mapping.tsv.gz",
-                        default=d+"/../data/rnacentral-6.0-id_mapping-first1000.tsv",
-                        help='input file to index')
+    parser.add_argument('--infile', help='input file to index')
     parser.add_argument('--index',
                         default="rnacentral-idmapping",
                         help='name of the elasticsearch index')

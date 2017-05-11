@@ -73,7 +73,7 @@ def es_index(es, l, reader, doctype):
 if __name__ == '__main__':
     conf = {"host": "localhost", "port": 9200}
     try:
-        conf = json.load(open("conf/elasticsearch.json", "rt"))
+        conf = json.load(open("conf/elasticsearch.json", "r"))
     finally:
         pass
 
@@ -94,9 +94,7 @@ if __name__ == '__main__':
     parser.add_argument('--port', default=conf['port'],
                         help="Elasticsearch server port")
     args = parser.parse_args()
-    host = args.host
-    port = args.port
-    con = Elasticsearch(host=host, port=port, timeout=3600)
+    con = Elasticsearch(host=args.host, port=args.port, timeout=3600)
     tfbsdb = connectgffdb(args.motifsgff)
     es_index(con, tfbsdb, tfs, "transcriptionfactor")
     regregionsdb = connectgffdb(args.regregionsgff)
