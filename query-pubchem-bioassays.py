@@ -41,11 +41,11 @@ class Tests:
     def check_numberoftestedsubstances(self):
         tsubts = ((638250, 5), (1120060, 27), (1224859, 5683))
         for (aid, n) in tsubts:
-            qc = { "match": {"assay.descr.aid.id": aid}}
+            qc = {"match": {"assay.descr.aid.id": aid}}
             aggqc = {
-                    "tested substances": { "terms": {
-                        "field": "data.sid",
-                        "size": 1
+                "tested substances": {"terms": {
+                    "field": "data.sid",
+                    "size": 1
                 }}}
             r = aggquery(self.es, self.index, qc, aggqc)
             ts = r['aggregations']['tested substances']
@@ -64,7 +64,7 @@ class Tests:
     def sample_aggregation_queries(self):
         # distribution of outcome methods with databases
         # for assays with at least one active outcome
-        qc = { "match": {"data.outcome": "active"}}
+        qc = {"match": {"data.outcome": "active"}}
         aggqc = {
             "database": {
                 "terms": {
@@ -98,8 +98,8 @@ class Tests:
                             "size": 10
                         }}}}}
         r = aggquery(self.es, self.index, qc, aggqc)
-        if r['aggregations']['database']['buckets'][0]\
-            ['substance']['buckets'][0]['doc_count'] < 200:
+        b = r['aggregations']['database']['buckets']
+        if len(b) > 0 and b[0]['substance']['buckets'][0]['doc_count'] < 200:
             print("less than expected number of substances")
         # distribution of reference genes with substances
         # for assays with reference genes defined
@@ -132,7 +132,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Query PubChem Bioassays Elasticsearch index')
     parser.add_argument('--index',
-                        default="pubchem-bioassays-test1",
+                        default="pubchem-bioassays",
                         help='name of the elasticsearch index')
     parser.add_argument('--host', default="localhost",
                         help='Elasticsearch server hostname')

@@ -2,6 +2,8 @@
 """ Sample queries with Metanetx compounds and reactions """
 
 import argparse
+import json
+import os
 
 from elasticsearch import Elasticsearch
 
@@ -11,11 +13,6 @@ def query(es, index, qc, doc_type=None, size=0):
     r = es.search(index=index, doc_type=doc_type,
                   body={"size": size, "query": qc})
     nhits = r['hits']['total']
-    if debug:
-        print("query returned %d entries" % nhits)
-        for doc in r['hits']['hits']:
-            aid = doc["_source"]['assay']['descr']['aid']['id']
-            print("%s -- " % aid)
     return r['hits']['hits'], nhits
 
 
@@ -23,11 +20,6 @@ def aggquery(es, index, qc, aggqc):
     print("querying %s with aggregations" % str(qc))
     r = es.search(index=index,
                   body={"size": 0, "query": qc, "aggs": aggqc})
-    if debug:
-        print("agg query returned %d entries" % r['hits']['total'])
-        for doc in r['hits']['hits']:
-            aid = doc["_source"]['assay']['descr']['aid']['id']
-            print("%s -- " % aid)
     return r
 
 
@@ -64,20 +56,21 @@ def main(es, index):
 
 
 if __name__ == '__main__':
+    conf = {"host": "localhost", "port": 9200}
+    d = os.path.dirname(os.path.abspath(__file__))
+    try:
+        conf = json.load(open(d + "/../conf/elasticsearch.json", "r"))
+    finally:
+        pass
     parser = argparse.ArgumentParser(
-        description='Query MetanetX Elasticsearch index with sample queries')
+        description='Query MetaNetX Elasticsearch index with sample queries')
     parser.add_argument('--index',
                         default="metanetx-0.2",
-                        help='name of the elasticsearch index')
-    parser.add_argument('--host', default="bio2rdf",
+                        help='Name of the elasticsearch index')
+    parser.add_argument('--host', default=conf['host'],
                         help='Elasticsearch server hostname')
-    parser.add_argument('--port', default="9200",
+    parser.add_argument('--port', default=conf['port'],
                         help="Elasticsearch server port")
-    parser.add_argument('--debug', default=False,
-                        help="print more information")
     args = parser.parse_args()
-    host = args.host
-    port = args.port
-    debug = args.debug
-    con = Elasticsearch(host=host, port=port, timeout=600)
+    con = Elasticsearch(host=args.host, port=args.port, timeout=600)
     main(con, args.index)

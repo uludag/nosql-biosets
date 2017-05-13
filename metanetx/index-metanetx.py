@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" Index Metanetx compound/reaction files with Elasticsearch """
+""" Index MetaNetX compound/reaction files with Elasticsearch """
 from __future__ import print_function
 
 import argparse
@@ -151,7 +151,7 @@ if __name__ == '__main__':
     finally:
         pass
     parser = argparse.ArgumentParser(
-        description='Index Metanetx compound/reaction files with Elasticsearch')
+        description='Index MetaNetX compound/reaction files with Elasticsearch')
     parser.add_argument('--compoundsfile',
                         default=d + "/data/chem_prop.tsv",
                         help='Metanetx chem_prop.tsv file')

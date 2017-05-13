@@ -58,11 +58,10 @@ def main(es, infile, index):
     if es.indices.exists(index=index):
         es.indices.delete(index=index, params={"timeout": "10s"})
     indxcfg = {"settings": {
-        "index.number_of_replicas": 0, "index.refresh_interval": '360s'}}
+        "index.number_of_replicas": 0, "index.refresh_interval": "360s"}}
     r = es.indices.create(index=index, params={"timeout": "10s"},
-                          ignore=400, wait_for_active_shards=1)
+                          wait_for_active_shards=1, body=indxcfg)
     logging.debug(r)
-    es.indices.put_settings(index=index, body=indxcfg)
     es_index_idmappings(es, infile, mappingreader)
     es.indices.refresh(index=index)
 
@@ -76,7 +75,7 @@ if __name__ == '__main__':
         pass
     parser = argparse.ArgumentParser(
         description='Index RNAcentral id mappings with Elasticsearch')
-    parser.add_argument('--infile', help='input file to index')
+    parser.add_argument('--infile', required=True, help='Input file to index')
     parser.add_argument('--index',
                         default="rnacentral-idmapping",
                         help='Name of the Elasticsearch index')
