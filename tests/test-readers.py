@@ -5,6 +5,7 @@ from geneinfo.ensembl_regbuild import connectgffdb
 from geneinfo.ensembl_regbuild import regregions
 from geneinfo.ensembl_regbuild import tfs
 from geneinfo.rnacentral_idmappings import mappingreader
+from pubtator.index_pubtator_mappings import parse_pub2gene_lines
 
 
 class ReadersTestCase(unittest.TestCase):
@@ -31,6 +32,13 @@ class ReadersTestCase(unittest.TestCase):
         db = connectgffdb(infile)
         l = [r for r in tfs(db)]
         self.assertEqual(len(l), 1000)
+
+    def test_gene2pubtator_reader(self):
+        infile = self.d + "/../data/gene2pubtator.sample"
+        r = 0
+        db = parse_pub2gene_lines(open(infile), r, 'gene2pub')
+        l = [m for m in db]
+        self.assertEqual(len(l), 1916)
 
 
 if __name__ == '__main__':

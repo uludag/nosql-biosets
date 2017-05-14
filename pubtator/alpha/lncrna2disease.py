@@ -2,7 +2,7 @@
 # Index PMC articles that have PubTator disease and gene annotations
 """ workflow to get gene and disease annotated articles:
 
-- Read NCBI gene IDs to a list (we generated this list together this afternoon, there is 2985 ENCODE lncRNAs that has NCBI gene ids)
+- Read NCBI gene IDs to a list (there is 2985 ENCODE lncRNAs that has NCBI gene ids)
 
 - Read PubTator gene annotations into a map, skip annotations with genes not included in the above lncRNA list
 

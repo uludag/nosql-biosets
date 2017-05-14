@@ -12,7 +12,7 @@ the following sample datasets with Elasticsearch.
 * Ensembl regulatory build GFF files
   ([ensembl_regbuild.py](geneinfo/ensembl_regbuild.py))
   ftp://ftp.ensembl.org/pub/current_regulation/homo_sapiens
-* NCBI PubTator gene2pub mapping: ftp://ftp.ncbi.nlm.nih.gov/pub/lu/PubTator
+* NCBI PubTator gene2pub and disease2pub mappings: ftp://ftp.ncbi.nlm.nih.gov/pub/lu/PubTator
 * MetanetX compound/reaction data files: http://www.metanetx.org/mnxdoc/mnxref.html
 * HGNC, genenames.org data files: http://www.genenames.org/cgi-bin/statistics,
   ftp://ftp.ebi.ac.uk/pub/databases/genenames/new/json/
