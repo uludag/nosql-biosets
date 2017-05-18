@@ -42,8 +42,8 @@ pip install --upgrade --user git+https://github.com/titipata/pubmed_parser.git
 ```
 ### Notes on PubTator datasets 
 
-[index-pubtator-files.py](pubtator/index-pubtator-files.py) reads and indexes NCBI
-PubTator gene2pub and disease2pub mappings
+[index-pubtator-files.py](pubtator/index-pubtator-files.py)
+reads and indexes NCBI PubTator gene2pub and disease2pub mappings
 
 TODO:
 * Support for other PubTator mappings
@@ -57,8 +57,8 @@ without extracting them to temporary files
 
 TODO:
 * Support for entries larger than 800mb
-* Use bulk indexer
-* Index PubChem Substances (skip Compound Atoms?)
+* Use bulk index API
+* Index other PubChem data types
 
 ### Notes on WikiPathways datasets
 
@@ -71,15 +71,12 @@ Since some of the PubChem BioAssay json files are large we need to change
 few Elasticsearch default settings to higher values:
 
 * Heap memory
-
     * _Elasticsearch-5_: Set `-Xms` AND `-Xmx` JVM settings to at least 14 GB,
     in configuration file `config/jvm.options`
-
     * _Elasticsearch-2_: Set `ES_MIN_MEM` AND `ES_MAX_MEM` environment variables
      to at least 1 and 14 GBs,
      (defaults are 256mb and 1GB), before calling your Elasticsearch server
     start script `bin/elasticsearch`
-
 * Set `http.max_content_length: 800mb`, default 100mb,
   in your Elasticsearch configuration file `config/elasticsearch.yml`
 * Large entries mean more garbage collection;
@@ -88,7 +85,7 @@ https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-configurat
   by preventing any Elasticsearch memory from being swapped out 
 
 ### Datasets we are considering to include: 
-* Kegg?, Biocyc?, REACTOME?, Rhea?
+* REACTOME?, Rhea?
 * HMDB? http://www.hmdb.ca/
 
 ## Copyright
@@ -96,4 +93,4 @@ This project has been developed
 at King Abdullah University of Science and Technology (http://www.kaust.edu.sa)
 
 ## Acknowledgement
-Computers and storages used in developing this work has been maintained by John Hanks
+Computers and file systems used in developing this work has been maintained by John Hanks

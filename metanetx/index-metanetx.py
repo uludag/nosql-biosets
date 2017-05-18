@@ -178,8 +178,7 @@ if __name__ == '__main__':
     if es.indices.exists(index=args.index):
         es.indices.delete(index=args.index, params={"timeout": "10s"})
     es.indices.create(index=args.index, params={"timeout": "10s"},
-                      ignore=400, body={
-            "settings": {"number_of_replicas": 0}})
+                      body={"settings": {"number_of_replicas": 0}})
 
     xrefsmap = getcompoundxrefs(args.compoundsxreffile)
     es_index(es, read_metanetx_mappings(args.compoundsfile, getcompoundrecord))

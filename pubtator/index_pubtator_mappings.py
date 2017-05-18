@@ -90,7 +90,7 @@ class Neo4jIndexer:
 
     def __init__(self):
         driver = GraphDatabase.driver("bolt://localhost",
-                                  auth=basic_auth("neo4j", "nur"))
+                                      auth=basic_auth("neo4j", "passwd"))
         self.session = driver.session()
 
     def indexwithneo4j(self):
@@ -116,9 +116,9 @@ class Neo4jIndexer:
             print(row)
             self.write_nodes(row)
             r += 1
-        print("%d interactions has been processed" % (r-1))
-        print("%d source proteins have been found" % len(self.pubs))
-        print("%d target lncRNA genes have been found" % len(self.genes))
+        print("%d mentions?? has been processed" % (r-1))
+        print("%d publications have been found" % len(self.pubs))
+        print("%d genes have been found" % len(self.genes))
         return r
 
     def write_nodes(self, intr):

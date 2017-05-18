@@ -24,7 +24,7 @@ class QueryMetanetx(unittest.TestCase):
     finally:
         pass
     es = Elasticsearch(host=conf['host'], port=conf['port'], timeout=600)
-    index = ""
+    index = "metanetx-0.2"
 
     def query_sample_keggids(self, l):
         qc = {"match": {"xrefs": ' '.join(l)}}
