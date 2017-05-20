@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+""" Tests with 'nosql-biosets' data readers """
 import os
 import unittest
 
@@ -36,9 +38,10 @@ class ReadersTestCase(unittest.TestCase):
     def test_gene2pubtator_reader(self):
         infile = self.d + "/../data/gene2pubtator.sample"
         r = 0
-        db = parse_pub2gene_lines(open(infile), r, 'gene2pub')
-        l = [m for m in db]
-        self.assertEqual(len(l), 1916)
+        with open(infile) as inf:
+            db = parse_pub2gene_lines(inf, r, 'gene2pub')
+            l = [m for m in db]
+            self.assertEqual(len(l), 1916)
 
 
 if __name__ == '__main__':

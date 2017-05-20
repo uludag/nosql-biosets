@@ -34,16 +34,18 @@ class QueryallTests(unittest.TestCase):
         return r
 
     def test_query(self):
-        """Makes a sample query with query term 'aa' grouping results with
-        types then the number of results are checked by by repeating the same
-        query with specifying type for each type"""
-        r = self.query(qterms=['aa'])
+        """Makes a sample query with sample query term 'p53',
+        grouping results with document types
+        then the number of results are checked by repeating
+        the same query with specifying document type with each type"""
+        qterms = ['p53']
+        r = self.query(qterms)
         types = r['aggregations']['type']['buckets']
         self.assertGreater(len(types), 1)
         for t in types:
             doctype = t['key']
-            print(doctype)
-            r = self.query(qterms=['aa'], doctype=doctype)
+            print("doctype: %s" % doctype)
+            r = self.query(qterms, doctype=doctype)
             self.assertEqual(r['hits']['total'], t['doc_count'])
 
 
