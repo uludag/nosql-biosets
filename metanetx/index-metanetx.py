@@ -172,9 +172,7 @@ if __name__ == '__main__':
     parser.add_argument('--port', default=conf['port'],
                         help="Elasticsearch server port")
     args = parser.parse_args()
-    host = args.host
-    port = args.port
-    es = Elasticsearch(host=host, port=port, timeout=3600)
+    es = Elasticsearch(host=args.host, port=args.port, timeout=3600)
     if es.indices.exists(index=args.index):
         es.indices.delete(index=args.index, params={"timeout": "10s"})
     es.indices.create(index=args.index, params={"timeout": "10s"},

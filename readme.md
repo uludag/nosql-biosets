@@ -6,26 +6,31 @@ sample bioinformatics datasets.
 We are in early stages of the project, we have draft scripts for indexing
 the following sample datasets with Elasticsearch.
 
-* PubChem BioAssay json files: ftp://ftp.ncbi.nlm.nih.gov/pubchem/Bioassay/JSON
+* PubChem BioAssay json files: http://ftp.ncbi.nlm.nih.gov/pubchem/Bioassay
 * WikiPathways gpml files: http://www.wikipathways.org/index.php/Download_Pathways
-* PMC articles: ftp://ftp.ebi.ac.uk/pub/databases/pmc/manuscripts
+* PMC articles: http://ftp.ebi.ac.uk/pub/databases/pmc/manuscripts
 * Ensembl regulatory build GFF files
   ([ensembl_regbuild.py](geneinfo/ensembl_regbuild.py))
-  ftp://ftp.ensembl.org/pub/current_regulation/homo_sapiens
-* NCBI PubTator gene2pub and disease2pub mappings: ftp://ftp.ncbi.nlm.nih.gov/pub/lu/PubTator
-* MetanetX compound/reaction data files: http://www.metanetx.org/mnxdoc/mnxref.html
+  http://ftp.ensembl.org/pub/current_regulation/homo_sapiens
+* HMDB protein/metabolite records:
+  http://www.hmdb.ca/downloads
+* NCBI PubTator gene2pub and disease2pub mappings:
+  http://ftp.ncbi.nlm.nih.gov/pub/lu/PubTator
+* MetanetX compound/reaction data files:
+  http://www.metanetx.org/mnxdoc/mnxref.html
 * HGNC, genenames.org data files: http://www.genenames.org/cgi-bin/statistics,
-  ftp://ftp.ebi.ac.uk/pub/databases/genenames/new/json/
+  http://ftp.ebi.ac.uk/pub/databases/genenames/new/json/
 * RNAcentral identifier mappings
   ([rnacentral_idmappings.py](geneinfo/rnacentral_idmappings.py))
-  ftp://ftp.ebi.ac.uk/pub/databases/RNAcentral/current_release/id_mapping/
+  http://ftp.ebi.ac.uk/pub/databases/RNAcentral/current_release/id_mapping/
 
-In addition to above datasets we have developed index scripts for sequence
-similarity search results either in NCBI-BLAST xml/json formats
-or in SAM/BAM formats, https://github.com/uludag/hspsdb-indexer
-
-In later stages of the project we want to connect these datasets as much as possible
+In later stages of the project we want to connect above datasets as much as possible
 and develop sample scripts to query individual indexes as well as connected data
+
+In a separate [project](https://github.com/uludag/hspsdb-indexer)
+we have developed index scripts for sequence
+similarity search results, either in NCBI-BLAST xml/json formats
+or in SAM/BAM formats 
 
 ### Notes on PMC articles
 
@@ -85,8 +90,7 @@ https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-configurat
   by preventing any Elasticsearch memory from being swapped out 
 
 ### Datasets we are considering to include: 
-* REACTOME?, Rhea?
-* HMDB? http://www.hmdb.ca/
+* REACTOME?, Rhea?, IntEnz?
 
 ## Copyright
 This project has been developed

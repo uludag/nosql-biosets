@@ -5,6 +5,6 @@
 
 * [query-pubtator.py](): Sample queries for PubTator annotations
 
-* [querysuggestions.py](): Sample suggestion/search queries
+* [querysuggestions.py](): Sample suggest/search queries
 
 * [test-readers.py](): Tests with 'nosql-biosets' data readers

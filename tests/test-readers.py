@@ -7,6 +7,7 @@ from geneinfo.ensembl_regbuild import connectgffdb
 from geneinfo.ensembl_regbuild import regregions
 from geneinfo.ensembl_regbuild import tfs
 from geneinfo.rnacentral_idmappings import mappingreader
+from hmdb.index import parse_hmdb_xmlfile
 from pubtator.index_pubtator_mappings import parse_pub2gene_lines
 
 
@@ -42,6 +43,21 @@ class ReadersTestCase(unittest.TestCase):
             db = parse_pub2gene_lines(inf, r, 'gene2pub')
             l = [m for m in db]
             self.assertEqual(len(l), 1916)
+
+    def hmdb_reader_helper(self, _, entry):
+        self.assertTrue('accession' in entry)
+        self.nhmdbentries += 1
+        return True
+
+    def test_hmdb_reader(self):
+        infile = self.d + "/../data/hmdb_csf_metabolites-first3.xml.gz"
+        self.nhmdbentries = 0
+        parse_hmdb_xmlfile(infile, self.hmdb_reader_helper)
+        self.assertEqual(self.nhmdbentries, 3)
+        infile = self.d + "/../data/hmdb_proteins-first10.xml.gz"
+        self.nhmdbentries = 0
+        parse_hmdb_xmlfile(infile, self.hmdb_reader_helper)
+        self.assertEqual(self.nhmdbentries, 10)
 
 
 if __name__ == '__main__':
