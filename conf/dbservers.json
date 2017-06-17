@@ -1,0 +1,7 @@
+{
+  "comment": "Elasticsearch and MongoDB servers host names and port numbers",
+  "es_host": "localhost",
+  "es_port": 9200,
+  "mongodb_host": "localhost",
+  "mongodb_port": 27017
+}

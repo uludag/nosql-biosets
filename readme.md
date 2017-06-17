@@ -72,7 +72,7 @@ the archived WikiPathways gpml files,
 without extracting them to temporary files
 
 ### Elasticsearch server settings
-Since some of the PubChem BioAssay json files are large we need to change
+Since some of the PubChem BioAssay json files are large they require to change
 few Elasticsearch default settings to higher values:
 
 * Heap memory
