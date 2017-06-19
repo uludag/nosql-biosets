@@ -6,7 +6,7 @@ import json
 
 class DBconnection(object):
 
-    def __init__(self, db, index, host, port):
+    def __init__(self, db, index, host=None, port=None):
         d = os.path.dirname(os.path.abspath(__file__))
         try:
             conf = json.load(open(d + "/../conf/dbservers.json", "r"))
