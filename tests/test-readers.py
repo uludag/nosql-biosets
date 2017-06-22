@@ -8,6 +8,7 @@ from geneinfo.ensembl_regbuild import regregions
 from geneinfo.ensembl_regbuild import tfs
 from geneinfo.rnacentral_idmappings import mappingreader
 from hmdb.index import parse_hmdb_xmlfile
+from nosqlbiosets.kegg.index import read_and_index_kegg_xmltarfile
 from pubtator.index_pubtator_mappings import parse_pub2gene_lines
 
 
@@ -58,6 +59,18 @@ class ReadersTestCase(unittest.TestCase):
         self.nhmdbentries = 0
         parse_hmdb_xmlfile(infile, self.hmdb_reader_helper)
         self.assertEqual(self.nhmdbentries, 10)
+
+    def kegg_xmlreader_helper(self, _, entry):
+        self.assertTrue('pathway' in entry)
+        self.nkeggentries += 1
+        return True
+
+    def test_kegg_xmltarfile_reader(self):
+        infile = self.d + "/../data/kegg/xml/kgml/metabolic/" \
+                          "organisms/hsa.tar.gz"
+        self.nkeggentries = 0
+        read_and_index_kegg_xmltarfile(infile, self.kegg_xmlreader_helper)
+        self.assertEqual(self.nkeggentries, 92)
 
 
 if __name__ == '__main__':
