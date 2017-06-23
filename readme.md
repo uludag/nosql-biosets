@@ -1,10 +1,13 @@
-# Scripts to index sample bioinformatics datasets with Elasticsearch 
+# Scripts to index sample bioinformatics datasets with NoSQL databases 
 
-Inspired by the [nosql-tests](https://github.com/weinberger/nosql-tests/)
-project we want to develop scripts for NoSQL indexing and querying of
+We want to develop scripts for NoSQL indexing and querying of
 sample bioinformatics datasets.
-We are in early stages of the project, we have draft scripts for indexing
-the following sample datasets with Elasticsearch.
+In the early stages of the project we developed scripts supporting
+Elasticsearch only. In most recent scripts we have implemented
+support for MongoDB as well.
+
+Following are the set of draft scripts we have,
+all supports Elasticsearch and few supports MongoDB.
 
 * PubChem BioAssay json files: http://ftp.ncbi.nlm.nih.gov/pubchem/Bioassay
 * WikiPathways gpml files: http://www.wikipathways.org/index.php/Download_Pathways
@@ -23,6 +26,12 @@ the following sample datasets with Elasticsearch.
 * RNAcentral identifier mappings
   ([rnacentral_idmappings.py](geneinfo/rnacentral_idmappings.py))
   http://ftp.ebi.ac.uk/pub/databases/RNAcentral/current_release/id_mapping/
+* KBase compounds/reactions data files
+  ([kbase/index.py](nosqlbiosets/kbase/index.py))
+  http://ftp.kbase.us/assets/KBase_Reference_Data/Biochemistry/
+* KEGG pathway kgml/xml files, pathway maps linked to gene ids
+  ([kegg/index.py](nosqlbiosets/kegg/index.py))
+  http://www.kegg.jp/kegg/download/Readme/README.kgml
 
 In later stages of the project we want to connect above datasets as much as possible
 and develop sample scripts to query individual indexes as well as connected data
@@ -30,7 +39,7 @@ and develop sample scripts to query individual indexes as well as connected data
 In a separate [project](https://github.com/uludag/hspsdb-indexer)
 we have developed index scripts for sequence
 similarity search results, either in NCBI-BLAST xml/json formats
-or in SAM/BAM formats 
+or in SAM/BAM formats
 
 ### Notes on PMC articles
 
@@ -61,7 +70,7 @@ the compressed and archived PubChem BioAssay json files,
 without extracting them to temporary files
 
 TODO:
-* Support for entries larger than 800mb
+* Support for large entries, such as larger than 800MB
 * Use bulk index API
 * Index other PubChem data types
 
