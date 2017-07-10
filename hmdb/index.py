@@ -38,6 +38,7 @@ class Indexer(DBconnection):
 
     def __init__(self, db, index, host, port, doctype):
         self.doctype = doctype
+        self.index = index
         super(Indexer, self).__init__(db, index, host, port)
         if db != "Elasticsearch":
             self.mcl = self.mdbi[doctype]
@@ -48,7 +49,7 @@ class Indexer(DBconnection):
         sys.stdout.flush()
         docid = entry['accession']
         try:
-            self.es.index(index=args.index, doc_type=self.doctype,
+            self.es.index(index=self.index, doc_type=self.doctype,
                           id=docid, body=json.dumps(entry))
             return True
         except Exception as e:

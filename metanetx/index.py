@@ -1,40 +1,43 @@
 #!/usr/bin/env python
-""" Index MetaNetX compound/reaction files with Elasticsearch """
+""" Index MetaNetX compound/reaction files (version 3.0) with Elasticsearch """
 from __future__ import print_function
 
 import argparse
 import csv
-import json
 import os
+import sys
 import time
 
-from elasticsearch import Elasticsearch
 from elasticsearch.helpers import streaming_bulk
+
+from nosqlbiosets.dbutils import DBconnection
 
 chunksize = 2048
 
 
-# Parse records in chem_prop.tsv file which has the following header
-# #MNX_ID	Description	Formula	Charge	Mass	InChi	SMILES	Source
-def getcompoundrecord(row, _):
+# Parse records in MetanetX chem_prop.tsv file which has the following header
+# #MNX_ID  Description  Formula  Charge  Mass  InChi  SMILES  Source  InChIKey
+def getcompoundrecord(row, xrefsmap):
     sourcelib = None
     sourceid = None
+    id_ = row[0]
     j = row[7].find(':')
     if j > 0:
         sourcelib = row[7][0:j]
         sourceid = row[7][j + 1:]
     r = {
-        '_id':     row[0], 'desc':   row[1],
+        '_id':       id_,    'desc':   row[1],
         'formula': row[2], 'charge': row[3],
         'mass':    row[4], 'inchi':  row[5],
         'smiles':  row[6], '_type':  'compound',
         'source': {'lib': sourcelib, 'id': sourceid},
-        'xrefs': xrefsmap[row[0]]
+        'inchikey': row[8],
+        'xrefs': xrefsmap[id_] if id_ in xrefsmap else None
     }
     return r
 
 
-# Parse records in chem_xref.tsv file which has the following header
+# Parse records in MetanetX chem_xref.tsv file which has the following header
 # #XREF   MNX_ID  Evidence        Description
 def getcompoundxrefrecord(row):
     sourcelib = None
@@ -91,65 +94,94 @@ def getreactionxrefs(infile):
 
 
 # Parse records in react_prop.tsv file which has the following header
-# #MNX_ID Equation        Description     Balance EC      Source
-def getreactionrecord(row, _):
+# #MNX_ID  Equation  Description  Balance  EC  Source
+def getreactionrecord(row, xrefsmap):
     sourcelib = None
     sourceid = None
+    id_ = row[0]
     j = row[5].find(':')
     if j > 0:
         sourcelib = row[5][0:j]
         sourceid = row[5][j + 1:]
     r = {
-        '_id':  row[0], 'equation': row[1],
+        '_id':  id_, 'equation': row[1],
         'desc': row[2], 'balance':  row[3],
         'ecno': row[4], '_type':    "reaction",
         'source': {'lib': sourcelib, 'id': sourceid},
-        'xrefs': xrefsmap[row[0]]
+        'xrefs': xrefsmap[id_] if id_ in xrefsmap else None
     }
     return r
 
 
-def read_metanetx_mappings(infile, metanetxparser):
-    i = 0
+def read_metanetx_mappings(infile, metanetxparser, xrefsmap):
     with open(infile) as csvfile:
         reader = csv.reader(csvfile, delimiter='\t', quotechar='|')
         for row in reader:
             if row[0][0] == '#':
                 continue
-            i += 1
-            r = metanetxparser(row, i)
+            r = metanetxparser(row, xrefsmap)
             yield r
 
 
-def es_index(escon, reader):
-    print("Reading from %s" % reader.gi_frame.f_locals['infile'])
-    i = 0
-    t1 = time.time()
-    for ok, result in streaming_bulk(
-            escon,
-            reader,
-            index=args.index,
-            chunk_size=chunksize
-    ):
-        action, result = result.popitem()
-        i += 1
-        doc_id = '/%s/commits/%s' % (args.index, result['_id'])
-        if not ok:
-            print('Failed to %s document %s: %r' % (action, doc_id, result))
-    t2 = time.time()
-    print("-- Processed %d entries, in %d sec"
-          % (i, (t2 - t1)))
+class Indexer(DBconnection):
 
-    return 1
+    def __init__(self, db, index, host, port, doctype):
+        self.doctype = doctype
+        self.index = index
+        self.db = db
+        super(Indexer, self).__init__(db, index, host, port)
+        if db != "Elasticsearch":
+            self.mcl = self.mdbi[doctype]
+        else:
+            if self.es.indices.exists(index=index):
+                self.es.indices.delete(index=index,
+                                       params={"timeout": "10s"})
+            self.es.indices.create(index=index, params={"timeout": "10s"},
+                                   body={"settings": {"number_of_replicas": 0}})
+
+    def indexall(self, reader):
+        print("Reading from %s" % reader.gi_frame.f_locals['infile'])
+        t1 = time.time()
+        if self.db == "Elasticsearch":
+            i = self.es_index(reader)
+        else:
+            i = self.mongodb_index(reader)
+        t2 = time.time()
+        print("-- Processed %d entries, in %d sec"
+              % (i, (t2 - t1)))
+
+    def es_index(self, reader):
+        i = 0
+        for ok, result in streaming_bulk(
+                self.es,
+                reader,
+                index=self.index,
+                chunk_size=chunksize
+        ):
+            action, result = result.popitem()
+            i += 1
+            doc_id = '/%s/commits/%s' % (self.index, result['_id'])
+            if not ok:
+                print('Failed to %s document %s: %r' % (action, doc_id, result))
+        return i
+
+    def mongodb_index(self, reader):
+        i = 0
+        for r in reader:
+            print(".", end='')
+            sys.stdout.flush()
+            docid = r['_id']
+            spec = {"_id": docid}
+            try:
+                self.mcl.update(spec, r, upsert=True)
+                i += 1
+            except Exception as e:
+                print(e)
+        return i
 
 
 if __name__ == '__main__':
-    conf = {"host": "localhost", "port": 9200}
     d = os.path.dirname(os.path.abspath(__file__))
-    try:
-        conf = json.load(open(d + "/../conf/elasticsearch.json", "r"))
-    finally:
-        pass
     parser = argparse.ArgumentParser(
         description='Index MetaNetX compound/reaction files with Elasticsearch')
     parser.add_argument('--compoundsfile',
@@ -164,23 +196,24 @@ if __name__ == '__main__':
     parser.add_argument('--reactionsxreffile',
                         default=d + "/data/reac_xref.tsv",
                         help='Metanetx reac_xref.tsv file')
-    parser.add_argument('--index',
-                        default="metanetx-0.2",
-                        help='name of the Elasticsearch index')
-    parser.add_argument('--host', default=conf['host'],
+    parser.add_argument('--index', default="nosqlbiosets",
+                        help='Name of the Elasticsearch index')
+    parser.add_argument('--host',
                         help='Elasticsearch server hostname')
-    parser.add_argument('--port', default=conf['port'],
+    parser.add_argument('--port',
                         help="Elasticsearch server port")
+    parser.add_argument('--db', default='Elasticsearch',
+                        help="Database: 'Elasticsearch' or 'MongoDB'")
     args = parser.parse_args()
-    es = Elasticsearch(host=args.host, port=args.port, timeout=3600)
-    if es.indices.exists(index=args.index):
-        es.indices.delete(index=args.index, params={"timeout": "10s"})
-    es.indices.create(index=args.index, params={"timeout": "10s"},
-                      body={"settings": {"number_of_replicas": 0}})
 
-    xrefsmap = getcompoundxrefs(args.compoundsxreffile)
-    es_index(es, read_metanetx_mappings(args.compoundsfile, getcompoundrecord))
-    xrefsmap = getreactionxrefs(args.reactionsxreffile)
-    es_index(es, read_metanetx_mappings(args.reactionsfile, getreactionrecord))
+    xrefsmap_ = getcompoundxrefs(args.compoundsxreffile)
+    indxr = Indexer(args.db, args.index, args.host, args.port, "compound")
+    indxr.indexall(read_metanetx_mappings(args.compoundsfile,
+                                          getcompoundrecord, xrefsmap_))
 
-    es.indices.refresh(index=args.index)
+    xrefsmap_ = getreactionxrefs(args.reactionsxreffile)
+    indxr = Indexer(args.db, args.index, args.host, args.port, "reaction")
+    indxr.indexall(read_metanetx_mappings(args.reactionsfile,
+                                          getreactionrecord, xrefsmap_))
+
+    indxr.es.indices.refresh(index=args.index)

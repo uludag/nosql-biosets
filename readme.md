@@ -33,8 +33,9 @@ all supports Elasticsearch and few supports MongoDB.
   ([kegg/index.py](nosqlbiosets/kegg/index.py))
   http://www.kegg.jp/kegg/download/Readme/README.kgml
 
-In later stages of the project we want to connect above datasets as much as possible
-and develop sample scripts to query individual indexes as well as connected data
+We want to connect above datasets as much as possible
+and aim to implement scripts with example queries for individual indexes
+as well as connected data
 
 In a separate [project](https://github.com/uludag/hspsdb-indexer)
 we have developed index scripts for sequence

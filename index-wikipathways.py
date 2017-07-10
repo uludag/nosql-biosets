@@ -69,6 +69,7 @@ def es_index_pathway(es, ba, docid, index):
     return r
 
 
+# TODO: remove 'Graphics' and 'GraphId' elements
 # Read WikiPathways zipfile, index using the function indexf
 def read_and_index_wikipathways_zipfile(zipfile, es, indexf, index):
     i = 0
