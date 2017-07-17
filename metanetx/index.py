@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-""" Index MetaNetX compound/reaction files (version 3.0) with Elasticsearch """
+""" Index MetaNetX compound/reaction files (version 3.0) with Elasticsearch
+ or MongoDB"""
 from __future__ import print_function
 
 import argparse
@@ -12,7 +13,7 @@ from elasticsearch.helpers import streaming_bulk
 
 from nosqlbiosets.dbutils import DBconnection
 
-chunksize = 2048
+chunksize = 2048  # for Elasticsearch index requests
 
 
 # Parse records in MetanetX chem_prop.tsv file which has the following header
@@ -40,14 +41,15 @@ def getcompoundrecord(row, xrefsmap):
 # Parse records in MetanetX chem_xref.tsv file which has the following header
 # #XREF   MNX_ID  Evidence        Description
 def getcompoundxrefrecord(row):
-    sourcelib = None
-    sourceid = None
     j = row[0].find(':')
     if j > 0:
-        sourcelib = row[0][0:j]
-        sourceid = row[0][j + 1:]
+        reflib = row[0][0:j]
+        refid = row[0][j + 1:]
+    else:
+        reflib = 'MetanetX'
+        refid = row[1]
     metanetxid = row[1]
-    return metanetxid, [sourcelib, sourceid, row[2], row[3]]
+    return metanetxid, [reflib, refid, row[2], row[3]]
 
 
 # Collect compound xrefs in a map
@@ -68,24 +70,26 @@ def getcompoundxrefs(infile):
 # Parse records in reac_xref.tsv file which has the following header
 # #XREF   MNX_ID
 def getreactionxrefrecord(row):
-    reflib = None
-    refid = None
     j = row[0].find(':')
     if j > 0:
         reflib = row[0][0:j]
         refid = row[0][j + 1:]
+    else:
+        reflib = 'MetanetX'
+        refid = row[1]
     metanetxid = row[1]
     return metanetxid, [reflib, refid]
 
 
-# Collect reaction xrefs in a map
+# Collect reaction xrefs into a dictionary
 def getreactionxrefs(infile):
     rxrefs = dict()
     with open(infile) as csvfile:
         reader = csv.reader(csvfile, delimiter='\t', quotechar='|')
         for row in reader:
-            if row[0][0] == '#':
+            if row[0][0] == '#' or row[0] == row[1]:
                 continue
+            # Should we skip the xrefs to the source library?
             key, val = getreactionxrefrecord(row)
             if key not in rxrefs:
                 rxrefs[key] = []
@@ -127,17 +131,10 @@ class Indexer(DBconnection):
 
     def __init__(self, db, index, host, port, doctype):
         self.doctype = doctype
-        self.index = index
-        self.db = db
-        super(Indexer, self).__init__(db, index, host, port)
+        super(Indexer, self).__init__(db, index, host, port,
+                                      recreateindex=False)
         if db != "Elasticsearch":
             self.mcl = self.mdbi[doctype]
-        else:
-            if self.es.indices.exists(index=index):
-                self.es.indices.delete(index=index,
-                                       params={"timeout": "10s"})
-            self.es.indices.create(index=index, params={"timeout": "10s"},
-                                   body={"settings": {"number_of_replicas": 0}})
 
     def indexall(self, reader):
         print("Reading from %s" % reader.gi_frame.f_locals['infile'])
@@ -152,12 +149,8 @@ class Indexer(DBconnection):
 
     def es_index(self, reader):
         i = 0
-        for ok, result in streaming_bulk(
-                self.es,
-                reader,
-                index=self.index,
-                chunk_size=chunksize
-        ):
+        for ok, result in streaming_bulk(self.es, reader, index=self.index,
+                                         chunk_size=chunksize):
             action, result = result.popitem()
             i += 1
             doc_id = '/%s/commits/%s' % (self.index, result['_id'])
@@ -186,24 +179,25 @@ if __name__ == '__main__':
         description='Index MetaNetX compound/reaction files with Elasticsearch')
     parser.add_argument('--compoundsfile',
                         default=d + "/data/chem_prop.tsv",
-                        help='Metanetx chem_prop.tsv file')
+                        help='MetaNetX chem_prop.tsv file')
     parser.add_argument('--compoundsxreffile',
                         default=d + "/data/chem_xref.tsv",
-                        help='Metanetx chem_xref.tsv file')
+                        help='MetaNetX chem_xref.tsv file')
     parser.add_argument('--reactionsfile',
                         default=d + "/data/reac_prop.tsv",
-                        help='Metanetx reac_prop.tsv file')
+                        help='MetaNetX reac_prop.tsv file')
     parser.add_argument('--reactionsxreffile',
                         default=d + "/data/reac_xref.tsv",
-                        help='Metanetx reac_xref.tsv file')
+                        help='MetaNetX reac_xref.tsv file')
     parser.add_argument('--index', default="nosqlbiosets",
-                        help='Name of the Elasticsearch index')
+                        help='Name of the Elasticsearch index'
+                             ' or MongoDB database')
     parser.add_argument('--host',
                         help='Elasticsearch server hostname')
     parser.add_argument('--port',
                         help="Elasticsearch server port")
     parser.add_argument('--db', default='Elasticsearch',
-                        help="Database: 'Elasticsearch' or 'MongoDB'")
+                        help="Database: Elasticsearch or MongoDB")
     args = parser.parse_args()
 
     xrefsmap_ = getcompoundxrefs(args.compoundsxreffile)
@@ -215,5 +209,4 @@ if __name__ == '__main__':
     indxr = Indexer(args.db, args.index, args.host, args.port, "reaction")
     indxr.indexall(read_metanetx_mappings(args.reactionsfile,
                                           getreactionrecord, xrefsmap_))
-
-    indxr.es.indices.refresh(index=args.index)
+    indxr.close()

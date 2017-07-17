@@ -100,7 +100,7 @@ https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-configurat
   by preventing any Elasticsearch memory from being swapped out 
 
 ### Datasets we are considering to include: 
-* REACTOME?, Rhea?, IntEnz?
+* REACTOME?, Rhea?, IntEnz? BioCyc?
 
 ## Copyright
 This project has been developed

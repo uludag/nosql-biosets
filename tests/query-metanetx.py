@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 """ Sample queries with MetaNetX compounds and reactions """
 
-import json
 import os
 import unittest
 
-from elasticsearch import Elasticsearch
+from nosqlbiosets.dbutils import DBconnection
 
 
 def query(es, index, qc, doc_type=None, size=0):
@@ -17,14 +16,10 @@ def query(es, index, qc, doc_type=None, size=0):
 
 
 class QueryMetanetx(unittest.TestCase):
-    conf = {"host": "localhost", "port": 9200}
     d = os.path.dirname(os.path.abspath(__file__))
-    try:
-        conf = json.load(open(d + "/../conf/elasticsearch.json", "r"))
-    finally:
-        pass
-    es = Elasticsearch(host=conf['host'], port=conf['port'], timeout=600)
-    index = "metanetx-0.2"
+    index = "nosqlbiosets"
+    db = "Elasticsearch"
+    es = DBconnection(db, index, recreateindex=False).es
 
     def query_sample_keggids(self, l):
         qc = {"match": {"xrefs": ' '.join(l)}}
