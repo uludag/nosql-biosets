@@ -3,34 +3,35 @@
 We want to develop scripts for NoSQL indexing and querying of
 sample bioinformatics datasets.
 In the early stages of the project we developed scripts supporting
-Elasticsearch only. In most recent scripts we have implemented
+Elasticsearch only. In most recent work we have implemented
 support for MongoDB as well.
 
-Following are the set of draft scripts we have,
+Following are the set of scripts we have,
 all supports Elasticsearch and few supports MongoDB.
 
 * PubChem BioAssay json files: http://ftp.ncbi.nlm.nih.gov/pubchem/Bioassay
 * WikiPathways gpml files: http://www.wikipathways.org/index.php/Download_Pathways
 * PMC articles: http://ftp.ebi.ac.uk/pub/databases/pmc/manuscripts
 * Ensembl regulatory build GFF files
-  ([ensembl_regbuild.py](geneinfo/ensembl_regbuild.py))
+  ([geneinfo/ensembl_regbuild.py]())
   http://ftp.ensembl.org/pub/current_regulation/homo_sapiens
 * HMDB protein/metabolite records:
   http://www.hmdb.ca/downloads
 * NCBI PubTator gene2pub and disease2pub mappings:
   http://ftp.ncbi.nlm.nih.gov/pub/lu/PubTator
-* MetanetX compound/reaction data files:
+* MetaNetX compounds/reactions datasets
+  ([metanetx/index.py]())
   http://www.metanetx.org/mnxdoc/mnxref.html
 * HGNC, genenames.org data files: http://www.genenames.org/cgi-bin/statistics,
   http://ftp.ebi.ac.uk/pub/databases/genenames/new/json/
 * RNAcentral identifier mappings
-  ([rnacentral_idmappings.py](geneinfo/rnacentral_idmappings.py))
+  ([geneinfo/rnacentral_idmappings.py]())
   http://ftp.ebi.ac.uk/pub/databases/RNAcentral/current_release/id_mapping/
 * KBase compounds/reactions data files
-  ([kbase/index.py](nosqlbiosets/kbase/index.py))
+  ([nosqlbiosets/kbase/index.py]())
   http://ftp.kbase.us/assets/KBase_Reference_Data/Biochemistry/
 * KEGG pathway kgml/xml files, pathway maps linked to gene ids
-  ([kegg/index.py](nosqlbiosets/kegg/index.py))
+  ([nosqlbiosets/kegg/index.py]())
   http://www.kegg.jp/kegg/download/Readme/README.kgml
 
 We want to connect above datasets as much as possible
@@ -71,7 +72,7 @@ the compressed and archived PubChem BioAssay json files,
 without extracting them to temporary files
 
 TODO:
-* Support for large entries, such as larger than 800MB
+* Support for large entries, such as larger than 800M
 * Use bulk index API
 * Index other PubChem data types
 
@@ -99,7 +100,7 @@ few Elasticsearch default settings to higher values:
 https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-configuration-memory.html) 
   by preventing any Elasticsearch memory from being swapped out 
 
-### Datasets we are considering to include: 
+### Datasets we are considering to include
 * REACTOME?, Rhea?, IntEnz? BioCyc?
 
 ## Copyright
