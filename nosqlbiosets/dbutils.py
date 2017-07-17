@@ -12,7 +12,8 @@ class DBconnection(object):
         self.index = index
         self.db = db
         try:
-            conf = json.load(open(d + "/../conf/dbservers.json", "r"))
+            with open(d + "/../conf/dbservers.json", "r") as conff:
+                conf = json.load(conff)
         except IOError:
             conf = {"es_host": "localhost", "es_port": 9200,
                     "mongodb_host": "localhost", "mongodb_port": 27017}
