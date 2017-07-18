@@ -1,0 +1,78 @@
+{
+  "mappings": {
+    "PMC_article": {
+      "properties": {
+        "abstract": {
+          "type": "text"
+        },
+        "affiliation_list": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "author_list": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "doi": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "full_title": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "journal": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "pmc": {
+          "type": "integer"
+        },
+        "pmid": {
+          "type": "integer"
+        },
+        "publication_year": {
+          "type": "integer"
+        },
+        "publisher_id": {
+          "type": "keyword",
+              "ignore_above": 256
+        },
+        "subjects": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        }
+      }
+    }
+  }
+}

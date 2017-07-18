@@ -1,5 +1,5 @@
 
-* [queryall.py](): Sample queries with multiple 'nosql-biosets' indexes
+* [queryall.py](): Sample queries with multiple indexes
 
 * [query-metanetx.py](): Sample queries with MetaNetX compounds and reactions
 
@@ -7,4 +7,4 @@
 
 * [querysuggestions.py](): Sample suggest/search queries
 
-* [test-readers.py](): Tests with 'nosql-biosets' data readers
+* [test-readers.py](): Tests with data readers

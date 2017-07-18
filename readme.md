@@ -16,11 +16,13 @@ all supports Elasticsearch and few supports MongoDB.
   ([geneinfo/ensembl_regbuild.py]())
   http://ftp.ensembl.org/pub/current_regulation/homo_sapiens
 * HMDB protein/metabolite records:
+  ([hmdb/index.py]())
   http://www.hmdb.ca/downloads
-* NCBI PubTator gene2pub and disease2pub mappings:
+* NCBI PubTator gene2pub and disease2pub mappings
+  [pubtator/index-pubtator-files.py]()
   http://ftp.ncbi.nlm.nih.gov/pub/lu/PubTator
 * MetaNetX compounds/reactions datasets
-  ([metanetx/index.py]())
+  ([metanetx]())
   http://www.metanetx.org/mnxdoc/mnxref.html
 * HGNC, genenames.org data files: http://www.genenames.org/cgi-bin/statistics,
   http://ftp.ebi.ac.uk/pub/databases/genenames/new/json/
@@ -45,25 +47,17 @@ or in SAM/BAM formats
 
 ### Notes on PMC articles
 
-[index-pmc-articles.py](index-pmc-articles.py) reads and indexes archives
+[index-pmc-articles.py]() reads and indexes archives
 of PMC articles xml files.
 
-Install `pubmed_parser` library using its `setup.py` file or using `pip`
+Install [`pubmed_parser`](https://github.com/titipata/pubmed_parser/)
+ library using its `setup.py` file
+```bash
+$ git clone https://github.com/titipata/pubmed_parser.git
+$ cd pubmed_parser
+$ pip install -r requirements.txt --user
+$ python setup.py install --user
 ```
-git clone https://github.com/titipata/pubmed_parser.git
-python setup.py install --user
-```
-```
-pip install --upgrade --user git+https://github.com/titipata/pubmed_parser.git
-```
-### Notes on PubTator datasets 
-
-[index-pubtator-files.py](pubtator/index-pubtator-files.py)
-reads and indexes NCBI PubTator gene2pub and disease2pub mappings
-
-TODO:
-* Support for other PubTator mappings
-* Gene-disease network? (neo4j?, networkx?)
 
 ### Notes on PubChem datasets
 
