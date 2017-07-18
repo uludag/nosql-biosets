@@ -11,7 +11,9 @@ all supports Elasticsearch and few supports MongoDB.
 
 * PubChem BioAssay json files: http://ftp.ncbi.nlm.nih.gov/pubchem/Bioassay
 * WikiPathways gpml files: http://www.wikipathways.org/index.php/Download_Pathways
-* PMC articles: http://ftp.ebi.ac.uk/pub/databases/pmc/manuscripts
+* PMC articles
+  [index-pmc-articles.py]()
+  http://ftp.ebi.ac.uk/pub/databases/pmc/manuscripts
 * Ensembl regulatory build GFF files
   ([geneinfo/ensembl_regbuild.py]())
   http://ftp.ensembl.org/pub/current_regulation/homo_sapiens
@@ -61,11 +63,11 @@ $ python setup.py install --user
 
 ### Notes on PubChem datasets
 
-[index-pubchem-bioassays.py](index-pubchem-bioassays.py) reads and indexes
+[index-pubchem-bioassays.py]() reads and indexes
 the compressed and archived PubChem BioAssay json files,
 without extracting them to temporary files
 
-TODO:
+#### TODO:
 * Support for large entries, such as larger than 800M
 * Use bulk index API
 * Index other PubChem data types
