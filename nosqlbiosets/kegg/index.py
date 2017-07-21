@@ -13,7 +13,8 @@ from pymongo import IndexModel
 from nosqlbiosets.dbutils import DBconnection
 
 
-# Read given KEGG pathway xmltar file, index using the index function specified
+# Read given KEGG pathway xml/tar file,
+# index using the index function specified
 def read_and_index_kegg_xmltarfile(infile, indexf):
     print("\nProcessing tar file: %s " % infile)
     i = 0
@@ -21,9 +22,10 @@ def read_and_index_kegg_xmltarfile(infile, indexf):
     for member in tar:
         f = tar.extractfile(member)
         if f is None:
-            continue  # if the entry is folder then skip
+            continue  # if the tarfile entry is a folder then skip
         r = xmltodict.parse(f, attr_prefix='')
-        indexf(1, r['pathway'])
+        if not indexf(1, r['pathway']):
+            break
         print(".", end='', flush=True)
     return i
 

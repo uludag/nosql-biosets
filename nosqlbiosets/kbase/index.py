@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" Index Kbase compounds/reactions data files with Elasticsearch """
+""" Index KBase compounds/reactions data files with Elasticsearch or MongoDB"""
 # ftp://ftp.kbase.us/assets/KBase_Reference_Data/Biochemistry/
 from __future__ import print_function
 
@@ -90,6 +90,7 @@ def mongodb_index(mdbc, infile, reader):
     for entry in read_kbase_data(infile, reader):
         del(entry['_type'])
         mdbc.insert(entry)
+        i += 1
     t2 = time.time()
     print("-- Processed %d entries, in %d sec"
           % (i, (t2 - t1)))
@@ -107,13 +108,13 @@ if __name__ == '__main__':
     parser.add_argument('--reactionsfile',
                         default=d + "/../../data/kbase/reactions.csv",
                         help='Kbase reactions csv file')
-    parser.add_argument('--index', default="biosets",
+    parser.add_argument('--index', default="nosqlbiosets",
                         help='Name of the Elasticsearch index')
     parser.add_argument('--host',
                         help='Elasticsearch or MongoDB server hostname')
     parser.add_argument('--port',
                         help="Elasticsearch or MongoDB server port")
-    parser.add_argument('--db', default='Elasticsearch_',
+    parser.add_argument('--db', default='Elasticsearch',
                         help="Database: 'Elasticsearch' or 'MongoDB'")
     args = parser.parse_args()
 
@@ -121,10 +122,6 @@ if __name__ == '__main__':
 
     if args.db == 'Elasticsearch':
         es = indxr.es
-        if es.indices.exists(index=args.index):  # TODO: check with user
-            es.indices.delete(index=args.index, params={"timeout": "10s"})
-        es.indices.create(index=args.index, params={"timeout": "10s"},
-                          body={"settings": {"number_of_replicas": 0}})
         es_index(es, read_kbase_data(args.compoundsfile, getcompoundrecord))
         es_index(es, read_kbase_data(args.reactionsfile, getreactionrecord))
         es.indices.refresh(index=args.index)

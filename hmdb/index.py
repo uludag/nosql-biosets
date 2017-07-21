@@ -5,6 +5,7 @@ from __future__ import print_function
 
 import argparse
 import json
+import os
 import sys
 from gzip import GzipFile
 from zipfile import ZipFile
@@ -45,29 +46,29 @@ class Indexer(DBconnection):
 
     # index HMDB Metabolites/Proteins entry with Elasticsearch
     def es_index_hmdb_entry(self, _, entry):
-        print(".", end='')
-        sys.stdout.flush()
         docid = entry['accession']
         try:
             self.es.index(index=self.index, doc_type=self.doctype,
                           id=docid, body=json.dumps(entry))
-            return True
+            self.reportprogress()
+            r = True
         except Exception as e:
             print(e)
-        return False
+            r = False
+        return r
 
     # index HMDB Metabolites/Proteins entry with MongoDB
     def mongodb_index_hmdb_entry(self, _, entry):
-        print(".", end='')
-        sys.stdout.flush()
         docid = entry['accession']
         spec = {"_id": docid}
         try:
             self.mcl.update(spec, entry, upsert=True)
-            return True
+            self.reportprogress()
+            r = True
         except Exception as e:
             print(e)
-        return False
+            r = False
+        return r
 
 
 def mongodb_textindex(mdb, doctype):
@@ -90,11 +91,12 @@ def main(infile, index, doctype, db, host, port):
 
 
 if __name__ == '__main__':
+    d = os.path.dirname(os.path.abspath(__file__))
     parser = argparse.ArgumentParser(
-        description='Index HMDB protein/metabolite entries,'
+        description='Index HMDB proteins/metabolites datasets,'
                     ' with Elasticsearch or MongoDB')
     parser.add_argument('-infile', '--infile',
-                        default="../data/hmdb_proteins-first10.xml.gz",
+                        default=d+"/../data/hmdb_proteins-first10.xml.gz",
                         help='Input file name')
     parser.add_argument('--index',
                         default="biosets",
@@ -105,7 +107,7 @@ if __name__ == '__main__':
                         help='Elasticsearch or MongoDB server hostname')
     parser.add_argument('--port',
                         help="Elasticsearch or MongoDB server port number")
-    parser.add_argument('--db', default='Elasticsearch_',
+    parser.add_argument('--db', default='Elasticsearch',
                         help="Database: 'Elasticsearch' or 'MongoDB'")
     args = parser.parse_args()
     doctype_ = 'metabolite'

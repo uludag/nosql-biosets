@@ -1,12 +1,11 @@
 #!/usr/bin/env python
-""" Index MetaNetX compound/reaction files (version 3.0) with Elasticsearch
+""" Index MetaNetX compounds/reactions files (version 3.0) with Elasticsearch
  or MongoDB"""
 from __future__ import print_function
 
 import argparse
 import csv
 import os
-import sys
 import time
 
 from elasticsearch.helpers import streaming_bulk
@@ -156,18 +155,18 @@ class Indexer(DBconnection):
             doc_id = '/%s/commits/%s' % (self.index, result['_id'])
             if not ok:
                 print('Failed to %s document %s: %r' % (action, doc_id, result))
+            self.reportprogress()
         return i
 
     def mongodb_index(self, reader):
         i = 0
         for r in reader:
-            print(".", end='')
-            sys.stdout.flush()
             docid = r['_id']
             spec = {"_id": docid}
             try:
                 self.mcl.update(spec, r, upsert=True)
                 i += 1
+                self.reportprogress()
             except Exception as e:
                 print(e)
         return i

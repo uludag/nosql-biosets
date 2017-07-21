@@ -1,10 +1,21 @@
+from __future__ import print_function
+
+import json
+import logging
+import os
+import sys
+
 from elasticsearch import Elasticsearch
 from pymongo import MongoClient
-import os
-import json
+
+logger = logging.getLogger(__name__)
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+logger.addHandler(ch)
 
 
 class DBconnection(object):
+    i = 0
 
     def __init__(self, db, index, host=None, port=None, recreateindex=False,
                  es_indexsettings=None, es_indexmappings=None):
@@ -17,13 +28,13 @@ class DBconnection(object):
         except IOError:
             conf = {"es_host": "localhost", "es_port": 9200,
                     "mongodb_host": "localhost", "mongodb_port": 27017}
-
         if db == 'Elasticsearch':
             if host is None:
                 host = conf['es_host']
             if port is None:
                 port = conf['es_port']
             self.es = Elasticsearch(host=host, port=port, timeout=120)
+            logger.debug('New Elasticsearch connection to host \'%s\'' % host)
             self.recreateindex(recreateindex, es_indexsettings,
                                es_indexmappings)
         else:
@@ -52,3 +63,9 @@ class DBconnection(object):
     def close(self):
         if self.db == 'Elasticsearch':
             self.es.indices.refresh(index=self.index)
+
+    def reportprogress(self):
+        self.i += 1
+        if self.i % 100 == 0:
+            print(".", end='')
+            sys.stdout.flush()

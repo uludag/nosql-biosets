@@ -43,19 +43,18 @@ class QueryMetanetx(unittest.TestCase):
         print(descs)
         return descs
 
-    def test_es(self):
-        dbc = DBconnection("Elasticsearch", self.index, recreateindex=False)
+    def queries(self, db):
+        dbc = DBconnection(db, self.index)
         mids = self.query_sample_keggids(dbc, ['C00116', 'C05433'])
         self.assertEqual(mids, ['MNXM2000', 'MNXM89612'])
         descs = self.query_sample_metanetxids(dbc, mids)
-        self.assertEqual(descs, ['glycerol', 'alpha-carotene'])
+        self.assertEqual(set(descs), set(['glycerol', 'alpha-carotene']))
+
+    def test_es(self):
+        self.queries("Elasticsearch")
 
     def test_mongodb(self):
-        dbc = DBconnection("MongoDB", self.index, recreateindex=False)
-        mids = self.query_sample_keggids(dbc, ['C00116', 'C05433'])
-        self.assertEqual(mids, ['MNXM2000', 'MNXM89612'])
-        descs = set(self.query_sample_metanetxids(dbc, mids))
-        self.assertSetEqual(descs, {'glycerol', 'alpha-carotene'})
+        self.queries("MongoDB")
 
 
 if __name__ == '__main__':
