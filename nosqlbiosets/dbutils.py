@@ -49,6 +49,8 @@ class DBconnection(object):
         if self.db == 'Elasticsearch':
             if es_indexsettings is None:
                 es_indexsettings = {"number_of_replicas": 0}
+            if es_indexmappings is None:
+                es_indexmappings = {}
             e = self.es.indices.exists(index=self.index)
             if e and recreate:
                 self.es.indices.delete(index=self.index,
@@ -66,6 +68,6 @@ class DBconnection(object):
 
     def reportprogress(self):
         self.i += 1
-        if self.i % 100 == 0:
+        if self.i % 160 == 0:
             print(".", end='')
             sys.stdout.flush()

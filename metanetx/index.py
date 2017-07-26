@@ -15,7 +15,7 @@ from nosqlbiosets.dbutils import DBconnection
 chunksize = 2048  # for Elasticsearch index requests
 
 
-# Parse records in MetanetX chem_prop.tsv file which has the following header
+# Parse records in MetaNetX chem_prop.tsv file which has the following header
 # #MNX_ID  Description  Formula  Charge  Mass  InChi  SMILES  Source  InChIKey
 def getcompoundrecord(row, xrefsmap):
     sourcelib = None
@@ -37,7 +37,7 @@ def getcompoundrecord(row, xrefsmap):
     return r
 
 
-# Parse records in MetanetX chem_xref.tsv file which has the following header
+# Parse records in MetaNetX chem_xref.tsv file which has the following header
 # #XREF   MNX_ID  Evidence        Description
 def getcompoundxrefrecord(row):
     j = row[0].find(':')
@@ -51,8 +51,9 @@ def getcompoundxrefrecord(row):
     return metanetxid, [reflib, refid, row[2], row[3]]
 
 
-# Collect compound xrefs in a map
+# Collect compound xrefs in a dictionary
 def getcompoundxrefs(infile):
+    print("Collecting compound xrefs '%s' in a dictionary" % infile)
     cxrefs = dict()
     with open(infile) as csvfile:
         reader = csv.reader(csvfile, delimiter='\t', quotechar='|')
@@ -80,8 +81,9 @@ def getreactionxrefrecord(row):
     return metanetxid, [reflib, refid]
 
 
-# Collect reaction xrefs into a dictionary
+# Collect reaction xrefs in a dictionary
 def getreactionxrefs(infile):
+    print("Collecting reaction xrefs '%s' in a dictionary" % infile)
     rxrefs = dict()
     with open(infile) as csvfile:
         reader = csv.reader(csvfile, delimiter='\t', quotechar='|')
@@ -136,7 +138,7 @@ class Indexer(DBconnection):
             self.mcl = self.mdbi[doctype]
 
     def indexall(self, reader):
-        print("Reading from %s" % reader.gi_frame.f_locals['infile'])
+        print("Reading/indexing %s" % reader.gi_frame.f_locals['infile'])
         t1 = time.time()
         if self.db == "Elasticsearch":
             i = self.es_index(reader)
@@ -175,29 +177,40 @@ class Indexer(DBconnection):
 if __name__ == '__main__':
     d = os.path.dirname(os.path.abspath(__file__))
     parser = argparse.ArgumentParser(
-        description='Index MetaNetX compound/reaction files with Elasticsearch')
+        description='Index MetaNetX compounds/reactions files'
+                    ' with Elasticsearch or MongoDB')
+    parser.add_argument('--metanetxdatafolder',
+                        default=d + "/data/",
+                        help='Name of the folder where'
+                             ' all MetaNetX data files were downloaded')
     parser.add_argument('--compoundsfile',
-                        default=d + "/data/chem_prop.tsv",
                         help='MetaNetX chem_prop.tsv file')
     parser.add_argument('--compoundsxreffile',
-                        default=d + "/data/chem_xref.tsv",
                         help='MetaNetX chem_xref.tsv file')
     parser.add_argument('--reactionsfile',
-                        default=d + "/data/reac_prop.tsv",
                         help='MetaNetX reac_prop.tsv file')
     parser.add_argument('--reactionsxreffile',
-                        default=d + "/data/reac_xref.tsv",
                         help='MetaNetX reac_xref.tsv file')
     parser.add_argument('--index', default="nosqlbiosets",
                         help='Name of the Elasticsearch index'
                              ' or MongoDB database')
     parser.add_argument('--host',
-                        help='Elasticsearch server hostname')
+                        help='Elasticsearch/MongoDB server hostname')
     parser.add_argument('--port',
-                        help="Elasticsearch server port")
+                        help="Elasticsearch/MongoDB server port")
     parser.add_argument('--db', default='Elasticsearch',
                         help="Database: Elasticsearch or MongoDB")
     args = parser.parse_args()
+
+    l = [("compoundsfile", "chem_prop.tsv"),
+         ("compoundsxreffile", "chem_xref.tsv"),
+         ("reactionsfile", "reac_prop.tsv"),
+         ("reactionsxreffile", "reac_xref.tsv")
+         ]
+    v = vars(args)
+    for arg, filename in l:
+        if v[arg] is None:
+            v[arg] = os.path.join(args.metanetxdatafolder, filename)
 
     xrefsmap_ = getcompoundxrefs(args.compoundsxreffile)
     indxr = Indexer(args.db, args.index, args.host, args.port, "compound")

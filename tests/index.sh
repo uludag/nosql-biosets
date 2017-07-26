@@ -1,22 +1,20 @@
 #!/usr/bin/env bash
-
-# Script for indexing test datasets
+# Script for indexing the datasets supported by the project
+# TODO: not all supported datasets have been included in this script yet
 echo `dirname $0`
 r=`dirname $0`/..    # Project root folder
 index=nosqlbiosets   # Elasticsearch index name or MongoDB database name
 dbs="MongoDB Elasticsearch"
 
 for db in ${dbs}; do
+    echo "Indexing with database '${db}'"
 
 ## MetaNetX
-#  Typical indexing time less than 30s for partial compounds/reactions files
-#  ./metanetx/index.py --compoundsfile ./metanetx/data/chem_prop-head.tsv\
-#        --reactionsfile ./metanetx/data/reac_prop-head.tsv\
+#  Typical indexing time for compounds & reactions files,
+#  Elasticsearch 10-15m, MongoDB ~20m
+#   ./metanetx/index.py --metanetxdatafolder ./metanetx/data/\
 #        --index ${index} --db ${db};
-#  Typical indexing time for full compounds/reactions files less than 30m
-#   ./metanetx/index.py --compoundsfile ./metanetx/data/chem_prop.tsv\
-#        --reactionsfile ./metanetx/data/reac_prop.tsv\
-#        --index ${index} --db ${db};
+
 
 ## KBase
 #  Typical indexing time ??
@@ -25,22 +23,21 @@ for db in ${dbs}; do
 #        --reactionsfile ${r}/data/kbase/reactions.csv\
 #        --index ${index} --db ${db};
 
+
 ## HMDB
-#  Typical indexing time less than 30s
-#    ./hmdb/index.py --infile ./data/hmdb_proteins-first10.xml.gz\
-#        --index ${index} --db ${db};
-
-# Typical total indexing time for 3 metabolite .zip files less than 30m
-#    for infile in `ls ${r}/data/hmdb/*metab*.zip`; do
-#        ./hmdb/index.py --infile ${infile}\
-#            --index ${index} --db ${db};
-#    done
-
-# Typical total indexing time for 2 .zip files is about 110m
+# Typical total indexing time for all metabolites and proteins .zip files: ~110m
 #    for infile in `ls ${r}/data/hmdb/3.6/*.zip`; do
 #        ${r}/hmdb/index.py --infile ${infile}\
 #            --index ${index} --db ${db};
 #    done
+
+
+## UniProt (work in progress)
+# Elasticsearch indexing time about 7h that will hopefully be improved
+# MongoDB indexing time ??
+# ./nosqlbiosets/uniprot/index.py\
+#   --infile ./data/uniprot_sprot.xml.gz --index ${index} --db ${db}
+
 done
 
 
