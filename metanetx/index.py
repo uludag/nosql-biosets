@@ -25,11 +25,13 @@ def getcompoundrecord(row, xrefsmap):
     if j > 0:
         sourcelib = row[7][0:j]
         sourceid = row[7][j + 1:]
+    charge = float(row[3]) if len(row[3]) > 0 and row[3] != "NA" else None
+    mass = float(row[4]) if len(row[4]) > 0 else None
     r = {
-        '_id':       id_,    'desc':   row[1],
-        'formula': row[2], 'charge': row[3],
-        'mass':    row[4], 'inchi':  row[5],
-        'smiles':  row[6], '_type':  'compound',
+        '_id':     id_,     'desc':   row[1],
+        'formula': row[2],  'charge': charge,
+        'mass':    mass,    'inchi':  row[5],
+        'smiles':  row[6],  '_type':  'compound',
         'source': {'lib': sourcelib, 'id': sourceid},
         'inchikey': row[8],
         'xrefs': xrefsmap[id_] if id_ in xrefsmap else None
