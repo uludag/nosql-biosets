@@ -48,7 +48,7 @@ class QueryMetanetx(unittest.TestCase):
         mids = self.query_sample_keggids(dbc, ['C00116', 'C05433'])
         self.assertEqual(mids, ['MNXM2000', 'MNXM89612'])
         descs = self.query_sample_metanetxids(dbc, mids)
-        self.assertEqual({descs}, {['glycerol', 'alpha-carotene']})
+        self.assertEqual(set(descs), {'glycerol', 'alpha-carotene'})
 
     def test_es(self):
         self.queries("Elasticsearch")
