@@ -7,50 +7,63 @@ In the early stages of the project only Elasticsearch was supported.
 In most recent work (UniProt, MetaNetX, HMDB) we have implemented MongoDB
 support as well.
 
+## Data sets supported
 
-## Datasets supported
-
-* UniProtKB data sets in XML format
-  [nosqlbiosets/uniprot]()
+* UniProtKB data sets in XML format,
+  [nosqlbiosets/uniprot/readme.md](nosqlbiosets/uniprot/readme.md),
+  
   ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/
   
-* PubChem BioAssay json files: http://ftp.ncbi.nlm.nih.gov/pubchem/Bioassay
+* PubChem BioAssay json files,
 
-* WikiPathways gpml files: http://www.wikipathways.org/index.php/Download_Pathways
+  http://ftp.ncbi.nlm.nih.gov/pubchem/Bioassay
 
-* PMC articles
-  [index-pmc-articles.py]()
+* WikiPathways gpml files,
+
+  http://www.wikipathways.org/index.php/Download_Pathways
+
+* PMC articles,
+  [index-pmc-articles.py](index-pmc-articles.py),
+  
   http://ftp.ebi.ac.uk/pub/databases/pmc/manuscripts
 
-* Ensembl regulatory build GFF files
-  ([geneinfo/ensembl_regbuild.py]())
+* Ensembl regulatory build GFF files,
+  [geneinfo/ensembl_regbuild.py]([geneinfo/ensembl_regbuild.py),
+  
   http://ftp.ensembl.org/pub/current_regulation/homo_sapiens
 
-* HMDB protein/metabolite records:
-  ([hmdb/index.py]())
+* HMDB protein/metabolite records,
+  [hmdb/index.py](hmdb/index.py),
+  
   http://www.hmdb.ca/downloads
 
-* NCBI PubTator gene2pub and disease2pub mappings
-  [pubtator/index-pubtator-files.py]()
+* NCBI PubTator gene2pub and disease2pub mappings,
+  [pubtator/index-pubtator-files.py](pubtator/index-pubtator-files.py),
+  
   http://ftp.ncbi.nlm.nih.gov/pub/lu/PubTator
 
-* MetaNetX compounds/reactions datasets
-  ([metanetx]())
+* MetaNetX compounds/reactions data sets,
+  [metanetx](metanetx),
+  
   http://www.metanetx.org/mnxdoc/mnxref.html
 
-* HGNC, genenames.org data files: http://www.genenames.org/cgi-bin/statistics,
-  http://ftp.ebi.ac.uk/pub/databases/genenames/new/json/
+* HGNC, genenames.org data files,
 
-* RNAcentral identifier mappings
-  ([geneinfo/rnacentral_idmappings.py]())
+  http://www.genenames.org/cgi-bin/statistics, http://ftp.ebi.ac.uk/pub/databases/genenames/new/json/
+
+* RNAcentral identifier mappings,
+  [geneinfo/rnacentral_idmappings.py](geneinfo/rnacentral_idmappings.py),
+  
   http://ftp.ebi.ac.uk/pub/databases/RNAcentral/current_release/id_mapping/
 
-* KBase compounds/reactions data files
-  ([nosqlbiosets/kbase/index.py]())
+* KBase compounds/reactions data files,
+  [nosqlbiosets/kbase/index.py](nosqlbiosets/kbase/index.py),
+  
   http://ftp.kbase.us/assets/KBase_Reference_Data/Biochemistry/
 
-* KEGG pathway kgml/xml files, pathway maps linked to gene ids
-  ([nosqlbiosets/kegg/index.py]())
+* KEGG pathway kgml/xml files, pathway maps linked to gene ids,
+  [nosqlbiosets/kegg/index.py](nosqlbiosets/kegg/index.py),
+  
   http://www.kegg.jp/kegg/download/Readme/README.kgml
 
 We want to connect above datasets as much as possible
