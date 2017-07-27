@@ -1,39 +1,54 @@
-# Scripts to index sample bioinformatics datasets with NoSQL databases 
+# Project aim 
 
-We want to develop scripts for NoSQL indexing and querying of
-sample bioinformatics datasets.
-In the early stages of the project we developed scripts supporting
-Elasticsearch only. In most recent work we have implemented
-support for MongoDB as well.
+We want to develop scripts for NoSQL indexing and querying of sample
+bioinformatics datasets.
 
-Following are the set of scripts we have,
-all supports Elasticsearch and few supports MongoDB.
+In the early stages of the project only Elasticsearch was supported.
+In most recent work (UniProt, MetaNetX, HMDB) we have implemented MongoDB
+support as well.
 
+
+## Datasets supported
+
+* UniProtKB data sets in XML format
+  [nosqlbiosets/uniprot]()
+  ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/
+  
 * PubChem BioAssay json files: http://ftp.ncbi.nlm.nih.gov/pubchem/Bioassay
+
 * WikiPathways gpml files: http://www.wikipathways.org/index.php/Download_Pathways
+
 * PMC articles
   [index-pmc-articles.py]()
   http://ftp.ebi.ac.uk/pub/databases/pmc/manuscripts
+
 * Ensembl regulatory build GFF files
   ([geneinfo/ensembl_regbuild.py]())
   http://ftp.ensembl.org/pub/current_regulation/homo_sapiens
+
 * HMDB protein/metabolite records:
   ([hmdb/index.py]())
   http://www.hmdb.ca/downloads
+
 * NCBI PubTator gene2pub and disease2pub mappings
   [pubtator/index-pubtator-files.py]()
   http://ftp.ncbi.nlm.nih.gov/pub/lu/PubTator
+
 * MetaNetX compounds/reactions datasets
   ([metanetx]())
   http://www.metanetx.org/mnxdoc/mnxref.html
+
 * HGNC, genenames.org data files: http://www.genenames.org/cgi-bin/statistics,
   http://ftp.ebi.ac.uk/pub/databases/genenames/new/json/
+
 * RNAcentral identifier mappings
   ([geneinfo/rnacentral_idmappings.py]())
   http://ftp.ebi.ac.uk/pub/databases/RNAcentral/current_release/id_mapping/
+
 * KBase compounds/reactions data files
   ([nosqlbiosets/kbase/index.py]())
   http://ftp.kbase.us/assets/KBase_Reference_Data/Biochemistry/
+
 * KEGG pathway kgml/xml files, pathway maps linked to gene ids
   ([nosqlbiosets/kegg/index.py]())
   http://www.kegg.jp/kegg/download/Readme/README.kgml
@@ -46,6 +61,27 @@ In a separate [project](https://github.com/uludag/hspsdb-indexer)
 we have developed index scripts for sequence
 similarity search results, either in NCBI-BLAST xml/json formats
 or in SAM/BAM formats
+
+### Installation
+
+Download nosqlbiosets project source code and install required libraries:
+```bash
+$ git clone https://github.com/uludag/nosql-biosets.git
+$ cd nosql-biosets
+$ pip install -r requirements.txt --user
+```
+
+Install nosqlbiosets project to your local Python library/package folders or
+just add current-working-directory(`.`) to your `PYTHONPATH` that should allow
+you to run the index scripts from nosqlbiosets project source root folder:
+```bash
+$ python setup.py install --user
+$ export PYTHONPATH=.:${PYTHONPATH}
+```
+
+Default values of hostname and port numbers of Elasticsearch and MongoDB servers
+are read from `conf/dbservers.json` file. Save your settings in this file
+to avoid entering `--host` and `--port` parameters in command line.
 
 ### Notes on PMC articles
 
@@ -97,7 +133,7 @@ https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-configurat
   by preventing any Elasticsearch memory from being swapped out 
 
 ### Datasets we are considering to include
-* REACTOME?, Rhea?, IntEnz? BioCyc?
+* REACTOME?, Rhea?, IntEnz?, BioCyc?, [ConsensusPathDB](http://cpdb.molgen.mpg.de/)?
 
 ## Copyright
 This project has been developed

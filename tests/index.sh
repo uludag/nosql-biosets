@@ -33,8 +33,8 @@ for db in ${dbs}; do
 
 
 ## UniProt (work in progress)
-# Elasticsearch indexing time about 7h that will hopefully be improved
-# MongoDB indexing time ??
+# Typical Elasticsearch indexing time about 7h that will hopefully be improved
+# Typical MongoDB indexing time 210m
 # ./nosqlbiosets/uniprot/index.py\
 #   --infile ./data/uniprot_sprot.xml.gz --index ${index} --db ${db}
 
