@@ -10,7 +10,7 @@ support as well.
 ## Data sets supported
 
 * UniProtKB data sets in XML format,
-  [nosqlbiosets/uniprot/readme.md](nosqlbiosets/uniprot/readme.md),
+  [nosqlbiosets/uniprot](nosqlbiosets/uniprot),
   
   ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/
   
