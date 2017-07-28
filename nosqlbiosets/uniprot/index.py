@@ -145,11 +145,10 @@ class Indexer(DBconnection):
             return True
         try:
             logger.debug(docid)
-            print("docid:%s  n=%d" % (docid, len(json.dumps(entry))))
             self.update_entry(entry)
             self.es.index(index=self.index, doc_type=self.doctype,
                           id=docid, body=json.dumps(entry))
-            self.reportprogress()
+            self.reportprogress(100)
             r = True
         except Exception as e:
             r = False
@@ -167,7 +166,7 @@ class Indexer(DBconnection):
         try:
             self.update_entry(entry)
             self.mcl.update(spec, entry, upsert=True)
-            self.reportprogress()
+            self.reportprogress(100)
             r = True
         except Exception as e:
             print(e)
@@ -175,7 +174,7 @@ class Indexer(DBconnection):
         return r
 
 
-def mongodb_textindex(mdb, doctype):
+def mongodb_textindex(mdb, doctype):  # todo
     if doctype == 'metabolite':
         index = IndexModel([
             ("description", "text"), ("name", "text"),

@@ -20,31 +20,31 @@ def getnumericval(val):
     return nval
 
 
-# Parse records in Kbase compounds csv file which has the following header
-# DATABASE,PRIMARY NAME,ABBREVIATION,NAMES,KEGG ID(S),FORMULA,CHARGE,
-# DELTAG (kcal/mol),DELTAG ERROR (kcal/mol),MASS
+# Parse records in KBase compounds csv file which has the following header
+# DATABASE, PRIMARY NAME, ABBREVIATION, NAMES, KEGG ID(S), FORMULA, CHARGE,
+# DELTAG (kcal/mol), DELTAG ERROR (kcal/mol), MASS
 def getcompoundrecord(row, _):
     r = {
-        '_id':  row[0], 'name': row[1],
-        'abbrv': row[2], 'synonym':  row[3].split('|'),
-        'keggid': row[4].split('|'), 'formula':    row[5],
-        'charge': getnumericval(row[6]), 'deltaG': getnumericval(row[7]),
+        '_id':  row[0],  'name': row[1],
+        'abbrv': row[2], 'synonym': row[3].split('|'),
+        'keggid': row[4].split('|'), 'formula': row[5],
+        'charge': getnumericval(row[6]),  'deltaG': getnumericval(row[7]),
         'deltaGerr': getnumericval(row[8]), 'mass': getnumericval(row[9]),
         '_type': 'compound'
     }
     return r
 
 
-# Parse records in Kbase reactions csv file which has the following header
-# DATABASE,NAME,EC NUMBER(S),KEGG ID(S),DELTAG (kcal/mol),
-# DELTAG ERROR (kcal/mol),EQUATION,NAME EQ,THERMODYNAMIC FEASIBILTY
+# Parse records in KBase reactions csv file which has the following header
+# DATABASE, NAME, EC NUMBER(S), KEGG ID(S), DELTAG (kcal/mol),
+# DELTAG ERROR (kcal/mol), EQUATION, NAME EQ, THERMODYNAMIC FEASIBILTY
 def getreactionrecord(row, _):
     ec = row[2].split('|')[1:-1]
     r = {
-        '_id':  row[0], 'name': row[1], 'ec': ec,
-        'keggid':  row[3].split('|') if len(row[3]) > 0 else [],
+        '_id': row[0], 'name': row[1], 'ec': ec,
+        'keggid': row[3].split('|') if len(row[3]) > 0 else [],
         'deltaG': getnumericval(row[4]), 'deltaGerr': getnumericval(row[5]),
-        'equation_id': row[6], 'equation_name':    row[7],
+        'equation_id': row[6], 'equation_name': row[7],
         'feasibility': row[8],  '_type': 'reaction'
     }
     return r
@@ -104,12 +104,13 @@ if __name__ == '__main__':
                     ' MongoDB/Elasticsearch')
     parser.add_argument('--compoundsfile',
                         default=d + "/../../data/kbase/compounds.csv",
-                        help='Kbase compounds csv file')
+                        help='KBase compounds csv file')
     parser.add_argument('--reactionsfile',
                         default=d + "/../../data/kbase/reactions.csv",
-                        help='Kbase reactions csv file')
+                        help='KBase reactions csv file')
     parser.add_argument('--index', default="nosqlbiosets",
-                        help='Name of the Elasticsearch index')
+                        help='Name of the Elasticsearch index or '
+                             'MongoDB database')
     parser.add_argument('--host',
                         help='Elasticsearch or MongoDB server hostname')
     parser.add_argument('--port',

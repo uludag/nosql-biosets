@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Script for indexing the datasets supported by the project
-# TODO: not all supported datasets have been included in this script yet
+# Note: not all supported datasets have been included in this script yet
 echo `dirname $0`
 r=`dirname $0`/..    # Project root folder
 index=nosqlbiosets   # Elasticsearch index name or MongoDB database name
@@ -33,7 +33,8 @@ for db in ${dbs}; do
 
 
 ## UniProt (work in progress)
-# Typical Elasticsearch indexing time about 7h that will hopefully be improved
+# Typical Elasticsearch indexing times 7h, 10h
+# that will hopefully be improved
 # Typical MongoDB indexing time 210m
 # ./nosqlbiosets/uniprot/index.py\
 #   --infile ./data/uniprot_sprot.xml.gz --index ${index} --db ${db}

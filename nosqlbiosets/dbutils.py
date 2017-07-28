@@ -66,8 +66,9 @@ class DBconnection(object):
         if self.db == 'Elasticsearch':
             self.es.indices.refresh(index=self.index)
 
-    def reportprogress(self):
+    # Prints '.' to stdout as indication of progress after 'n' entries indexed
+    def reportprogress(self, n=160):
         self.i += 1
-        if self.i % 160 == 0:
+        if self.i % n == 0:
             print(".", end='')
             sys.stdout.flush()
