@@ -38,7 +38,7 @@ support as well.
   http://www.hmdb.ca/downloads
 
 * NCBI PubTator gene2pub and disease2pub mappings,
-  [pubtator/index-pubtator-files.py](pubtator/index-pubtator-files.py),
+  [nosqlbiosets/pubtator](nosqlbiosets/pubtator),
   
   http://ftp.ncbi.nlm.nih.gov/pub/lu/PubTator
 

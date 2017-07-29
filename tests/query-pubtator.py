@@ -1,27 +1,19 @@
 #!/usr/bin/env python3
-""" Sample queries for PubTator annotations """
+""" Simple queries with PubTator annotations """
 
-import json
-import os
 import unittest
 
-from elasticsearch import Elasticsearch
+from nosqlbiosets.dbutils import DBconnection
 
 
 class QueryPubTator(unittest.TestCase):
-    conf = {"host": "localhost", "port": 9200}
-    d = os.path.dirname(os.path.abspath(__file__))
-    try:
-        conf = json.load(open(d + "/../conf/elasticsearch.json", "r"))
-    finally:
-        pass
-    es = Elasticsearch(host=conf['host'], port=conf['port'], timeout=600)
+    dbc = DBconnection("Elasticsearch", "nosqlbiosets")
     index = "pubtator"
 
     def query(self, qc, aggqc):
         print("querying %s with aggregations %s" % (str(qc), str(aggqc)))
-        r = self.es.search(index=self.index,
-                           body={"size": 0, "query": qc, "aggs": aggqc})
+        r = self.dbc.es.search(index=self.index,
+                               body={"size": 0, "query": qc, "aggs": aggqc})
         return r
 
     def test_query_sample_geneids(self):
@@ -47,7 +39,7 @@ class QueryPubTator(unittest.TestCase):
                             "size": 4
                         }}}}}
         r = self.query(qc, aggqc)
-        self.assertGreater(r['hits']['total'], 4000,
+        self.assertGreater(r['hits']['total'], 1400,
                            "Less than expected number of annotations")
         dc0 = r['aggregations']['resources']['buckets'][0]['doc_count']
         self.assertGreater(dc0, 1000,

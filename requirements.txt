@@ -3,3 +3,4 @@ elasticsearch
 xmljson
 pymongo
 xmltodict
+neo4j-driver
