@@ -7,9 +7,10 @@ import gzip
 import json
 import os
 
-from elasticsearch import Elasticsearch
 from elasticsearch.helpers import streaming_bulk
 from neo4j.v1 import GraphDatabase, basic_auth
+
+from nosqlbiosets.dbutils import DBconnection
 
 ChunkSize = 2*1024
 
@@ -71,15 +72,16 @@ def index(es):
     i = es.info()
     v = int(i['version']['number'][0])
     if v >= 5:
-        iconfig = json.load(open(d + "/../mappings/pubtator.json", "rt"))
+        iconfig = json.load(open(d + "/../../mappings/pubtator.json", "r"))
     else:
-        iconfig = json.load(open(d + "/../mappings/pubtator-es2.json", "rt"))
+        iconfig = json.load(open(d + "/../../mappings/pubtator-es2.json", "r"))
     es.indices.create(index=args.index, params={"timeout": "20s"},
                       ignore=400, body=iconfig, wait_for_active_shards=1)
     read_and_index_pubtator_file(args.gene2pubfile, es, es_index,
                                  'gene2pub')
-    read_and_index_pubtator_file(args.disease2pubfile, es, es_index,
-                                 'disease2pub')
+    if os.path.exists(args.disease2pubfile):
+        read_and_index_pubtator_file(args.disease2pubfile, es, es_index,
+                                     'disease2pub')
     es.indices.refresh(index=args.index)
 
 
@@ -140,35 +142,30 @@ class Neo4jIndexer:
 
 
 if __name__ == '__main__':
-    conf = {"host": "localhost", "port": 9200}
-    try:
-        d = os.path.dirname(os.path.abspath(__file__))
-        conf = json.load(open(d + "/../conf/elasticsearch.json", "r"))
-    finally:
-        pass
+    d = os.path.dirname(os.path.abspath(__file__))
     parser = argparse.ArgumentParser(
         description='Index NCBI PubTator files using Elasticsearch')
     parser.add_argument('--gene2pubfile',
-                        default=d + "/../data/gene2pubtator.sample",
+                        default=d + "/../../data/gene2pubtator.sample",
                         help='PubTator gene2pub file')
     parser.add_argument('--disease2pubfile',
-                        default=d + "/../data/disease2pubtator.sample",
+                        default=d + "/../../data/disease2pubtator.sample",
                         help='PubTator disease2pub file')
     parser.add_argument('--index',
-                        default="pubtator",
+                        default="nosqlbiosets",
                         help='name of the Elasticsearch index')
-    parser.add_argument('--host', default=conf['host'],
+    parser.add_argument('--host',
                         help='Elasticsearch server hostname')
-    parser.add_argument('--port', default=conf['port'],
+    parser.add_argument('--port',
                         help="Elasticsearch server port")
-    parser.add_argument('--db', default='elasticsearch',
-                        help="Database: 'elasticsearch' or 'neo4j'")
+    parser.add_argument('--db', default='Elasticsearch',
+                        help="Database: 'Elasticsearch' or 'Neo4j'")
     args = parser.parse_args()
     print(args.db)
-    if args.db == 'elasticsearch':
-        con = Elasticsearch(host=args.host, port=args.port, timeout=3600)
-        index(con)
+    if args.db == 'Elasticsearch':
+        dbc = DBconnection(args.db, args.index, args.host, args.port)
+        index(dbc.es)
     else:
         Neo4jIndexer().indexwithneo4j()
 
-    # TODO: indexer with mongodb
+    # TODO: indexer with MongoDB

@@ -1,10 +1,12 @@
 
-* [queryall.py](): Sample queries with multiple indexes
+* [queryall.py](./queryall.py): Simple queries with multiple indexes
 
-* [query-metanetx.py](): Sample queries with MetaNetX compounds and reactions
+* [query-metanetx.py](./query-metanetx.py): Simple queries with MetaNetX compounds and reactions
 
-* [query-pubtator.py](): Sample queries for PubTator annotations
+* [query-pubtator.py](./query-pubtator.py): Simple queries with PubTator annotations
 
-* [querysuggestions.py](): Sample suggest/search queries
+* [query-uniprot.py](./query-uniprot.py): Simple queries with UniProt proteins data
+
+* [querysuggestions.py](): Simple suggest/search queries
 
 * [test-readers.py](): Tests with data readers
