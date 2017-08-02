@@ -53,13 +53,14 @@ def read_and_index_kegg_xmlfile(infile, indexf):
             r = xmltodict.parse(inf, attr_prefix='')
             indexf(1, r['pathway'])
     else:
-        print("only .xml and .tar.gz files are supported")
+        print("only .xml and .tar.gz files are read and indexed")
     print("\nCompleted")
 
 
 class Indexer(DBconnection):
 
     def __init__(self, db, index, host, port, doctype):
+        self.index = index
         self.doctype = doctype
         super(Indexer, self).__init__(db, index, host, port)
         if db != "Elasticsearch":
@@ -99,7 +100,7 @@ class Indexer(DBconnection):
         docid = entry['name']
         self.update_entry(entry)
         try:
-            self.es.index(index=args.index, doc_type=self.doctype,
+            self.es.index(index=self.index, doc_type=self.doctype,
                           id=docid, body=json.dumps(entry))
             return True
         except Exception as e:
