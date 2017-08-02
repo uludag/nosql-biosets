@@ -90,8 +90,11 @@ class Indexer(DBconnection):
             if 'link' in e:
                 del(e['link'])
         if 'reaction' in entry:
-            for r in entry['reaction']:
-                self.update_reaction(r)
+            if isinstance(entry['reaction'], dict):
+                self.update_reaction(entry['reaction'])
+            else:
+                for r in entry['reaction']:
+                    self.update_reaction(r)
 
     # Index KEGG Pathway entry with Elasticsearch
     def es_index_kegg_entry(self, _, entry):
