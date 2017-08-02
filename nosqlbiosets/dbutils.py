@@ -22,6 +22,8 @@ class DBconnection(object):
         d = os.path.dirname(os.path.abspath(__file__))
         self.index = index
         self.db = db
+        if port is not None and not isinstance(port, int):
+            port = int(port)
         try:
             with open(d + "/../conf/dbservers.json", "r") as conff:
                 conf = json.load(conff)
