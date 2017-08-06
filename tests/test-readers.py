@@ -49,32 +49,44 @@ class ReadersTestCase(unittest.TestCase):
         self.nhmdbentries += 1
         return True
 
+    hmdbcsfmetabolites = d + "/../data/hmdb_csf_metabolites-first3.xml.gz"
+    hmdbproteins = d + "/../data/hmdb_proteins-first10.xml.gz"
+
+    @unittest.skipUnless(os.path.exists(hmdbproteins) and
+                         os.path.exists(hmdbcsfmetabolites),
+                         "Missing test files")
     def test_hmdb_reader(self):
-        infile = self.d + "/../data/hmdb_csf_metabolites-first3.xml.gz"
         self.nhmdbentries = 0
-        parse_hmdb_xmlfile(infile, self.hmdb_reader_helper)
+        parse_hmdb_xmlfile(self.hmdbcsfmetabolites, self.hmdb_reader_helper)
         self.assertEqual(self.nhmdbentries, 3)
-        infile = self.d + "/../data/hmdb_proteins-first10.xml.gz"
         self.nhmdbentries = 0
-        parse_hmdb_xmlfile(infile, self.hmdb_reader_helper)
+        parse_hmdb_xmlfile(self.hmdbproteins, self.hmdb_reader_helper)
         self.assertEqual(self.nhmdbentries, 10)
 
+    compoundsxreffile = d + "/../metanetx/data/chem_xref-head.tsv"
+    compoundsfile = d + "/../metanetx/data/chem_prop-head.tsv"
+
+    @unittest.skipUnless(os.path.exists(compoundsfile) and
+                         os.path.exists(compoundsxreffile),
+                         "Missing test files")
     def test_metanetx_compound_reader(self):
-        compoundsxreffile = self.d + "/../metanetx/data/chem_xref-head.tsv"
-        compoundsfile = self.d + "/../metanetx/data/chem_prop-head.tsv"
-        xrefsmap = getcompoundxrefs(compoundsxreffile)
-        for r in read_metanetx_mappings(compoundsfile, getcompoundrecord,
+        xrefsmap = getcompoundxrefs(self.compoundsxreffile)
+        for r in read_metanetx_mappings(self.compoundsfile, getcompoundrecord,
                                         xrefsmap):
             if r['_id'] == 'MNXM1':
                 self.assertEqual(r['inchikey'],
                                  'GPRLSGONYQIRFK-UHFFFAOYSA-N')
                 break
 
+    reactsxreffile = d + "/../metanetx/data/reac_xref-head.tsv"
+    reactsfile = d + "/../metanetx/data/reac_prop-head.tsv"
+
+    @unittest.skipUnless(os.path.exists(reactsfile) and
+                         os.path.exists(reactsxreffile),
+                         "Missing test files")
     def test_metanetx_reaction_reader(self):
-        reactsxreffile = self.d + "/../metanetx/data/reac_xref-head.tsv"
-        reactsfile = self.d + "/../metanetx/data/reac_prop-head.tsv"
-        xrefsmap = getreactionxrefs(reactsxreffile)
-        for r in read_metanetx_mappings(reactsfile, getreactionrecord,
+        xrefsmap = getreactionxrefs(self.reactsxreffile)
+        for r in read_metanetx_mappings(self.reactsfile, getreactionrecord,
                                         xrefsmap):
             if r['_id'] == 'MNXR94726':
                 self.assertEqual(r['equation'],
@@ -89,11 +101,14 @@ class ReadersTestCase(unittest.TestCase):
         else:
             return False
 
+    keggtarfile = d + "/../data/kegg/xml/kgml/metabolic/organisms/hsa.tar.gz"
+
+    @unittest.skipUnless(os.path.exists(keggtarfile),
+                         "Missing test files")
     def test_kegg_xmltarfile_reader(self):
-        infile = self.d + "/../data/kegg/xml/kgml/metabolic/" \
-                          "organisms/hsa.tar.gz"
         self.nkeggentries = 0
-        read_and_index_kegg_xmltarfile(infile, self.kegg_xmlreader_helper)
+        read_and_index_kegg_xmltarfile(self.keggtarfile,
+                                       self.kegg_xmlreader_helper)
         self.assertEqual(self.nkeggentries, 4)
 
 
