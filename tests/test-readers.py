@@ -9,7 +9,7 @@ from geneinfo.rnacentral_idmappings import mappingreader
 from hmdb.index import parse_hmdb_xmlfile
 from metanetx.index import *
 from nosqlbiosets.kegg.index import read_and_index_kegg_xmltarfile
-from pubtator.index_pubtator_mappings import parse_pub2gene_lines
+from nosqlbiosets.pubtator.index import parse_pub2gene_lines
 
 
 class ReadersTestCase(unittest.TestCase):
@@ -18,31 +18,31 @@ class ReadersTestCase(unittest.TestCase):
 
     def test_rnacentral_idmapping_reader(self):
         infile = self.d + "/../data/rnacentral-6.0-id_mapping-first1000.tsv"
-        l = [r for r in mappingreader(infile)]
-        self.assertEqual(len(l), 342)
-        r = l[0]
+        idlist = [r for r in mappingreader(infile)]
+        self.assertEqual(len(idlist), 342)
+        r = idlist[0]
         self.assertEqual(r['_id'], 'URS0000000001')
         self.assertEqual(len(r['mappings']), 11)
 
     def test_ensembl_regbuild_regions_reader(self):
         infile = self.d + "/../data/hg38.ensrb_features.r88.first100.gff"
         db = connectgffdb(infile)
-        l = [r for r in regregions(db)]
-        self.assertEqual(len(l), 100)
+        regions = [r for r in regregions(db)]
+        self.assertEqual(len(regions), 100)
 
     def test_ensembl_regbuild_motifs_reader(self):
         infile = self.d + "/../data/hg38.ensrb_motiffeatures.r88.first1000.gff"
         db = connectgffdb(infile)
-        l = [r for r in tfs(db)]
-        self.assertEqual(len(l), 1000)
+        tflist = [r for r in tfs(db)]
+        self.assertEqual(len(tflist), 1000)
 
     def test_gene2pubtator_reader(self):
         infile = self.d + "/../data/gene2pubtator.sample"
         r = 0
         with open(infile) as inf:
             db = parse_pub2gene_lines(inf, r, 'gene2pub')
-            l = [m for m in db]
-            self.assertEqual(len(l), 1916)
+            mappinglist = [m for m in db]
+            self.assertEqual(len(mappinglist), 1916)
 
     def hmdb_reader_helper(self, _, entry):
         self.assertTrue('accession' in entry)
