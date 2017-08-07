@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-""" Index MetaNetX compounds/reactions files (version 3.0) with Elasticsearch
- or MongoDB"""
+""" Index MetaNetX compounds, reactions, and compartment files (version 3.0)
+ with Elasticsearch or MongoDB"""
 from __future__ import print_function
 
 import argparse
@@ -12,7 +12,7 @@ from elasticsearch.helpers import streaming_bulk
 
 from nosqlbiosets.dbutils import DBconnection
 
-chunksize = 2048  # for Elasticsearch index requests
+chunksize = 256  # for Elasticsearch index requests
 
 
 # Parse records in MetaNetX chem_prop.tsv file which has the following header
@@ -25,7 +25,7 @@ def getcompoundrecord(row, xrefsmap):
     if j > 0:
         sourcelib = row[7][0:j]
         sourceid = row[7][j + 1:]
-    charge = float(row[3]) if len(row[3]) > 0 and row[3] != "NA" else None
+    charge = int(row[3]) if len(row[3]) > 0 and row[3] != "NA" else None
     mass = float(row[4]) if len(row[4]) > 0 else None
     r = {
         '_id':     id_,     'desc':   row[1],
@@ -50,19 +50,54 @@ def getcompoundxrefrecord(row):
         reflib = 'MetanetX'
         refid = row[1]
     metanetxid = row[1]
-    return metanetxid, [reflib, refid, row[2], row[3]]
+    return metanetxid, {"lib": reflib, "id": refid,
+                        "evidence": row[2], "desc": row[3]}
 
 
-# Collect compound xrefs in a dictionary
-def getcompoundxrefs(infile):
-    print("Collecting compound xrefs '%s' in a dictionary" % infile)
+# Parse MetaNetX compo_prop.tsv file which has the following header
+# MNX_ID, Description, Source
+def getcompartmentrecord(row, xrefsmap):
+    id_ = row[0]
+    j = row[2].find(':')
+    if j > 0:
+        sourcelib = row[2][0:j]
+        sourceid = row[2][j + 1:]
+    else:
+        sourcelib = "MetaNetX"
+        sourceid = row[2]
+    r = {
+        '_id':     id_,     'desc':   row[1],
+        'source': {'lib': sourcelib, 'id': sourceid},
+        'xrefs': xrefsmap[id_] if id_ in xrefsmap else None,
+        '_type': 'compartment',
+    }
+    return r
+
+
+# Parse records in MetaNetX compo_xref.tsv file which has the following header
+# XREF, MNX_ID, Description
+def getcompartmentxrefrecord(row):
+    j = row[0].find(':')
+    if j > 0:
+        reflib = row[0][0:j]
+        refid = row[0][j + 1:]
+    else:
+        reflib = 'MetanetX'
+        refid = row[1]
+    metanetxid = row[1]
+    return metanetxid, {"lib": reflib, "id": refid, "desc": row[2]}
+
+
+# Collect xrefs in a dictionary
+def getxrefs(infile, xrefparser):
+    print("Collecting xrefs '%s' in a dictionary" % infile)
     cxrefs = dict()
     with open(infile) as csvfile:
         reader = csv.reader(csvfile, delimiter='\t', quotechar='|')
         for row in reader:
             if row[0][0] == '#':
                 continue
-            key, val = getcompoundxrefrecord(row)
+            key, val = xrefparser(row)
             if key not in cxrefs:
                 cxrefs[key] = []
             cxrefs[key].append(val)
@@ -80,24 +115,7 @@ def getreactionxrefrecord(row):
         reflib = 'MetanetX'
         refid = row[1]
     metanetxid = row[1]
-    return metanetxid, [reflib, refid]
-
-
-# Collect reaction xrefs in a dictionary
-def getreactionxrefs(infile):
-    print("Collecting reaction xrefs '%s' in a dictionary" % infile)
-    rxrefs = dict()
-    with open(infile) as csvfile:
-        reader = csv.reader(csvfile, delimiter='\t', quotechar='|')
-        for row in reader:
-            if row[0][0] == '#' or row[0] == row[1]:
-                continue
-            # Should we skip the xrefs to the source library?
-            key, val = getreactionxrefrecord(row)
-            if key not in rxrefs:
-                rxrefs[key] = []
-            rxrefs[key].append(val)
-    return rxrefs
+    return metanetxid, {"lib": reflib, "id": refid}
 
 
 # Parse records in react_prop.tsv file which has the following header
@@ -117,6 +135,7 @@ def getreactionrecord(row, xrefsmap):
         'source': {'lib': sourcelib, 'id': sourceid},
         'xrefs': xrefsmap[id_] if id_ in xrefsmap else None
     }
+    # TODO: get metabolite_info as in cobrababel
     return r
 
 
@@ -189,11 +208,15 @@ if __name__ == '__main__':
                         help='MetaNetX chem_prop.tsv file')
     parser.add_argument('--compoundsxreffile',
                         help='MetaNetX chem_xref.tsv file')
+    parser.add_argument('--compartmentsfile',
+                        help='MetaNetX comp_prop.tsv file')
+    parser.add_argument('--compartmentsxreffile',
+                        help='MetaNetX comp_xref.tsv file')
     parser.add_argument('--reactionsfile',
                         help='MetaNetX reac_prop.tsv file')
     parser.add_argument('--reactionsxreffile',
                         help='MetaNetX reac_xref.tsv file')
-    parser.add_argument('--index', default="nosqlbiosets",
+    parser.add_argument('--index', default="nosqlbiosets-tests",
                         help='Name of the Elasticsearch index'
                              ' or MongoDB database')
     parser.add_argument('--host',
@@ -206,6 +229,8 @@ if __name__ == '__main__':
 
     l = [("compoundsfile", "chem_prop.tsv"),
          ("compoundsxreffile", "chem_xref.tsv"),
+         ("compartmentsfile", "comp_prop.tsv"),
+         ("compartmentsxreffile", "comp_xref.tsv"),
          ("reactionsfile", "reac_prop.tsv"),
          ("reactionsxreffile", "reac_xref.tsv")
          ]
@@ -214,12 +239,17 @@ if __name__ == '__main__':
         if v[arg] is None:
             v[arg] = os.path.join(args.metanetxdatafolder, filename)
 
-    xrefsmap_ = getcompoundxrefs(args.compoundsxreffile)
+    xrefsmap_ = getxrefs(args.compoundsxreffile, getcompoundxrefrecord)
     indxr = Indexer(args.db, args.index, args.host, args.port, "compound")
     indxr.indexall(read_metanetx_mappings(args.compoundsfile,
                                           getcompoundrecord, xrefsmap_))
 
-    xrefsmap_ = getreactionxrefs(args.reactionsxreffile)
+    xrefsmap_ = getxrefs(args.compartmentsxreffile, getcompartmentxrefrecord)
+    indxr = Indexer(args.db, args.index, args.host, args.port, "compartment")
+    indxr.indexall(read_metanetx_mappings(args.compartmentsfile,
+                                          getcompartmentrecord, xrefsmap_))
+
+    xrefsmap_ = getxrefs(args.reactionsxreffile, getreactionxrefrecord)
     indxr = Indexer(args.db, args.index, args.host, args.port, "reaction")
     indxr.indexall(read_metanetx_mappings(args.reactionsfile,
                                           getreactionrecord, xrefsmap_))

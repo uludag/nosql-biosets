@@ -7,6 +7,6 @@
 
 * [query-uniprot.py](./query-uniprot.py): Simple queries with UniProt proteins data
 
-* [querysuggestions.py](): Simple suggest/search queries
+* [querysuggestions.py](./querysuggestions.py): Simple suggest/search queries
 
-* [test-readers.py](): Tests with data readers
+* [test-readers.py](./test-readers.py): Tests with data readers

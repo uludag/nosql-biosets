@@ -70,7 +70,7 @@ class ReadersTestCase(unittest.TestCase):
                          os.path.exists(compoundsxreffile),
                          "Missing test files")
     def test_metanetx_compound_reader(self):
-        xrefsmap = getcompoundxrefs(self.compoundsxreffile)
+        xrefsmap = getxrefs(self.compoundsxreffile, getcompoundxrefrecord)
         for r in read_metanetx_mappings(self.compoundsfile, getcompoundrecord,
                                         xrefsmap):
             if r['_id'] == 'MNXM1':
@@ -85,7 +85,7 @@ class ReadersTestCase(unittest.TestCase):
                          os.path.exists(reactsxreffile),
                          "Missing test files")
     def test_metanetx_reaction_reader(self):
-        xrefsmap = getreactionxrefs(self.reactsxreffile)
+        xrefsmap = getxrefs(self.reactsxreffile, getreactionxrefrecord)
         for r in read_metanetx_mappings(self.reactsfile, getreactionrecord,
                                         xrefsmap):
             if r['_id'] == 'MNXR94726':

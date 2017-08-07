@@ -1,8 +1,8 @@
 
 ## Index/Query scripts
 
-* [index.py]() indexes MetaNetX compounds and reactions datasets
-  together with their xref data.
+* [index.py](index.py) index MetaNetX compounds, compartments, and reactions
+ data including the xref data.
   
   Sample command lines for indexing with Elasticsearch and MongoDB:
 ```bash
@@ -12,8 +12,8 @@ $ ./metanetx/index.py --metanetxdatafolder ./metanetx/data\
         --index metanetx --db MongoDB;
 ```
 
-* [../tests/query-metanetx.py]() includes few sample queries
- for the indexed data
+* [../tests/query-metanetx.py](../tests/query-metanetx.py)
+ includes few sample queries for the indexed data
 
 
 #### MetaNetX downloads page
