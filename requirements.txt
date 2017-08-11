@@ -4,3 +4,6 @@ xmljson
 pymongo
 xmltodict
 neo4j-driver
+cobrababel
+psamm
+cobra

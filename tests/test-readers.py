@@ -9,6 +9,8 @@ from geneinfo.rnacentral_idmappings import mappingreader
 from hmdb.index import parse_hmdb_xmlfile
 from metanetx.index import *
 from nosqlbiosets.kegg.index import read_and_index_kegg_xmltarfile
+from nosqlbiosets.pathways.index_metabolic_networks \
+    import psamm_yaml_to_cobra_json, read_and_index_psamm_yamlfiles
 from nosqlbiosets.pubtator.index import parse_pub2gene_lines
 
 
@@ -110,6 +112,33 @@ class ReadersTestCase(unittest.TestCase):
         read_and_index_kegg_xmltarfile(self.keggtarfile,
                                        self.kegg_xmlreader_helper)
         self.assertEqual(self.nkeggentries, 4)
+
+    psammmodelfiles = d + "/data/sbml/"
+
+    def psamm_yamlreader_helper(self, _, r):
+        self.assertTrue('metabolites' in r)
+        self.assertGreater(len(r['metabolites']), 10)
+        self.assertGreaterEqual(len(r['compartments']), 1)
+        self.npsammentries += 1
+        print("yaml files indexed = %d" % self.npsammentries)
+
+    @unittest.skipUnless(os.path.exists(psammmodelfiles),
+                         "Missing test files folder")
+    def test_psamm_yamlfile_reader(self):
+        for m in ["iIB711"]:
+            print(self.psammmodelfiles + m)
+            r = psamm_yaml_to_cobra_json(self.psammmodelfiles + m)
+            self.assertGreater(len(r['metabolites']), 10)
+            self.assertGreaterEqual(len(r['compartments']), 1)
+            self.assertGreater(len(r['genes']), 10)
+
+    @unittest.skipUnless(os.path.exists(psammmodelfiles),
+                         "Missing test files folder")
+    def test_psamm_yamlfilesfolder_reader(self):
+        self.npsammentries = 0
+        read_and_index_psamm_yamlfiles(self.psammmodelfiles,
+                                       self.psamm_yamlreader_helper)
+        self.assertGreater(self.npsammentries, 0)
 
 
 if __name__ == '__main__':
