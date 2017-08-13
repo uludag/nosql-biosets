@@ -9,46 +9,47 @@ support as well.
 
 ## Data sets supported
 
-* UniProtKB data sets in XML format,
+* MetaNetX compounds/reactions/compartments data sets,
+  [metanetx](metanetx),
+  http://www.metanetx.org/mnxdoc/mnxref.html
+
+* Metabolic networks in SBML or PSAMM yaml formats
+ (_recent work, not tested with many network files_),
+  [nosqlbiosets/pathways/index_metabolic_networks.py](
+  nosqlbiosets/pathways/index_metabolic_networks.py),
+  http://sbml.org,
+  https://github.com/zhanglab/psamm-model-collection
+
+* UniProtKB datasets in XML format,
   [nosqlbiosets/uniprot](nosqlbiosets/uniprot),
-  
-  ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/
+  ftp://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/knowledgebase/complete/
   
 * PubChem BioAssay json files,
-
+  [index-pubchem-bioassays.py](index-pubchem-bioassays.py),
   http://ftp.ncbi.nlm.nih.gov/pubchem/Bioassay
 
 * WikiPathways gpml files,
-
+  [index-wikipathways.py](index-wikipathways.py),
   http://www.wikipathways.org/index.php/Download_Pathways
 
 * PMC articles,
   [index-pmc-articles.py](index-pmc-articles.py),
-  
   http://ftp.ebi.ac.uk/pub/databases/pmc/manuscripts
 
 * Ensembl regulatory build GFF files,
-  [geneinfo/ensembl_regbuild.py]([geneinfo/ensembl_regbuild.py),
-  
+  [geneinfo/ensembl_regbuild.py]([geneinfo/ensembl_regbuild.py),  
   http://ftp.ensembl.org/pub/current_regulation/homo_sapiens
 
 * HMDB protein/metabolite records,
   [hmdb/index.py](hmdb/index.py),
-  
   http://www.hmdb.ca/downloads
 
 * NCBI PubTator gene2pub and disease2pub mappings,
   [nosqlbiosets/pubtator](nosqlbiosets/pubtator),
-  
   http://ftp.ncbi.nlm.nih.gov/pub/lu/PubTator
 
-* MetaNetX compounds/reactions data sets,
-  [metanetx](metanetx),
-  
-  http://www.metanetx.org/mnxdoc/mnxref.html
-
 * HGNC, genenames.org data files,
-
+  [geneinfo/index-hgnc-geneinfo.py](geneinfo/index-hgnc-geneinfo),
   http://www.genenames.org/cgi-bin/statistics, http://ftp.ebi.ac.uk/pub/databases/genenames/new/json/
 
 * RNAcentral identifier mappings,
@@ -58,12 +59,10 @@ support as well.
 
 * KBase compounds/reactions data files,
   [nosqlbiosets/kbase/index.py](nosqlbiosets/kbase/index.py),
-  
   http://ftp.kbase.us/assets/KBase_Reference_Data/Biochemistry/
 
 * KEGG pathway kgml/xml files, pathway maps linked to gene ids,
   [nosqlbiosets/kegg/index.py](nosqlbiosets/kegg/index.py),
-  
   http://www.kegg.jp/kegg/download/Readme/README.kgml
 
 We want to connect above datasets as much as possible
@@ -75,44 +74,53 @@ we have developed index scripts for sequence
 similarity search results, either in NCBI-BLAST xml/json formats
 or in SAM/BAM formats
 
-### Installation
+## Installation
 
 Download nosqlbiosets project source code and install required libraries:
 ```bash
-$ git clone https://github.com/uludag/nosql-biosets.git
+$ git clone https://bitbucket.org/hspsdb/nosql-biosets.git
 $ cd nosql-biosets
 $ pip install -r requirements.txt --user
 ```
 
-Install nosqlbiosets project to your local Python library/package folders or
-just add current-working-directory(`.`) to your `PYTHONPATH` that should allow
-you to run the index scripts from nosqlbiosets project source root folder:
+Install nosqlbiosets project to your local Python library/package folders
+that should allow you to run the index scripts
+from nosqlbiosets project source root folder:
 ```bash
-$ python setup.py install --user
-$ export PYTHONPATH=.:${PYTHONPATH}
+$ python setup.py develop --user
 ```
 
 Default values of hostname and port numbers of Elasticsearch and MongoDB servers
 are read from `conf/dbservers.json` file. Save your settings in this file
 to avoid entering `--host` and `--port` parameters in command line.
 
-### Notes on PMC articles
+## Usage
 
-[index-pmc-articles.py]() reads and indexes archives
-of PMC articles xml files.
+Example command lines for downloading UniProt xml data files and for indexing:
 
-Install [`pubmed_parser`](https://github.com/titipata/pubmed_parser/)
- library using its `setup.py` file
 ```bash
-$ git clone https://github.com/titipata/pubmed_parser.git
-$ cd pubmed_parser
-$ pip install -r requirements.txt --user
-$ python setup.py install --user
+$ wget ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/\
+knowledgebase/complete/uniprot_sprot.xml.gz
 ```
 
-### Notes on PubChem datasets
+```bash
+$ ./nosqlbiosets/uniprot/index.py --infile ../uniprot_sprot.xml.gz\
+ --host localhost --db Elasticsearch
+```
 
-[index-pubchem-bioassays.py]() reads and indexes
+## Notes
+
+### PMC articles
+
+[index-pmc-articles.py](index-pmc-articles.py) reads and indexes archives
+of PMC articles xml files.
+
+Requires [`pubmed_parser`](https://github.com/titipata/pubmed_parser/)
+library installed
+
+### PubChem
+
+[index-pubchem-bioassays.py](index-pubchem-bioassays.p) reads and indexes
 the compressed and archived PubChem BioAssay json files,
 without extracting them to temporary files
 
@@ -121,7 +129,7 @@ without extracting them to temporary files
 * Use bulk index API
 * Index other PubChem data types
 
-### Notes on WikiPathways datasets
+### WikiPathways
 
 [index-wikipathways.py](index-wikipathways.py) reads and indexes
 the archived WikiPathways gpml files,

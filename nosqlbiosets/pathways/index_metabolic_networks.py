@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """Index metabolic network files, current/initial version is limited
-   to PSAMM yaml files """
+   to SBM files and psamm-model-collection project yaml files """
 from __future__ import print_function
 
 import argparse
@@ -17,7 +17,7 @@ from pymongo import IndexModel
 logger = logging.getLogger(__name__)
 
 
-def psamm_yaml_to_cobra_json(inf):
+def psamm_yaml_to_sbml(inf):
     reader = native.ModelReader.reader_from_path(inf)
     print(reader.name)
     m = reader.create_model()
@@ -28,40 +28,60 @@ def psamm_yaml_to_cobra_json(inf):
     except TypeError as e:
         print(e)
         return None
-    c = cobra.io.read_sbml_model(tempsbml)
+    return tempsbml
+
+
+def sbml_to_cobra_json(inf):
+    c = cobra.io.read_sbml_model(inf)
     tempjson = "temp.json"
     cobra.io.save_json_model(c, tempjson)
     r = json.load(open(tempjson))
-    os.unlink(tempsbml)
     os.unlink(tempjson)
     return r
 
 
-# Read and index PSAMM yaml files (possibly in a folder)
-def read_and_index_psamm_yamlfiles(infile, indexf):
-    if os.path.isdir(infile) and not os.path.exists(
-            os.path.join(infile, 'model.yaml')):
+# Read and index metabolic network files, PSAMM yaml or sbml
+def read_and_index_model_files(infile, indexf):
+    if os.path.isdir(infile):
         for child in os.listdir(infile):
             c = os.path.join(infile, child)
-            read_and_index_psamm_yamlfile(c, indexf)
+            if os.path.isdir(c) and os.path.exists(
+                    os.path.join(c, "model.yaml")):
+                c = os.path.join(c, "model.yaml")
+            read_and_index_model_file(c, indexf)
     else:
-        read_and_index_psamm_yamlfile(infile, indexf)
+        read_and_index_model_file(infile, indexf)
 
 
-# Read PSAMM yaml files, index using the function indexf
-def read_and_index_psamm_yamlfile(infile, indexf):
-    infile = os.path.join(infile, "model.yaml")
+# Read PSAMM yaml or sbml file, index using the function indexf
+def read_and_index_model_file(infile, indexf):
     print("Reading/indexing %s " % infile)
+    if not os.path.exists(infile):
+        print("Input file not found")
+        raise FileNotFoundError(infile)
+    if infile.endswith(".yaml"):
+        infile = psamm_yaml_to_sbml(infile)
+    elif not infile.endswith(".xml") or os.path.isdir(infile):
+        print("Only .xml (for sbml) or .yaml (PSAMM/sbml) files are supported")
+        return
+    read_and_index_sbml_file(infile, indexf)
+
+
+# Read sbml file, index using the function indexf
+def read_and_index_sbml_file(infile, indexf):
     if os.path.exists(infile):
-        r = psamm_yaml_to_cobra_json(infile)
+        r = sbml_to_cobra_json(infile)
+        # Changes to COBRAby json, please see readme file in this folder
         if r is not None:
             for react in r['reactions']:
                 ml = [{"id": mid, "st": react['metabolites'][mid]}
                       for mid in react['metabolites']]
                 react['metabolites'] = ml
+            if r['id'] is None:
+                del(r['id'])
             indexf(1, r)
     else:
-        print("No model.yaml file found")
+        print("SBML file not found")
     print("\nCompleted")
 
 
@@ -115,10 +135,10 @@ def mongodb_textindex(mdb):
 def main(infile, index, doctype, db, host, port):
     indxr = Indexer(db, index, host, port, doctype)
     if db == 'Elasticsearch':
-        read_and_index_psamm_yamlfiles(infile, indxr.es_index_sbml)
+        read_and_index_model_files(infile, indxr.es_index_sbml)
         indxr.es.indices.refresh(index=index)
     else:
-        read_and_index_psamm_yamlfiles(infile, indxr.mongodb_index_sbml)
+        read_and_index_model_files(infile, indxr.mongodb_index_sbml)
         mongodb_textindex(indxr.mcl)
 
 
@@ -127,14 +147,14 @@ if __name__ == '__main__':
         description='Index PSAMM metabolic network yaml records,'
                     ' with Elasticsearch or MongoDB')
     parser.add_argument('-infile', '--infile',
-                        help='Folder for individual PSAMM metabolic network or'
-                             ' folder of metabolic networks folders')
+                        help='PSAMM .yaml or SBML .xml file or'
+                             ' folder of metabolic network files')
     parser.add_argument('--index',
                         default="biotests",
                         help='Name of the Elasticsearch index'
                              ' or MongoDB database')
     parser.add_argument('--doctype',
-                        default='psamm_metabolic_network',
+                        default='metabolic_network',
                         help='Name for the Elasticsearch document type or '
                              'MongoDB collection')
     parser.add_argument('--host',
