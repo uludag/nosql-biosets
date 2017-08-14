@@ -9,27 +9,29 @@ support as well.
 
 ## Data sets supported
 
-* MetaNetX compounds/reactions/compartments data sets,
-  [metanetx](metanetx),
-  http://www.metanetx.org/mnxdoc/mnxref.html
+* MetaNetX [compounds/reactions/compartments data sets](
+http://www.metanetx.org/mnxdoc/mnxref.html
+): [`./metanetx`](./metanetx)
+  
 
-* Metabolic networks in SBML or PSAMM yaml formats
- (_recent work, not tested with many network files_),
-  [nosqlbiosets/pathways/index_metabolic_networks.py](
-  nosqlbiosets/pathways/index_metabolic_networks.py),
-  http://sbml.org,
-  https://github.com/zhanglab/psamm-model-collection
+* Metabolic networks in [SBML](http://sbml.org) or
+ [PSAMM yaml formats](https://github.com/zhanglab/psamm-model-collection):
+  [`./nosqlbiosets/pathways/index_metabolic_networks.py`](
+  nosqlbiosets/pathways/index_metabolic_networks.py)
+   (_recent work, not tested with many network files_)
 
-* UniProtKB datasets in XML format,
-  [nosqlbiosets/uniprot](nosqlbiosets/uniprot),
-  ftp://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/knowledgebase/complete/
+* [UniProtKB datasets](
+ftp://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/knowledgebase/complete/
+) in XML format,
+  [`./nosqlbiosets/uniprot`](nosqlbiosets/uniprot)
   
 * PubChem BioAssay json files,
-  [index-pubchem-bioassays.py](index-pubchem-bioassays.py),
+  [`./index-pubchem-bioassays.py`](index-pubchem-bioassays.py),
   http://ftp.ncbi.nlm.nih.gov/pubchem/Bioassay
 
 * WikiPathways gpml files,
-  [index-wikipathways.py](index-wikipathways.py),
+  [`./nosqlbiosets/pathways/index_wikipathways.py`](
+  ./nosqlbiosets/pathways/index-wikipathways.py),
   http://www.wikipathways.org/index.php/Download_Pathways
 
 * PMC articles,

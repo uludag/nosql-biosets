@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """Index metabolic network files, current/initial version is limited
-   to SBM files and psamm-model-collection project yaml files """
+   to SBML files and psamm-model-collection project yaml files """
 from __future__ import print_function
 
 import argparse
@@ -147,8 +147,9 @@ if __name__ == '__main__':
         description='Index PSAMM metabolic network yaml records,'
                     ' with Elasticsearch or MongoDB')
     parser.add_argument('-infile', '--infile',
-                        help='PSAMM .yaml or SBML .xml file or'
-                             ' folder of metabolic network files')
+                        help='Input file or folder name'
+                             ' with Metabolic network file(s) in PSAMM .yaml'
+                             ' or SBML .xml formats')
     parser.add_argument('--index',
                         default="biotests",
                         help='Name of the Elasticsearch index'

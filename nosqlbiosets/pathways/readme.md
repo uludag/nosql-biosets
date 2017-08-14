@@ -1,6 +1,9 @@
+* [index_wikipathways.py](index_wikipathways.py): Index WikiPathways gpml files
+
 
 * [index_metabolic_networks.py](index_metabolic_networks.py): Index metabolic
  network files, current/initial version is limited to PSAMM yaml files
+ and SBML files
 
 JSON representation of SBML files provided by the COBRApy project[1] is used to
 represent the metabolic network objects in databases (Elasticsearch and MongoDB).
@@ -12,7 +15,7 @@ Example metabolites lists, before and after change:
 "metabolites": {
     "cpd14881": -1.0,
     "cpdLiG3P": -1.0
-},
+}
 ```
 
 ```json
