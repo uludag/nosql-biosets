@@ -7,9 +7,9 @@ In the early stages of the project only Elasticsearch was supported.
 In most recent work (UniProt, MetaNetX, HMDB) we have implemented MongoDB
 support as well.
 
-## Data sets supported
+## Datasets supported
 
-* MetaNetX [compounds/reactions/compartments data sets](
+* MetaNetX [compounds/reactions/compartments datasets](
 http://www.metanetx.org/mnxdoc/mnxref.html
 ): [`./metanetx`](./metanetx)
   
@@ -20,27 +20,25 @@ http://www.metanetx.org/mnxdoc/mnxref.html
   nosqlbiosets/pathways/index_metabolic_networks.py)
    (_recent work, not tested with many network files_)
 
-* [UniProtKB datasets](
+* UniProtKB [datasets](
 ftp://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/knowledgebase/complete/
-) in XML format,
+) in XML format:
   [`./nosqlbiosets/uniprot`](nosqlbiosets/uniprot)
   
-* PubChem BioAssay json files,
-  [`./index-pubchem-bioassays.py`](index-pubchem-bioassays.py),
-  http://ftp.ncbi.nlm.nih.gov/pubchem/Bioassay
+* PubChem [BioAssay](http://ftp.ncbi.nlm.nih.gov/pubchem/Bioassay) json files:
+  [`./index-pubchem-bioassays.py`](index-pubchem-bioassays.py)  
 
-* WikiPathways gpml files,
+* WikiPathways [gpml files](
+http://www.wikipathways.org/index.php/Download_Pathways):
   [`./nosqlbiosets/pathways/index_wikipathways.py`](
-  ./nosqlbiosets/pathways/index-wikipathways.py),
-  http://www.wikipathways.org/index.php/Download_Pathways
+  ./nosqlbiosets/pathways/index_wikipathways.py)
 
-* PMC articles,
-  [index-pmc-articles.py](index-pmc-articles.py),
-  http://ftp.ebi.ac.uk/pub/databases/pmc/manuscripts
+* PMC [articles](http://ftp.ebi.ac.uk/pub/databases/pmc/manuscripts):
+  [`./index-pmc-articles.py`](index-pmc-articles.py)
 
-* Ensembl regulatory build GFF files,
-  [geneinfo/ensembl_regbuild.py]([geneinfo/ensembl_regbuild.py),  
-  http://ftp.ensembl.org/pub/current_regulation/homo_sapiens
+* Ensembl regulatory build [GFF files](
+http://ftp.ensembl.org/pub/current_regulation/homo_sapiens):
+  [`./geneinfo/ensembl_regbuild.py`]([geneinfo/ensembl_regbuild.py)    
 
 * HMDB protein/metabolite records,
   [hmdb/index.py](hmdb/index.py),
