@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-""" Sample queries for PubChem Bioassays indices """
+""" Simple queries with PubChem Bioassays indices """
 
-import argparse
+# TODO: use 'assert' for checking test results
 
-from elasticsearch import Elasticsearch
+import unittest
+
+from nosqlbiosets.dbutils import DBconnection
 
 
 def query(es, index, qc):
@@ -11,31 +13,24 @@ def query(es, index, qc):
     r = es.search(index=index,
                   body={"size": 0, "query": qc})
     nhits = r['hits']['total']
-    if debug:
-        print("query returned %d entries" % nhits)
-        for doc in r['hits']['hits']:
-            aid = doc["_source"]['assay']['descr']['aid']['id']
-            print("%s -- " % aid)
     return nhits
 
 
 def aggquery(es, index, qc, aggqc):
-    print("querying %s with aggregations" % str(qc))
+    print("Querying %s with aggregations %s" % (str(qc), str(aggqc)))
     r = es.search(index=index,
                   body={"size": 0, "query": qc, "aggs": aggqc})
-    if debug:
-        print("agg query returned %d entries" % r['hits']['total'])
-        for doc in r['hits']['hits']:
-            aid = doc["_source"]['assay']['descr']['aid']['id']
-            print("%s -- " % aid)
     return r
 
 
-class Tests:
-    def __init__(self, es, index, doc_type):
-        self.es = es
+class Tests(unittest.TestCase):
+    es, index, doc_type = None, None, None
+
+    def init(self, db, index, doc_type):
         self.index = index
         self.doc_type = doc_type
+        dbc = DBconnection(db, index)
+        self.es = dbc.es
 
     # Check number of tested substances for sample assays
     def check_numberoftestedsubstances(self):
@@ -117,32 +112,18 @@ class Tests:
                             "size": 10
                         }}}}}
         r = aggquery(self.es, self.index, qc, aggqc)
-        if r['aggregations']['substance']['buckets'][0]['doc_count'] < 20:
-            print("less than expected number of substances")
+        sb = r['aggregations']['substance']['buckets']
+        if len(sb) == 0 or sb[0]['doc_count'] < 20:
+            print("Less than expected number of substances")
 
-
-def main(es, index):
-    tests = Tests(es, index, "bioassay")
-    tests.query_sample_assayids()
-    tests.sample_aggregation_queries()
-    tests.check_numberoftestedsubstances()
+    def test_es(self):
+        db, index = "Elasticsearch", "pubchem-tests"
+        tests = Tests()
+        tests.init(db, index, "bioassay")
+        tests.query_sample_assayids()
+        tests.sample_aggregation_queries()
+        tests.check_numberoftestedsubstances()
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(
-        description='Query PubChem Bioassays Elasticsearch index')
-    parser.add_argument('--index',
-                        default="pubchem-bioassays",
-                        help='name of the elasticsearch index')
-    parser.add_argument('--host', default="localhost",
-                        help='Elasticsearch server hostname')
-    parser.add_argument('--port', default="9200",
-                        help="Elasticsearch server port")
-    parser.add_argument('--debug', default=False,
-                        help="print more information")
-    args = parser.parse_args()
-    host = args.host
-    port = args.port
-    debug = args.debug
-    con = Elasticsearch(host=host, port=port, timeout=600)
-    main(con, args.index)
+    unittest.main()

@@ -132,17 +132,6 @@ of PMC articles xml files.
 Requires [`pubmed_parser`](https://github.com/titipata/pubmed_parser/)
 library installed
 
-### PubChem
-
-[index-pubchem-bioassays.py](index-pubchem-bioassays.p) reads and indexes
-the compressed and archived PubChem BioAssay json files,
-without extracting them to temporary files
-
-#### TODO:
-* Support for large entries, such as larger than 800M
-* Use bulk index API
-* Index other PubChem data types
-
 ### WikiPathways
 
 [index-wikipathways.py](index-wikipathways.py) reads and indexes
