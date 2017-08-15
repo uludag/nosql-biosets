@@ -26,7 +26,8 @@ ftp://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/knowledgebase/complete
   [`./nosqlbiosets/uniprot`](nosqlbiosets/uniprot)
   
 * PubChem [BioAssay](http://ftp.ncbi.nlm.nih.gov/pubchem/Bioassay) json files:
-  [`./index-pubchem-bioassays.py`](index-pubchem-bioassays.py)  
+  [`./nosqlbiosets/pubchem`](
+  nosqlbiosets/pubchem)  
 
 * WikiPathways [gpml files](
 http://www.wikipathways.org/index.php/Download_Pathways):
@@ -47,8 +48,9 @@ http://ftp.ensembl.org/pub/current_regulation/homo_sapiens):
 http://ftp.ncbi.nlm.nih.gov/pub/lu/PubTator):
   [`./nosqlbiosets/pubtator`](nosqlbiosets/pubtator)
 
-* HGNC, [genenames.org](http://www.genenames.org/cgi-bin/statistics)
- [data files in json](http://ftp.ebi.ac.uk/pub/databases/genenames/new/json/),
+* HGNC, [genenames.org](http://www.genenames.org/cgi-bin/statistics),
+ [data files in json format](
+ http://ftp.ebi.ac.uk/pub/databases/genenames/new/json/),
   from EBI: [`./geneinfo/index-hgnc-geneinfo.py`](geneinfo/index-hgnc-geneinfo)
 
 * RNAcentral [identifier mappings](

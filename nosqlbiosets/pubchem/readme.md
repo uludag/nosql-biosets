@@ -1,5 +1,5 @@
 
-* [`./index-pubchem-bioassays.py`](index-pubchem-bioassays.p) reads and indexes
+* [`./index_bioassays.py`](index_bioassays.py) reads and indexes
 compressed and archived PubChem BioAssay json files,
 without extracting them to temporary files
 
