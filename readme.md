@@ -62,6 +62,8 @@ http://ftp.kbase.us/assets/KBase_Reference_Data/Biochemistry/):
 * KEGG [pathway kgml/xml files](
 http://www.kegg.jp/kegg/download/Readme/README.kgml):
   [`./nosqlbiosets/kegg/index.py`](nosqlbiosets/kegg/index.py)
+  (_KEGG data distribution policy lets us think twice when spending
+   time on KEGG data_)
   
 
 We want to connect above datasets as much as possible
@@ -94,8 +96,9 @@ $ python setup.py develop --user
 ```
 
 Default values of hostname and port numbers of Elasticsearch and MongoDB servers
-are read from `conf/dbservers.json` file. Save your settings in this file
-to avoid entering `--host` and `--port` parameters in command line.
+are read from [`./conf/dbservers.json`](conf/dbservers.json) file.
+Save your settings in this file to avoid entering `--host` and `--port`
+parameters in command line.
 
 ## Usage
 
@@ -106,7 +109,7 @@ knowledgebase/complete/uniprot_sprot.xml.gz
 ```
 Make sure your Elasticsearch server is running in your localhost.
 If you are using Linux the easiest way is to [download Elasticsearch](
-https://www.elastic.co/downloads/elasticsearch) with the TAR option.
+https://www.elastic.co/downloads/elasticsearch) with the TAR option (32M).
 After extracting the tar file just `cd` to your Elasticsearch folder
 and run `./bin/elasticsearch` command.
 
@@ -116,6 +119,8 @@ from nosqlbiosets project root folder.
 $ ./nosqlbiosets/uniprot/index.py --infile ../uniprot_sprot.xml.gz\
  --host localhost --db Elasticsearch
 ```
+Check [`./tests/query-uniprot.py`](tests/query-uniprot.py) for example queries
+with Elasticsearch and MongoDB.
 
 ## Notes
 
@@ -167,7 +172,7 @@ https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-configurat
 
 ## Copyright
 This project has been developed
-at King Abdullah University of Science and Technology (http://www.kaust.edu.sa)
+at King Abdullah University of Science and Technology, http://www.kaust.edu.sa
 
 ## Acknowledgement
 Computers and file systems used in developing this work has been maintained by John Hanks

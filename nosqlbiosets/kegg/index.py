@@ -80,7 +80,7 @@ class Indexer(DBconnection):
 
     # Prepare entry for indexing
     def update_entry(self, entry):
-        # TODO: 'relation' and 'graphics' fields are deleted
+        # 'relation' and 'graphics' fields are deleted
         # until we better understand the data
         if 'relation' in entry or hasattr(entry, 'relation'):
             del (entry['relation'])
@@ -149,18 +149,18 @@ if __name__ == '__main__':
                         help='Individual KEGG xml file or archive of them, '
                              'such as hsa01210.xml or hsa.tar.gz')
     parser.add_argument('--index',
-                        default="nosqlbiosets",
+                        default="kegg-tests",
                         help='Name of the Elasticsearch index'
                              ' or MongoDB database')
     parser.add_argument('--doctype',
                         default='kegg_pathway',
-                        help='Name for the Elasticsearch document types or'
+                        help='Name for the Elasticsearch document type or'
                              'MongoDB collection')
     parser.add_argument('--host',
                         help='Elasticsearch or MongoDB server hostname')
     parser.add_argument('--port',
                         help="Elasticsearch or MongoDB server port number")
-    parser.add_argument('--db', default='Elasticsearch',
+    parser.add_argument('-db', '--db', default='Elasticsearch',
                         help="Database: 'Elasticsearch' or 'MongoDB'")
     args = parser.parse_args()
     main(args.infile, args.index, args.doctype, args.db, args.host, args.port)
