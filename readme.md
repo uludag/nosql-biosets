@@ -121,8 +121,32 @@ from nosqlbiosets project root folder.
 $ ./nosqlbiosets/uniprot/index.py --infile ../uniprot_sprot.xml.gz\
  --host localhost --db Elasticsearch
 ```
-Check [`./tests/query-uniprot.py`](tests/query-uniprot.py) for example queries
-with Elasticsearch and MongoDB.
+Query top mentioned gene names: 
+```bash
+curl -XGET "http://localhost:9200/uniprot/_search?pretty=true"\
+ -H 'Content-Type: application/json' -d'
+{
+  "size": 0,
+  "aggs": {
+    "genes": {
+      "terms": {
+        "field": "gene.name.#text.keyword",
+        "size": 5
+      },
+      "aggs": {
+        "tids": {
+          "terms": {
+            "field": "gene.name.type.keyword",
+            "size": 5
+          }
+        }
+      }
+    }
+  }
+}'
+```
+Check [`./tests/query-uniprot.py`](tests/query-uniprot.py) for simple
+example queries with Elasticsearch and MongoDB.
 
 ## Notes
 
