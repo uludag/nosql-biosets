@@ -115,11 +115,13 @@ https://www.elastic.co/downloads/elasticsearch) with the TAR option (32M).
 After extracting the tar file just `cd` to your Elasticsearch folder
 and run `./bin/elasticsearch` command.
 
-Now you can install your UniProt xml file by running the following command
-from nosqlbiosets project root folder.  
+Now you can index downloaded UniProt xml file by running the following command
+from nosqlbiosets project root folder (it takes about 7 to 10 hours,
+you can go to the next step without waiting the termination of whole
+indexing process).
 ```bash
-$ ./nosqlbiosets/uniprot/index.py --infile ../uniprot_sprot.xml.gz\
- --host localhost --db Elasticsearch
+$ ./nosqlbiosets/uniprot/index.py --infile ./uniprot_sprot.xml.gz\
+ --host localhost --db Elasticsearch --index uniprot
 ```
 Query top mentioned gene names: 
 ```bash

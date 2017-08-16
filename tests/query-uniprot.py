@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-""" Simple sample queries with UniProt data
- indexed with MongoDB and Elasticsearch """
+""" Simple sample queries with UniProt data indexed with MongoDB or
+ Elasticsearch """
 
 import json
 import os
