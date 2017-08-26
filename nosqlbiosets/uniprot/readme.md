@@ -10,7 +10,7 @@ Example command lines for downloading xml data files and for indexing:
 #### Download UniProt/Swiss-Prot data set
 
 ```bash
-$ wget ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/\
+$ wget ftp://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/\
 knowledgebase/complete/uniprot_sprot.xml.gz
 ```
 

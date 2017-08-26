@@ -3,16 +3,16 @@
 # TODO:
 # - Proper mapping for all attributes
 #   (unhandled attributes are deleted for now)
-# - Python2 support: type str vs unicode for text attributes
+# - Python2 support: type str vs unicode for text attributes ????
 
 from __future__ import print_function
 
 import argparse
-import json
 import logging
 import os
 import traceback
 from gzip import GzipFile
+from multiprocessing.pool import ThreadPool
 
 import xmltodict
 from pymongo import IndexModel
@@ -23,21 +23,7 @@ logger = logging.getLogger(__name__)
 ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
 logger.addHandler(ch)
-
-
-# Read UniProt xml files, index using the function indexf
-def parse_uniprot_xmlfiles(infile, indexf):
-    infile = str(infile)
-    print("Reading/indexing %s " % infile)
-    if infile.endswith(".gz"):
-        with GzipFile(infile) as inf:
-            xmltodict.parse(inf, item_depth=2, item_callback=indexf,
-                            attr_prefix='')
-    else:
-        with open(infile, 'rb', buffering=1000) as inf:
-            xmltodict.parse(inf, item_depth=2, item_callback=indexf,
-                            attr_prefix='')
-    print("\nCompleted")
+pool = ThreadPool(10)
 
 
 class Indexer(DBconnection):
@@ -45,10 +31,55 @@ class Indexer(DBconnection):
     def __init__(self, db, index, host, port, doctype):
         self.doctype = doctype
         self.index = index
+        self.db = db
+        indxcfg = {
+            "index.number_of_replicas": 0,
+            "index.number_of_shards": 10,
+            "index.refresh_interval": "10s"}
         super(Indexer, self).__init__(db, index, host, port,
+                                      es_indexsettings=indxcfg,
                                       recreateindex=False)
         if db != "Elasticsearch":
             self.mcl = self.mdbi[doctype]
+
+    # Read UniProt xml files, index using the function indexf
+    def parse_uniprot_xmlfiles(self, infile):
+        infile = str(infile)
+        print("Reading/indexing %s " % infile)
+        if infile.endswith(".gz"):
+            with GzipFile(infile) as inf:
+                xmltodict.parse(inf, item_depth=2,
+                                item_callback=self.index_uniprot_entry,
+                                attr_prefix='')
+        else:
+            with open(infile, 'rb', buffering=1000) as inf:
+                xmltodict.parse(inf, item_depth=2,
+                                item_callback=self.index_uniprot_entry,
+                                attr_prefix='')
+        print("\nCompleted")
+
+    def index_uniprot_entry(self, _, entry):
+        def index():
+            self.update_entry(entry)
+            docid = entry['name']
+            logger.debug(docid)
+            try:
+                if self.db == "Elasticsearch":
+                    self.es.index(index=self.index, doc_type=self.doctype,
+                                  op_type='create', ignore=409,
+                                  filter_path=['hits.hits._id'],
+                                  id=docid, body=entry)
+                else:  # assume MongoDB
+                    spec = {"_id": docid}
+                    self.mcl.update(spec, entry, upsert=True)
+            except Exception as e:
+                print("ERROR: %s" % e)
+                print(traceback.format_exc())
+                exit(-1)
+            self.reportprogress(10000)
+
+        pool.apply_async(index, ())
+        return True
 
     # Prepare 'comments' for indexing
     # Sample err msg: failed to parse [comment.absorption.text]
@@ -138,59 +169,24 @@ class Indexer(DBconnection):
         self.updatefeatures(entry)
         self.updatesequence(entry['sequence'])
 
-    # Index UniProt entry with Elasticsearch
-    def es_index_uniprot_entry(self, _, entry):
-        docid = entry['name']
-        if self.es.exists(index=self.index, doc_type=self.doctype, id=docid):
-            return True
-        try:
-            logger.debug(docid)
-            self.update_entry(entry)
-            self.es.index(index=self.index, doc_type=self.doctype,
-                          id=docid, body=json.dumps(entry))
-            self.reportprogress(100)
-            r = True
-        except Exception as e:
-            r = False
-            print("ERROR: %s" % e)
-            print(traceback.format_exc())
-            exit(-1)
-            # raise e
-        return r
 
-    # Index UniProt entry with MongoDB
-    def mongodb_index_uniprot_entry(self, _, entry):
-        docid = entry['name']
-        spec = {"_id": docid}
-        print("docid:%s  n=%d" % (docid, len(json.dumps(entry))))
-        try:
-            self.update_entry(entry)
-            self.mcl.update(spec, entry, upsert=True)
-            self.reportprogress(100)
-            r = True
-        except Exception as e:
-            print(e)
-            r = False
-        return r
-
-
-def mongodb_textindex(mdb, doctype):  # todo
-    if doctype == 'metabolite':
-        index = IndexModel([
-            ("description", "text"), ("name", "text"),
-            ("taxanomy.description", "text")])
-        mdb.create_indexes([index])
+def mongodb_textindex(mdb):
+    # https://docs.mongodb.com/manual/core/index-compound/
+    index = IndexModel([
+        ("comment.text.#text", "text"),
+        ("feature.description", "text"),
+        ("keyword.#text", "text")])
+    mdb.create_indexes([index])
     return
 
 
 def main(infile, index, doctype, db, host, port):
     indxr = Indexer(db, index, host, port, doctype)
+    indxr.parse_uniprot_xmlfiles(infile)
     if db == 'Elasticsearch':
-        parse_uniprot_xmlfiles(infile, indxr.es_index_uniprot_entry)
         indxr.es.indices.refresh(index=index)
     else:
-        parse_uniprot_xmlfiles(infile, indxr.mongodb_index_uniprot_entry)
-        mongodb_textindex(indxr.mcl, doctype)
+        mongodb_textindex(indxr.mcl)
 
 
 if __name__ == '__main__':
