@@ -8,6 +8,8 @@ from geneinfo.ensembl_regbuild import tfs
 from geneinfo.rnacentral_idmappings import mappingreader
 from hmdb.index import parse_hmdb_xmlfile
 from metanetx.index import *
+from nosqlbiosets.kbase.index_modelseed import read_modelseed_datafile, \
+    updatecompoundrecord, updatereactionrecord
 from nosqlbiosets.kegg.index import read_and_index_kegg_xmltarfile
 from nosqlbiosets.pathways.index_metabolic_networks \
     import read_and_index_model_files, sbml_to_cobra_json, \
@@ -18,6 +20,24 @@ from nosqlbiosets.pubtator.index import parse_pub2gene_lines
 class TestDataReaders(unittest.TestCase):
 
     d = os.path.dirname(os.path.abspath(__file__))
+
+    def test_modelseed_creader(self):
+        infile = self.d + "/data/modelseed/compounds.tsv"
+        idlist = [r for r in read_modelseed_datafile(infile,
+                                                     updatecompoundrecord)]
+        self.assertGreaterEqual(len(idlist), 2000)
+        r = idlist[0]
+        print(r)
+        self.assertEqual(r['_id'], 'cpd00001')
+
+    def test_modelseed_rreader(self):
+        infile = self.d + "/data/modelseed/reactions.tsv"
+        idlist = [r for r in read_modelseed_datafile(infile,
+                                                     updatereactionrecord)]
+        self.assertGreaterEqual(len(idlist), 2000)
+        r = idlist[0]
+        print(r)
+        self.assertEqual(r['_id'], 'rxn00001')
 
     def test_rnacentral_idmapping_reader(self):
         infile = self.d + "/../data/rnacentral-6.0-id_mapping-first1000.tsv"
@@ -132,6 +152,17 @@ class TestDataReaders(unittest.TestCase):
             self.assertGreater(len(r['metabolites']), 10)
             self.assertGreaterEqual(len(r['compartments']), 1)
             self.assertGreater(len(r['genes']), 10)
+
+    # Failing test for cobra.io.read_sbml_model:
+    #     "compartments": { "C_c": null }  should be list
+    @unittest.skipUnless(os.path.exists(psammmodelfiles),
+                         "Missing test files folder")
+    def test_psamm_yamlfile_reader_____(self):
+        for m in ["S_coelicolor_fixed"]:
+            yaml = self.psammmodelfiles + m + "/model.yaml"
+            sbml = psamm_yaml_to_sbml(yaml)
+            r = sbml_to_cobra_json(sbml)
+            self.assertGreaterEqual(len(r['compartments']), 1)
 
     @unittest.skipUnless(os.path.exists(psammmodelfiles),
                          "Missing test files folder")

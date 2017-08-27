@@ -14,9 +14,9 @@ http://www.metanetx.org/mnxdoc/mnxref.html
 ): [`./metanetx`](./metanetx)
   
 
-* Metabolic network files in [SBML](http://sbml.org) or
- [PSAMM yaml](https://github.com/zhanglab/psamm-model-collection) formats:
-  [`./nosqlbiosets/pathways/index_metabolic_networks.py`](
+* Metabolic network files in [SBML](http://sbml.org) format or
+ [PSAMM project's yaml](https://github.com/zhanglab/psamm-model-collection)
+  format: [`./nosqlbiosets/pathways/index_metabolic_networks.py`](
   nosqlbiosets/pathways/index_metabolic_networks.py)
    (_recent work, not tested with many network files_)
 
@@ -57,9 +57,9 @@ http://ftp.ncbi.nlm.nih.gov/pub/lu/PubTator):
 http://ftp.ebi.ac.uk/pub/databases/RNAcentral/current_release/id_mapping/),
   [`./geneinfo/rnacentral_idmappings.py`](geneinfo/rnacentral_idmappings.py)
 
-* KBase [compounds/reactions data files](
-http://ftp.kbase.us/assets/KBase_Reference_Data/Biochemistry/):
-  [`./nosqlbiosets/kbase/index.py`](nosqlbiosets/kbase/index.py)
+* ModelSEED [compounds and reactions data files] in tsv format(
+https://github.com/ModelSEED/ModelSEEDDatabase/tree/master/Biochemistry/):
+  [`./nosqlbiosets/kbase/index_modelseed.py`](nosqlbiosets/kbase/index_modelseed.py)
 
 * KEGG [pathway kgml/xml files](
 http://www.kegg.jp/kegg/download/Readme/README.kgml):
@@ -115,10 +115,11 @@ https://www.elastic.co/downloads/elasticsearch) with the TAR option (32M).
 After extracting the tar file just `cd` to your Elasticsearch folder
 and run `./bin/elasticsearch` command.
 
-Now you can index downloaded UniProt xml file by running the following command
-from nosqlbiosets project root folder (it takes about 7 to 10 hours,
-you can go to the next step without waiting the termination of whole
+Now we can index downloaded UniProt xml file by running the following command
+from nosqlbiosets project root folder (typically takes 5 to 8 hours,
+we can go to the next step without waiting the termination of whole
 indexing process).
+
 ```bash
 $ ./nosqlbiosets/uniprot/index.py --infile ./uniprot_sprot.xml.gz\
  --host localhost --db Elasticsearch --index uniprot
