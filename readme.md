@@ -57,8 +57,9 @@ http://ftp.ncbi.nlm.nih.gov/pub/lu/PubTator):
 http://ftp.ebi.ac.uk/pub/databases/RNAcentral/current_release/id_mapping/),
   [`./geneinfo/rnacentral_idmappings.py`](geneinfo/rnacentral_idmappings.py)
 
-* ModelSEED [compounds and reactions data files] in tsv format(
-https://github.com/ModelSEED/ModelSEEDDatabase/tree/master/Biochemistry/):
+* ModelSEED [compounds and reactions data files](
+https://github.com/ModelSEED/ModelSEEDDatabase/tree/master/Biochemistry/)
+in tsv format:
   [`./nosqlbiosets/kbase/index_modelseed.py`](nosqlbiosets/kbase/index_modelseed.py)
 
 * KEGG [pathway kgml/xml files](
