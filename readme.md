@@ -24,6 +24,12 @@ http://www.metanetx.org/mnxdoc/mnxref.html
 ftp://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/knowledgebase/complete/
 ) in XML format:
   [`./nosqlbiosets/uniprot`](nosqlbiosets/uniprot)
+
+* IntEnz [dataset](
+ftp://ftp.ebi.ac.uk/pub/databases/intenz/xml/
+) in XML format, from EMBL-EBI:
+  [`./nosqlbiosets/intenz`](nosqlbiosets/intenz)
+  (_most recent work, more todo_)
   
 * PubChem [BioAssay](http://ftp.ncbi.nlm.nih.gov/pubchem/Bioassay) json files:
   [`./nosqlbiosets/pubchem`](
@@ -51,7 +57,7 @@ http://ftp.ncbi.nlm.nih.gov/pub/lu/PubTator):
 * HGNC, [genenames.org](http://www.genenames.org/cgi-bin/statistics),
  [data files in json format](
  http://ftp.ebi.ac.uk/pub/databases/genenames/new/json/),
-  from EBI: [`./geneinfo/index-hgnc-geneinfo.py`](geneinfo/index-hgnc-geneinfo)
+  from EMBL-EBI: [`./geneinfo/index-hgnc-geneinfo.py`](geneinfo/index-hgnc-geneinfo)
 
 * RNAcentral [identifier mappings](
 http://ftp.ebi.ac.uk/pub/databases/RNAcentral/current_release/id_mapping/),
@@ -105,14 +111,16 @@ parameters in command line.
 
 ## Usage
 
-Example command lines for downloading UniProt xml data files and for indexing:
+Example command lines for downloading UniProt Knowledgebase Swiss-Prot data set
+(~680M) and for indexing:
 ```bash
 $ wget ftp://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/\
 knowledgebase/complete/uniprot_sprot.xml.gz
 ```
 Make sure your Elasticsearch server is running in your localhost.
-If you are using Linux the easiest way is to [download Elasticsearch](
-https://www.elastic.co/downloads/elasticsearch) with the TAR option (32M).
+If you are new to Elasticsearch and  you are using Linux
+the easiest way is to [download Elasticsearch](
+https://www.elastic.co/downloads/elasticsearch) with the TAR option (~32M).
 After extracting the tar file just `cd` to your Elasticsearch folder
 and run `./bin/elasticsearch` command.
 
