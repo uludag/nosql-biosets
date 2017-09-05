@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 """ Sample queries with multiple 'nosql-biosets' indexes """
 
-import json
-import os
 import unittest
 
-from elasticsearch import Elasticsearch
+from nosqlbiosets.dbutils import DBconnection
 
 typeaggs = {
     "type": {
@@ -15,13 +13,7 @@ typeaggs = {
 
 
 class QueryallTests(unittest.TestCase):
-    conf = {"host": "localhost", "port": 9200}
-    d = os.path.dirname(os.path.abspath(__file__))
-    try:
-        conf = json.load(open(d + "/../conf/elasticsearch.json", "r"))
-    finally:
-        pass
-    es = Elasticsearch(host=conf['host'], port=conf['port'], timeout=600)
+    es = DBconnection('Elasticsearch', "*").es
 
     def query(self, qterms, doctype=None):
         qc = {"match": {"_all": ' AND '.join(qterms)}}

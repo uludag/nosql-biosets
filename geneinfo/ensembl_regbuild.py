@@ -3,12 +3,12 @@
 from __future__ import print_function
 
 import argparse
-import json
 from os import path
 
 import gffutils
-from elasticsearch import Elasticsearch
 from elasticsearch.helpers import streaming_bulk
+
+from nosqlbiosets.dbutils import DBconnection
 
 chunksize = 2048
 
@@ -80,12 +80,6 @@ def es_index(es, index, gffdb, reader, doctype):
 
 
 if __name__ == '__main__':
-    conf = {"host": "localhost", "port": 9200}
-    try:
-        conf = json.load(open("conf/elasticsearch.json", "r"))
-    finally:
-        pass
-
     parser = argparse.ArgumentParser(
         description='Index Ensembl regulatory build '
                     'gff files using Elasticsearch')
@@ -98,13 +92,14 @@ if __name__ == '__main__':
     parser.add_argument('--index',
                         default="ensregbuild",
                         help='Name of the Elasticsearch index')
-    parser.add_argument('--host', default=conf['host'],
+    parser.add_argument('--host',
                         help='Elasticsearch server hostname')
-    parser.add_argument('--port', default=conf['port'],
+    parser.add_argument('--port',
                         help="Elasticsearch server port")
     args = parser.parse_args()
-    con = Elasticsearch(host=args.host, port=args.port, timeout=3600)
+    con = DBconnection("Elasticsearch", args.index,
+                       host=args.host, port=args.port)
     tfbsdb = connectgffdb(args.motifsgff)
-    es_index(con, args.index, tfbsdb, tfs, "transcriptionfactor")
+    es_index(con.es, args.index, tfbsdb, tfs, "transcriptionfactor")
     regregionsdb = connectgffdb(args.regregionsgff)
-    es_index(con, args.index, regregionsdb, regregions, "regulatoryregion")
+    es_index(con.es, args.index, regregionsdb, regregions, "regulatoryregion")
