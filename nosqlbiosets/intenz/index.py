@@ -1,26 +1,16 @@
 #!/usr/bin/env python
 """Index IntEnz xml files, with Elasticsearch or MongoDB"""
-# TODO:
-# - Threaded index calls
-
 from __future__ import print_function
 
 import argparse
-import logging
 import os
 import traceback
-from multiprocessing.pool import ThreadPool
 
 import xmltodict
 from six import string_types
 
 from nosqlbiosets.dbutils import DBconnection
 
-logger = logging.getLogger(__name__)
-ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
-logger.addHandler(ch)
-pool = ThreadPool(10)
 DOCTYPE = 'intenz'  # Default document type for IntEnz entries
 
 
@@ -33,7 +23,7 @@ class Indexer(DBconnection):
         indxcfg = {
             "index.number_of_replicas": 0,
             "index.number_of_shards": 5,
-            "index.refresh_interval": "10s"}
+            "index.refresh_interval": "30s"}
         super(Indexer, self).__init__(db, index, host, port,
                                       es_indexsettings=indxcfg,
                                       recreateindex=False)
@@ -48,15 +38,20 @@ class Indexer(DBconnection):
             print("Input file should be an .xml file")
         else:
             with open(infile, 'rb', buffering=1000) as inf:
+                namespaces = {
+                    'http://www.xml-cml.org/schema/cml2/react': None,
+                    'http://www.ebi.ac.uk/intenz': None
+                }
                 xmltodict.parse(inf, item_depth=5,
                                 item_callback=self.index_intenz_entry,
+                                process_namespaces=True,
+                                namespaces=namespaces,
                                 attr_prefix='')
         print("\nCompleted")
 
     def index_intenz_entry(self, _, entry):
-        def index():
+        if not isinstance(entry, string_types):
             docid = entry['ec'][3:]
-            logger.debug(docid)
             try:
                 if self.db == "Elasticsearch":
                     self.es.index(index=self.index, doc_type=self.doctype,
@@ -70,11 +65,7 @@ class Indexer(DBconnection):
                 print("ERROR: %s" % e)
                 print(traceback.format_exc())
                 exit(-1)
-            self.reportprogress(100)
-
-        # pool.apply_async(index, ())
-        if not isinstance(entry, string_types):
-            index()
+            self.reportprogress(40)
         return True
 
 
