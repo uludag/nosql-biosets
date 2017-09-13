@@ -4,7 +4,7 @@ We want to develop scripts for NoSQL indexing and querying of sample
 bioinformatics datasets.
 
 In the early stages of the project only Elasticsearch was supported.
-In most recent work (UniProt, MetaNetX, HMDB, SBML files)
+In most recent work (UniProt, MetaNetX, HMDB, SBML files, IntEnz)
 we have implemented MongoDB support as well.
 
 ## Datasets supported
@@ -29,7 +29,6 @@ ftp://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/knowledgebase/complete
 ftp://ftp.ebi.ac.uk/pub/databases/intenz/xml/
 ) in XML format, from EMBL-EBI:
   [`./nosqlbiosets/intenz`](nosqlbiosets/intenz)
-  (_most recent work, more todo_)
   
 * PubChem [BioAssay](http://ftp.ncbi.nlm.nih.gov/pubchem/Bioassay) json files:
   [`./nosqlbiosets/pubchem`](
