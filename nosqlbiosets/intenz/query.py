@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 """ Simple queries with IntEnz data indexed with MongoDB """
 
-import json
-
 from ..dbutils import DBconnection
 
 
@@ -27,15 +25,34 @@ class QueryIntEnz:
             print("#products = %d" % len(r))
             return r
 
-    # Find all enzymes where given chemical is a reactant
-    def getenzymenames(self, reactants):
+    # Find enzyme names for given query
+    def getenzymenames(self, qc):
+        if self.dbc.db == 'MongoDB':
+            r = ["_id", "accepted_name.#text"]
+            hits = self.dbc.mdbi[self.doctype].find(qc, projection=r, limit=100)
+            r = [(c[r[0]], c["accepted_name"]["#text"]) for c in hits]
+            return r
+
+    # Find enzymes where one of the given chemicals is a reactant
+    def getenzymeswithreactants(self, reactants):
         if self.dbc.db == 'MongoDB':
             qc = {
                 "reactions.reaction.reactantList.reactant.title": {
                     '$in': reactants}}
-            r = ["_id", "accepted_name.#text"]
-            hits = self.dbc.mdbi[self.doctype].find(qc, projection=r, limit=100)
-            r = [c for c in hits]
+            r = self.getenzymenames(qc)
+            return r
+
+    # Get names of the enzymes with given ids
+    def getenzymeswithids(self, eids):
+        if self.dbc.db == 'MongoDB':
+            qc = {"_id": {'$in': eids}}
+            r = self.getenzymenames(qc)
+            return r
+
+    def getenzymebyid(self, eid=None):
+        if self.dbc.db == 'MongoDB':
+            r = self.dbc.mdbi[self.doctype].find_one(filter=eid)
+            print("#enzyme name = %s" % r["accepted_name"]["#text"])
             return r
 
     # Find all enzymes where given chemical is a product
@@ -49,7 +66,7 @@ class QueryIntEnz:
             r = [c for c in hits]
             return r
 
-    def query_names(self, enames):
+    def enzyme_name2id(self, enames):
         if self.dbc.db == 'MongoDB':
             qc = {"accepted_name.#text": {'$in': enames}}
             hits = self.dbc.mdbi[self.doctype].find(qc, limit=10)
@@ -76,6 +93,6 @@ class QueryIntEnz:
                 ]}
             hits = self.dbc.mdbi[self.doctype].find(qc, limit=10)
             hits = [c for c in hits]
-            print(json.dumps(hits, indent=4))
+            # print(json.dumps(hits, indent=4))
             eids = [c['accepted_name']['#text'] for c in hits]
             return eids
