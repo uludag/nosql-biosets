@@ -24,6 +24,7 @@ ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
 logger.addHandler(ch)
 pool = ThreadPool(10)
+DOCTYPE = 'uniprot'
 
 
 class Indexer(DBconnection):
@@ -42,7 +43,7 @@ class Indexer(DBconnection):
         if db != "Elasticsearch":
             self.mcl = self.mdbi[doctype]
 
-    # Read UniProt xml files, index using the function indexf
+    # Read and Index entries in UniProt xml file
     def parse_uniprot_xmlfiles(self, infile):
         infile = str(infile)
         print("Reading/indexing %s " % infile)
@@ -76,8 +77,7 @@ class Indexer(DBconnection):
                 print("ERROR: %s" % e)
                 print(traceback.format_exc())
                 exit(-1)
-            self.reportprogress(10000)
-
+            self.reportprogress(1000)
         pool.apply_async(index, ())
         return True
 
@@ -109,12 +109,12 @@ class Indexer(DBconnection):
     # @staticmethod
     def updatelocation(self, obj):
         if 'location' in obj:
-            l = obj['location']
-            if isinstance(l, list):
-                for i in l:
+            loc = obj['location']
+            if isinstance(loc, list):
+                for i in loc:
                     self.updateposition(i)
             else:
-                self.updateposition(l)
+                self.updateposition(loc)
 
     # Prepare 'positions' for indexing
     @staticmethod
@@ -158,25 +158,27 @@ class Indexer(DBconnection):
                             c['text'] = {'#text': c['text']}
                     self.updatelocation(c)
             else:
-                entry['comment'] = None
+                del entry['comment']
         self.updateprotein(entry)
         if 'reference' in entry:
             if isinstance(entry['reference'], list):
                 for r in entry['reference']:
-                    r['source'] = None
-            else:
-                entry['reference']['source'] = None
+                    if 'source' in r:
+                        del r['source']
+            elif 'source' in entry['reference']:
+                del entry['reference']['source']
         self.updatefeatures(entry)
         self.updatesequence(entry['sequence'])
 
 
 def mongodb_textindex(mdb):
-    # https://docs.mongodb.com/manual/core/index-compound/
     index = IndexModel([
         ("comment.text.#text", "text"),
         ("feature.description", "text"),
         ("keyword.#text", "text")])
     mdb.create_indexes([index])
+    mdb.create_index("dbReference.id")
+    mdb.create_index("organism.name.#text")
     return
 
 
@@ -187,6 +189,8 @@ def main(infile, index, doctype, db, host, port):
         indxr.es.indices.refresh(index=index)
     else:
         mongodb_textindex(indxr.mcl)
+    pool.close()
+    pool.join()
 
 
 if __name__ == '__main__':
@@ -198,10 +202,10 @@ if __name__ == '__main__':
                         default=d+"/../../data/uniprot_sprot.xml.gz",
                         help='Input file name')
     parser.add_argument('--index',
-                        default="nosqlbiosets",
+                        default="biosets",
                         help='Name of the Elasticsearch index'
                              ' or MongoDB database')
-    parser.add_argument('--doctype', default='protein',
+    parser.add_argument('--doctype', default=DOCTYPE,
                         help='Document type name')
     parser.add_argument('--host',
                         help='Elasticsearch or MongoDB server hostname')
