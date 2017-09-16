@@ -2,16 +2,17 @@
 """ Simple queries with UniProt data indexed with MongoDB or Elasticsearch """
 
 import json
-import os
 import unittest
 
 from nosqlbiosets.dbutils import DBconnection
+from nosqlbiosets.uniprot.query import QueryUniProt
+
+qryuniprot = QueryUniProt()
 
 
-class QueryUniProt(unittest.TestCase):
-    d = os.path.dirname(os.path.abspath(__file__))
-    index = "pathdes"
-    doctype = "protein"
+class TestQueryUniProt(unittest.TestCase):
+    index = "biosets"
+    doctype = "uniprot"
 
     def query_keggids(self, dbc, cids):
         if dbc.db == 'Elasticsearch':
@@ -26,7 +27,7 @@ class QueryUniProt(unittest.TestCase):
             mids = [c['_id'] for c in hits]
         return mids
 
-    def test_keggid_queries(self, db="Elasticsearch"):
+    def test_keggid_queries(self, db="MongoDB"):
         dbc = DBconnection(db, self.index)
         mids = self.query_keggids(dbc, ['hsa:7157', 'hsa:121504'])
         self.assertSetEqual(set(mids), {'P53_HUMAN', 'H4_HUMAN'})
@@ -36,7 +37,7 @@ class QueryUniProt(unittest.TestCase):
 
     def slow_aggs(self, db):
         dbc = DBconnection(db, self.index)
-        doctype = "protein"
+        doctype = "uniprot"
         aggfl = "$comment.type"
         if db == "MongoDB":
             agpl = [
@@ -48,7 +49,7 @@ class QueryUniProt(unittest.TestCase):
                 {"$limit": 10}
             ]
             hits = dbc.mdbi[doctype].aggregate(agpl)
-            l = [i for i in hits]
+            docs = [i for i in hits]
         else:  # "Elasticsearch"
             qc = {
                 "_source": "*.type",
@@ -61,12 +62,30 @@ class QueryUniProt(unittest.TestCase):
                             "field": "comment.type.keyword",
                             "size": 10}}}
             }
-            hits, n, l = self.esquery(dbc.es, self.index, qc, doctype)
-        print(json.dumps(l, indent=2))
+            _, _, docs = self.esquery(dbc.es, self.index, qc, doctype)
+        print(json.dumps(docs, indent=2))
+
+    def test_enzymesWithMostInteractions(self, db="MongoDB"):
+        dbc = DBconnection(db, self.index)
+        doctype = "uniprot"
+        if db == "MongoDB":
+            agpl = [
+                {"$match": {
+                    "organism.name.#text": "Baker's yeast",
+                    "dbReference.type": "EC"}},
+                {"$project": {"comment": 1}},
+                {"$unwind": "$comment"},
+                {"$match": {
+                    "comment.interactant": {"$exists": True}}},
+                {"$limit": 4}
+            ]
+            hits = dbc.mdbi[doctype].aggregate(agpl)
+            docs = [i for i in hits]
+            print(json.dumps(docs, indent=2))
 
     def test_aggs(self, db="MongoDB"):
         dbc = DBconnection(db, self.index)
-        doctype = "protein"
+        doctype = "uniprot"
         if db == "MongoDB":
             agpl = [
                 {"$match": {
@@ -84,7 +103,7 @@ class QueryUniProt(unittest.TestCase):
                 {"$limit": 4},
             ]
             hits = dbc.mdbi[doctype].aggregate(agpl)
-            l = [i for i in hits]
+            docs = [i for i in hits]
         else:  # Elasticsearch
             # Not equivalent to above MongoDB query,   incomplete work
             qc = {
@@ -101,8 +120,8 @@ class QueryUniProt(unittest.TestCase):
                             "field": "dbReference.id.keyword",
                             "size": 10}}}
             }
-            hits, n, l = self.esquery(dbc.es, self.index, qc, doctype)
-        print(json.dumps(l, indent=2))
+            _, _, docs = self.esquery(dbc.es, self.index, qc, doctype)
+        print(json.dumps(docs, indent=2))
 
     def test_lookup(self, db="MongoDB"):
         dbc = DBconnection(db, self.index)
@@ -114,7 +133,7 @@ class QueryUniProt(unittest.TestCase):
                     {"$match": {"xrefs.id": keggid}},
                     {"$project": {"ecno": 1}},
                     {"$lookup": {
-                        "from": "protein",
+                        "from": "uniprot",
                         "localField": "ecno",
                         "foreignField": "dbReference.id",
                         "as": "uniprot"
@@ -123,12 +142,19 @@ class QueryUniProt(unittest.TestCase):
                     {"$project": {"ecno": 1, "uniprot.gene.name.#text": 1}},
                 ]
                 hits = dbc.mdbi[doctype].aggregate(agpl)
-                l = [i for i in hits]
-                print(json.dumps(l, indent=2))
-                print(len(l))
+                docs = [i for i in hits]
+                # print(json.dumps(docs, indent=2))
                 self.assertSetEqual(genes,
-                                    {i['uniprot']['gene']['name']['#text']
-                                     for i in l})
+                                    {doc['uniprot']['gene']['name']['#text']
+                                     for doc in docs})
+
+    def test_getenzymedata(self):
+        enzys = [('2.2.1.11', {'Q58980'}, {'MJ1585'})]
+        for ecn, accs, genes in enzys:
+            self.assertSetEqual(genes, set(qryuniprot.getgenes(ecn)))
+            self.assertSetEqual(accs, set(qryuniprot.getaccs(ecn)))
+            self.assertIn("Aromatic compound metabolism.",
+                          qryuniprot.getpathways(ecn))
 
     @staticmethod
     def esquery(es, index, qc, doc_type=None, size=0):

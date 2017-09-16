@@ -194,7 +194,7 @@ https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-configurat
   by preventing any Elasticsearch memory from being swapped out 
 
 ### Datasets we are considering to include
-* REACTOME?, Rhea?, IntEnz?, BioCyc?, [ConsensusPathDB](http://cpdb.molgen.mpg.de/)?
+* REACTOME?, Rhea?, BioCyc?, [ConsensusPathDB](http://cpdb.molgen.mpg.de/)?
 
 ## Copyright
 This project has been developed
