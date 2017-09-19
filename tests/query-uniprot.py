@@ -14,22 +14,8 @@ class TestQueryUniProt(unittest.TestCase):
     index = "biosets"
     doctype = "uniprot"
 
-    def query_keggids(self, dbc, cids):
-        if dbc.db == 'Elasticsearch':
-            qc = {"match": {"dbReference.id": "(\"%s\")" % '" OR "'.join(cids)}}
-            hits, n, _ = self.esquery(dbc.es, self.index, {"query": qc},
-                                      self.doctype, len(cids))
-            mids = [xref['_id'] for xref in hits]
-        else:  # MongoDB
-            qc = {'dbReference.id': {'$in': cids}}
-            print(qc)
-            hits = dbc.mdbi[self.doctype].find(qc, limit=len(cids))
-            mids = [c['_id'] for c in hits]
-        return mids
-
-    def test_keggid_queries(self, db="MongoDB"):
-        dbc = DBconnection(db, self.index)
-        mids = self.query_keggids(dbc, ['hsa:7157', 'hsa:121504'])
+    def test_keggid_queries(self, db="Elasticsearch"):
+        mids = qryuniprot.getnamesforkegggeneids(['hsa:7157', 'hsa:121504'], db)
         self.assertSetEqual(set(mids), {'P53_HUMAN', 'H4_HUMAN'})
 
     def test_keggid_queries_mdb(self):
@@ -62,7 +48,7 @@ class TestQueryUniProt(unittest.TestCase):
                             "field": "comment.type.keyword",
                             "size": 10}}}
             }
-            _, _, docs = self.esquery(dbc.es, self.index, qc, doctype)
+            _, _, docs = QueryUniProt.esquery(dbc.es, self.index, qc, doctype)
         print(json.dumps(docs, indent=2))
 
     def test_enzymesWithMostInteractions(self, db="MongoDB"):
@@ -120,7 +106,7 @@ class TestQueryUniProt(unittest.TestCase):
                             "field": "dbReference.id.keyword",
                             "size": 10}}}
             }
-            _, _, docs = self.esquery(dbc.es, self.index, qc, doctype)
+            _, _, docs = QueryUniProt.esquery(dbc.es, self.index, qc, doctype)
         print(json.dumps(docs, indent=2))
 
     def test_lookup(self, db="MongoDB"):
@@ -155,14 +141,6 @@ class TestQueryUniProt(unittest.TestCase):
             self.assertSetEqual(accs, set(qryuniprot.getaccs(ecn)))
             self.assertIn("Aromatic compound metabolism.",
                           qryuniprot.getpathways(ecn))
-
-    @staticmethod
-    def esquery(es, index, qc, doc_type=None, size=0):
-        print("Querying '%s'  %s" % (doc_type, str(qc)))
-        r = es.search(index=index, doc_type=doc_type, body=qc, size=size)
-        nhits = r['hits']['total']
-        aggs = r["aggregations"] if "aggregations" in r else None
-        return r['hits']['hits'], nhits, aggs
 
 
 if __name__ == '__main__':
