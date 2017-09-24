@@ -1,12 +1,11 @@
 #!/usr/bin/env python
-""" Sample suggestion/search queries """
+""" Sample suggest/search queries with Elasticsearch"""
 
-import json
-import os
 import unittest
 
-from elasticsearch import Elasticsearch
+from nosqlbiosets.dbutils import DBconnection
 from utils import enable_logging
+
 enable_logging.enable_elasticsearch_logging()
 
 typeaggs = {
@@ -20,30 +19,24 @@ typeaggs = {
 
 
 class QuerySuggestions(unittest.TestCase):
-    conf = {"host": "localhost", "port": 9200}
-    d = os.path.dirname(os.path.abspath(__file__))
-    try:
-        conf = json.load(open(d + "/../conf/elasticsearch.json", "r"))
-    finally:
-        pass
-    es = Elasticsearch(host=conf['host'], port=conf['port'], timeout=600)
     index = ""
+    es = DBconnection("Elasticsearch", index).es
 
     @staticmethod
-    def suggest_queryc_pathdes(qterms):
-        """Sample suggest query caluse, from PathDES project"""
+    def prefix_queryclause(qterms):
+        """Sample match_phrase_prefix query caluse"""
         qc = {
                 "bool": {
                     "must": [
-                        {"query_string": {"query": "_type:compound"}},
+                        {"query_string": {"query": "_type:protein"}},
                         {"match_phrase_prefix": {"_all": ' '.join(qterms)
                                                  }}]}}
         # TODO: highlights, typed_keys
         return qc
 
     @staticmethod
-    def suggest_queryc_farna(qterms):
-        """Sample suggest query caluse, from FARNA project"""
+    def term_queryclause(qterms):
+        """Sample suggest query caluse"""
         qc = {
             "text": ' '.join(qterms),
             "termsuggestion": {
@@ -55,26 +48,26 @@ class QuerySuggestions(unittest.TestCase):
                     "size": 6,
                     "suggest_mode": "always"
                 }
-            },
-            "complsuggestion":
-                {
-                    "completion":
-                        {
-                            "field": "suggest",
-                            "size": 10,
-                            "fuzzy": "false"
-                        }
-                }
+            }
+            # "complsuggestion":
+            #     {
+            #         "completion":
+            #             {
+            #                 "field": "suggest",
+            #                 "size": 10,
+            #                 "fuzzy": False
+            #             }
+            #     }
         }
         return qc
 
     @staticmethod
     def search_queryc_pathdes(qterms):
-        """Sample search query caluse, from PathDES project"""
+        """Sample search query caluse"""
         qc = {
                 "bool": {
                     "must": [
-                        {"query_string": {"query": "_type:compound"}},
+                        {"query_string": {"query": "_type:protein"}},
                         {
                             "bool": {
                                 "should": [
@@ -97,8 +90,8 @@ class QuerySuggestions(unittest.TestCase):
         return qc
 
     @staticmethod
-    def search_queryc_farna(qterms):
-        """Sample search query caluse, from FARNA project"""
+    def search_queryclause(qterms):
+        """Sample search query caluse"""
         qc = {
                 "bool": {
                     "must": [
@@ -118,16 +111,12 @@ class QuerySuggestions(unittest.TestCase):
                            size=10, body={"query": qc, 'aggs': typeaggs})
         return r
 
-    def suggest_query(self, qc, index=None):
-        r = self.es.suggest(index=index, body=qc)
-        return r
-
-    def test_query_pathdes(self):
-        """Make suggest query with sample query term 'kinase'
+    def test_prefix_suggest_queries(self):
+        """Make suggest query with sample query terms'
         then make sure all suggestions return hits with the search query
         """
         qterms = ['kinase']
-        r = self.search_query(self.suggest_queryc_pathdes(qterms))
+        r = self.search_query(self.prefix_queryclause(qterms))
         hits = r['hits']['hits']
         for hit in hits:
             qt = hit['_source']['desc'].replace('[', '\[').\
@@ -137,27 +126,26 @@ class QuerySuggestions(unittest.TestCase):
             r = self.search_query(qc)
             self.assertGreater(r['hits']['total'], 0)
 
-    def query_farna(self, qterm):
-        """Execute FARNA suggest/search queries for given query term"""
-        r = self.suggest_query(self.suggest_queryc_farna([qterm]),
-                               index="farnacell_elim5_v2")
-        for suggester in ["termsuggestion", "complsuggestion"]:
+    def suggestquery(self, qterm):
+        """Execute suggest/search queries for given query term"""
+        r = self.es.suggest(body=self.term_queryclause([qterm]),
+                            index="biosets")
+        for suggester in ["termsuggestion"]:  # "complsuggestion"
             for suggestions in r[suggester]:
                 opts = suggestions['options']
                 for opt in opts:
                     qt = opt['text']
-                    print("opt: %s" % qt)
-                    qc = self.search_queryc_farna(qterms=[qt])
+                    qc = self.search_queryclause(qterms=[qt])
                     qr = self.search_query(qc)
                     self.assertGreater(qr['hits']['total'], 0)
 
-    def test_query_farna(self):
+    def test_term_suggest_queries(self):
         """Make suggest query with sample query terms
         then make sure all suggestions return hits with the search query
         """
         qterms = ['kinase', 'p53', 'mir21', 'brca']
         for qterm in qterms:
-            self.query_farna(qterm)
+            self.suggestquery(qterm)
 
 
 if __name__ == '__main__':

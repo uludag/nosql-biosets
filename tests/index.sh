@@ -32,12 +32,19 @@ for db in ${dbs}; do
 #    done
 
 
-## UniProt (work in progress)
-# Typical Elasticsearch indexing times 7h, 10h
-# that will hopefully be improved
-# Typical MongoDB indexing time 210m
+## UniProt (recent work)
+# Typical Elasticsearch indexing times 5h to 8h
+# Typical MongoDB indexing times 2.5h to 5h
 # ./nosqlbiosets/uniprot/index.py\
 #   --infile ./data/uniprot_sprot.xml.gz --index ${index} --db ${db}
+
+
+## KEGG (work in progress)
+# Typical Elasticsearch indexing time ??
+# Typical MongoDB indexing time ??
+# ./nosqlbiosets/kegg/index.py\
+#   --infile ./data/kegg/xml/kgml/metabolic/organisms/\
+#   --index ${index} --db ${db}
 
 done
 

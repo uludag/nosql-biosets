@@ -12,7 +12,9 @@ from elasticsearch.helpers import streaming_bulk
 
 from nosqlbiosets.dbutils import DBconnection
 
-chunksize = 2048
+ES_CHUNK_SIZE = 2048  # for Elasticsearch index requests
+TYPE_COMPOUND = 'modelseed_compound'
+TYPE_REACTION = 'modelseed_reaction'
 
 
 # Parse records in ModelSEED DB compounds tsv file which has the
@@ -29,8 +31,8 @@ def updatecompoundrecord(row, _):
     for a in ['is_cofactor', 'is_core', 'is_obsolete']:
         row[a] = True if row[a] == '1' else False
     row['_id'] = row['id']
-    del row['id']
-    row['_type'] = 'modelseed_compound'
+    del row['id'], row['source']
+    row['_type'] = TYPE_COMPOUND
     return row
 
 
@@ -50,7 +52,7 @@ def updatereactionrecord(row, _):
         row[a] = True if row[a] == '1' else False
     row['_id'] = row['id']
     del row['id']
-    row['_type'] = 'modelseed_reaction'
+    row['_type'] = TYPE_REACTION
     return row
 
 
@@ -72,7 +74,7 @@ def es_index(escon, reader):
             escon,
             reader,
             index=args.index,
-            chunk_size=chunksize
+            chunk_size=ES_CHUNK_SIZE
     ):
         action, result = result.popitem()
         i += 1
@@ -111,7 +113,7 @@ if __name__ == '__main__':
     parser.add_argument('--reactionsfile',
                         default=biochemfolder + "reactions.tsv",
                         help='ModelSEED reactions csv file')
-    parser.add_argument('--index', default="nosqlbiosets",
+    parser.add_argument('--index', default="ModelSEED",
                         help='Name of the Elasticsearch index or '
                              'MongoDB database')
     parser.add_argument('--host',
@@ -132,11 +134,11 @@ if __name__ == '__main__':
                                              updatereactionrecord))
         es.indices.refresh(index=args.index)
     else:  # assume MongoDB
-        doctype = 'compound'
+        doctype = TYPE_COMPOUND
         indxr.mdbi.drop_collection(doctype)
         mongodb_index(indxr.mdbi[doctype],
                       args.compoundsfile, updatecompoundrecord)
-        doctype = 'reaction'
+        doctype = TYPE_REACTION
         indxr.mdbi.drop_collection(doctype)
         mongodb_index(indxr.mdbi[doctype],
                       args.reactionsfile, updatereactionrecord)

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" Simple queries with UniProt data indexed with MongoDB or Elasticsearch """
+""" Test queries with UniProt data indexed with MongoDB or Elasticsearch """
 
 import json
 import unittest
@@ -129,18 +129,21 @@ class TestQueryUniProt(unittest.TestCase):
                 ]
                 hits = dbc.mdbi[doctype].aggregate(agpl)
                 docs = [i for i in hits]
-                # print(json.dumps(docs, indent=2))
                 self.assertSetEqual(genes,
                                     {doc['uniprot']['gene']['name']['#text']
                                      for doc in docs})
 
     def test_getenzymedata(self):
-        enzys = [('2.2.1.11', {'Q58980'}, {'MJ1585'})]
-        for ecn, accs, genes in enzys:
-            self.assertSetEqual(genes, set(qryuniprot.getgenes(ecn)))
-            self.assertSetEqual(accs, set(qryuniprot.getaccs(ecn)))
-            self.assertIn("Aromatic compound metabolism.",
-                          qryuniprot.getpathways(ecn))
+        enzys = [('2.2.1.11', {'Q58980'}, {'MJ1585'},
+                  "Aromatic compound metabolism."),
+                 ('2.5.1.-', {'Q3J5F9'}, {'ctaB'},
+                  "Belongs to the spermidine/spermine synthase family.")]
+        for ecn, accs, genes, pathway in enzys:
+            assert genes.issubset(set(qryuniprot.getgenes(ecn,
+                                                          "Elasticsearch")))
+            assert genes.issubset(set(qryuniprot.getgenes(ecn)))
+            assert accs.issubset(qryuniprot.getaccs(ecn))
+            assert pathway in qryuniprot.getpathways(ecn)
 
 
 if __name__ == '__main__':

@@ -11,7 +11,7 @@ we have implemented MongoDB support as well.
 
 * MetaNetX [compounds, reactions, and compartments data](
 http://www.metanetx.org/mnxdoc/mnxref.html
-): [`./metanetx`](./metanetx)
+): [`./nosqlbiosets/metanetx`](./nosqlbiosets/metanetx)
   
 
 * Metabolic network files in [SBML](http://sbml.org) format or

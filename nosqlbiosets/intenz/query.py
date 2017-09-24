@@ -30,7 +30,11 @@ class QueryIntEnz:
         if self.dbc.db == 'MongoDB':
             r = ["_id", "accepted_name.#text"]
             hits = self.dbc.mdbi[self.doctype].find(qc, projection=r, limit=100)
-            r = [(c[r[0]], c["accepted_name"]["#text"]) for c in hits]
+            hits = [c for c in hits]
+            # TODO:
+            r = [(c[r[0]], c["accepted_name"]["#text"])
+                 for c in hits if "accepted_name" in c and
+                 not isinstance(c["accepted_name"], list)]
             return r
 
     # Find enzymes where one of the given chemicals is a reactant

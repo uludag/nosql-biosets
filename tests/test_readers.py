@@ -7,7 +7,7 @@ from geneinfo.ensembl_regbuild import regregions
 from geneinfo.ensembl_regbuild import tfs
 from geneinfo.rnacentral_idmappings import mappingreader
 from hmdb.index import parse_hmdb_xmlfile
-from metanetx.index import *
+from nosqlbiosets.metanetx.index import *
 from nosqlbiosets.kbase.index_modelseed import read_modelseed_datafile, \
     updatecompoundrecord, updatereactionrecord
 from nosqlbiosets.kegg.index import read_and_index_kegg_xmltarfile
@@ -157,7 +157,7 @@ class TestDataReaders(unittest.TestCase):
     #     "compartments": { "C_c": null }  should be list
     @unittest.skipUnless(os.path.exists(psammmodelfiles),
                          "Missing test files folder")
-    def test_psamm_yamlfile_reader_____(self):
+    def test_psamm_yamlfile_reader(self):
         for m in ["S_coelicolor_fixed"]:
             yaml = self.psammmodelfiles + m + "/model.yaml"
             sbml = psamm_yaml_to_sbml(yaml)

@@ -12,7 +12,10 @@ from elasticsearch.helpers import streaming_bulk
 
 from nosqlbiosets.dbutils import DBconnection
 
-chunksize = 256  # for Elasticsearch index requests
+ES_CHUNK_SIZE = 256  # for Elasticsearch index requests
+TYPE_COMPOUND = 'metanetx_compound'
+TYPE_REACTION = 'metanetx_reaction'
+TYPE_COMPARTMENT = 'metanetx_compartment'
 
 
 # Parse records in MetaNetX chem_prop.tsv file which has the following header
@@ -31,7 +34,7 @@ def getcompoundrecord(row, xrefsmap):
         '_id':     id_,     'desc':   row[1],
         'formula': row[2],  'charge': charge,
         'mass':    mass,    'inchi':  row[5],
-        'smiles':  row[6],  '_type':  'compound',
+        'smiles':  row[6],  '_type':  TYPE_COMPOUND,
         'source': {'lib': sourcelib, 'id': sourceid},
         'inchikey': row[8],
         'xrefs': xrefsmap[id_] if id_ in xrefsmap else None
@@ -69,7 +72,7 @@ def getcompartmentrecord(row, xrefsmap):
         '_id':     id_,     'desc':   row[1],
         'source': {'lib': sourcelib, 'id': sourceid},
         'xrefs': xrefsmap[id_] if id_ in xrefsmap else None,
-        '_type': 'compartment',
+        '_type': TYPE_COMPARTMENT,
     }
     return r
 
@@ -131,7 +134,7 @@ def getreactionrecord(row, xrefsmap):
     r = {
         '_id':  id_, 'equation': row[1],
         'desc': row[2], 'balance':  row[3],
-        'ecno': row[4], '_type':    "reaction",
+        'ecno': row[4], '_type': TYPE_REACTION,
         'source': {'lib': sourcelib, 'id': sourceid},
         'xrefs': xrefsmap[id_] if id_ in xrefsmap else None
     }
@@ -172,7 +175,7 @@ class Indexer(DBconnection):
     def es_index(self, reader):
         i = 0
         for ok, result in streaming_bulk(self.es, reader, index=self.index,
-                                         chunk_size=chunksize):
+                                         chunk_size=ES_CHUNK_SIZE):
             action, result = result.popitem()
             i += 1
             doc_id = '/%s/commits/%s' % (self.index, result['_id'])
@@ -240,17 +243,20 @@ if __name__ == '__main__':
             v[arg] = os.path.join(args.metanetxdatafolder, filename)
 
     xrefsmap_ = getxrefs(args.compoundsxreffile, getcompoundxrefrecord)
-    indxr = Indexer(args.db, args.index, args.host, args.port, "compound")
+    indxr = Indexer(args.db, args.index, args.host, args.port,
+                    TYPE_COMPOUND)
     indxr.indexall(read_metanetx_mappings(args.compoundsfile,
                                           getcompoundrecord, xrefsmap_))
 
     xrefsmap_ = getxrefs(args.compartmentsxreffile, getcompartmentxrefrecord)
-    indxr = Indexer(args.db, args.index, args.host, args.port, "compartment")
+    indxr = Indexer(args.db, args.index, args.host, args.port,
+                    TYPE_COMPARTMENT)
     indxr.indexall(read_metanetx_mappings(args.compartmentsfile,
                                           getcompartmentrecord, xrefsmap_))
 
     xrefsmap_ = getxrefs(args.reactionsxreffile, getreactionxrefrecord)
-    indxr = Indexer(args.db, args.index, args.host, args.port, "reaction")
+    indxr = Indexer(args.db, args.index, args.host, args.port,
+                    TYPE_REACTION)
     indxr.indexall(read_metanetx_mappings(args.reactionsfile,
                                           getreactionrecord, xrefsmap_))
     indxr.close()

@@ -12,7 +12,7 @@ $ ./metanetx/index.py --metanetxdatafolder ./metanetx/data\
         --index metanetx --db MongoDB;
 ```
 
-* [../tests/query-metanetx.py](../tests/query-metanetx.py)
+* [../../tests/query-metanetx.py](../../tests/query-metanetx.py)
  includes few sample queries for the indexed data
 
 
@@ -20,7 +20,8 @@ $ ./metanetx/index.py --metanetxdatafolder ./metanetx/data\
 
 http://www.metanetx.org/mnxdoc/mnxref.html
 
-See [../tests/download.sh]() for example download command-line
+See [../../tests/download.sh](../../tests/download.sh)
+ for example download command-line
 
 
 #### Typical indexing times
