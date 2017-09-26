@@ -1,17 +1,20 @@
 #!/usr/bin/env python
-""" Index PMC articles with Elasticsearch"""
+""" Index PMC articles with Elasticsearch or MongoDB"""
 from __future__ import print_function
 
 import argparse
 import gzip
 import json
 import os
+import sys
 import tarfile
 import time
 
 import pubmed_parser as pp
 
 from nosqlbiosets.dbutils import DBconnection
+
+PMCARTICLE = 'PMC_article'
 
 
 # Read PMC article xml files, index using the function indexf
@@ -38,7 +41,7 @@ def read_and_index_pmc_articles(infile, es, indexf):
 
 
 # Read given PMC tar file, index using the index function specified
-def read_and_index_pmc_articles_tarfile(infile, es, indexfunc):
+def read_and_index_pmc_articles_tarfile(infile, dbc, indexfunc):
     print("\nProcessing tar file: %s " % infile)
     i = 0
     tar = tarfile.open(infile, 'r:')
@@ -48,20 +51,23 @@ def read_and_index_pmc_articles_tarfile(infile, es, indexfunc):
             continue  # if the tar-file entry is folder then skip
 
         ar = pp.parse_pubmed_xml(f)
-        if not es.exists(index=args.index, doc_type='PMC_article',
-                         id=ar['pmid']):
+        if dbc.db != "Elasticsearch" or \
+                not dbc.es.exists(index=args.index, doc_type=PMCARTICLE,
+                                  id=ar['pmid']):
             try:
                 # We here open the file for the second time, can be improved?
                 f = tar.extractfile(member)
                 paragraph_dicts = pp.parse_pubmed_paragraph(f)
-                l = []
+                paragraphs = []
                 for p in paragraph_dicts:
                     del (p['pmc'])
                     del (p['pmid'])
-                    l.append(p)
-
-                ar['paragraphs'] = l
-                indexfunc(es, ar)
+                    paragraphs.append(p)
+                import datetime
+                ar['paragraphs'] = paragraphs
+                ar['pub_date'] = datetime.datetime(int(ar['publication_year']),
+                                                   1, 1)
+                indexfunc(dbc, ar)
                 tar.members = []
                 i += 1
             except Exception as e:
@@ -89,16 +95,21 @@ def read_and_index_pmc_articles_file(infile_, es, indexf):
         f = open(infile, 'r')
     ba = pubmed_parser_parse(f)
     r = indexf(es, ba)
-    # todo: new function to avoid code duplicate
     return r
 
 
-def es_index_article(es, ar):
-    print(".", end='', flush=True)
+def index_article(dbc, ar):
+    print(".", end='', file=sys.stdout)
+    sys.stdout.flush()
+
     pmid = ar['pmid']
     try:
-        es.index(index=args.index, doc_type='PMC_article', id=pmid,
-                 body=json.dumps(ar))
+        if dbc.db == "Elasticsearch":
+            dbc.es.index(index=args.index, doc_type=PMCARTICLE, id=pmid,
+                         body=ar)
+        else:  # MongoDB
+            spec = {"_id": pmid}
+            dbc.mdbi[PMCARTICLE].update(spec, ar, upsert=True)
     except Exception as e:
         print("error: %s" % e)
     return None
@@ -109,18 +120,20 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Index PMC articles, using Elasticsearch')
     parser.add_argument('-infile', '--infile',
-                        default=d + "/data/PMC0044-1000.tar",
+                        default=d + "/../../data/PMC0044-1000.tar",
                         help='input file name or folder with PMC files')
     parser.add_argument('--index',
-                        default="nosqlbiosets",
+                        default="tests",
                         help='Name of the Elasticsearch index')
     parser.add_argument('--host',
                         help='Elasticsearch server hostname')
     parser.add_argument('--port',
                         help="Elasticsearch server port")
+    parser.add_argument('--db', default='Elasticsearch',
+                        help="Database: Elasticsearch or MongoDB")
     args = parser.parse_args()
-    iconfig = json.load(open(d+"/mappings/pmc-articles.json", "r"))
-    dbc = DBconnection("Elasticsearch", args.index, args.host, args.port,
-                       es_indexmappings=iconfig['mappings'])
-    read_and_index_pmc_articles(args.infile, dbc.es, es_index_article)
-    dbc.close()
+    iconfig = json.load(open(d+"/../../mappings/pmc-articles.json", "r"))
+    dbcon = DBconnection(args.db, args.index, args.host, args.port,
+                         es_indexmappings=iconfig['mappings'])
+    read_and_index_pmc_articles(args.infile, dbcon, index_article)
+    dbcon.close()
