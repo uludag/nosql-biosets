@@ -40,8 +40,8 @@ http://www.wikipathways.org/index.php/Download_Pathways):
   ./nosqlbiosets/pathways/index_wikipathways.py)
 
 * PMC [articles](http://ftp.ebi.ac.uk/pub/databases/pmc/manuscripts):
-  [`./nosqlbiosets/pubmed/index-pmc-articles.py`](
-  ./nosqlbiosets/pubmed/index-pmc-articles.py)
+  [`./nosqlbiosets/pubmed/index_pmc_articles.py`](
+  ./nosqlbiosets/pubmed/index_pmc_articles.py)
 
 * Ensembl regulatory build [GFF files](
 http://ftp.ensembl.org/pub/current_regulation/homo_sapiens):
