@@ -95,7 +95,7 @@ $ pip install -r requirements.txt --user
 ```
 
 Since we are yet in early stages you may need to check (and modify)
-source code of the scripts time to time, for this reason light install
+source code of the scripts time to time, for this reason _light install_
 nosqlbiosets project to your local Python library/package folders
 using the `setup.py` `develop` and `--user` options
 that should allow you to run the index scripts from project
@@ -104,7 +104,7 @@ source folders:
 $ python setup.py develop --user
 ```
 
-Default values of hostname and port numbers of Elasticsearch and MongoDB servers
+Default values of the hostname and port numbers of Elasticsearch and MongoDB servers
 are read from [`./conf/dbservers.json`](conf/dbservers.json) file.
 Save your settings in this file to avoid entering `--host` and `--port`
 parameters in command line.
@@ -157,7 +157,7 @@ curl -XGET "http://localhost:9200/uniprot/_search?pretty=true"\
   }
 }'
 ```
-Check [`./tests/query-uniprot.py`](tests/query-uniprot.py) for simple
+Check [`./tests/test_uniprot_queries.py`](tests/test_uniprot_queries.py) for
 example queries with Elasticsearch and MongoDB.
 
 ## Notes
