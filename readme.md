@@ -162,20 +162,6 @@ example queries with Elasticsearch and MongoDB.
 
 ## Notes
 
-### PMC articles
-
-[index-pmc-articles.py](index-pmc-articles.py) reads and indexes archives
-of PMC articles xml files.
-
-Requires [`pubmed_parser`](https://github.com/titipata/pubmed_parser/)
-library installed
-
-### WikiPathways
-
-[index-wikipathways.py](index-wikipathways.py) reads and indexes
-the archived WikiPathways gpml files,
-without extracting them to temporary files
-
 ### Elasticsearch server settings
 Since some of the PubChem BioAssay json files are large they require to change
 few Elasticsearch default settings to higher values:

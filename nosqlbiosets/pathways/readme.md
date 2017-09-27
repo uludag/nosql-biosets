@@ -1,5 +1,11 @@
-* [index_wikipathways.py](index_wikipathways.py): Index WikiPathways gpml files
 
+### WikiPathways
+
+[index-wikipathways.py](index-wikipathways.py) reads and indexes
+the archived WikiPathways gpml files,
+without extracting them to temporary files
+
+### SBML files
 
 * [index_metabolic_networks.py](index_metabolic_networks.py): Index metabolic
  network files, current/initial version is limited to PSAMM yaml files
@@ -7,10 +13,11 @@
 
 JSON representation of SBML files provided by the COBRApy project[1] is used to
 represent the metabolic network objects in databases (Elasticsearch and MongoDB).
-Except list of metabolites and stoichiometry values are stored in a list
-rather than in a dictionary of metabolites
+One difference we have that the list of metabolites and stoichiometry values
+are stored in a list rather than in a dictionary of metabolites
 
-Example metabolites lists, before and after change: 
+Example metabolites lists, in COBRApy json
+ and in nosqlbiosets data representation: 
 ```json
 "metabolites": {
     "cpd14881": -1.0,
