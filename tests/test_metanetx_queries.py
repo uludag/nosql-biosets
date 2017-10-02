@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-""" Sample queries with MetaNetX compounds and reactions """
-
+""" Test queries with MetaNetX compounds and reactions """
 import os
 import unittest
 
@@ -29,8 +28,9 @@ class TestQueryMetanetx(unittest.TestCase):
         descs = qrymtntx.query_metanetxids(dbc, mids)
         self.assertEqual(set(descs), {'glycerol', 'alpha-carotene'})
 
-    # link metanetx.reaction.ecno to uniprot.dbreference.id
-    #     where uniprot.dbreference.type = EC
+    # First queries metanetx_reactions for given KEGG ids
+    # Then links metanetx_reaction.ecno to uniprot.dbReference.id
+    #     where uniprot.dbReference.type = EC,  to get gene names
     def test_keggrid2ecno2gene(self, db='Elasticsearch'):
         doctype = "metanetx_reaction"
         dbc = DBconnection(db, self.index)
@@ -49,7 +49,6 @@ class TestQueryMetanetx(unittest.TestCase):
                 ecnos = [r['ecno'] for r in hits]
             assert len(ecnos) > 0
             for ecno in ecnos:
-                print(ecno)
                 for ecn in ecno.split(';'):
                     assert ec == ecn
                     r = qryuniprot.getgenes(ecn, db)
@@ -64,6 +63,49 @@ class TestQueryMetanetx(unittest.TestCase):
 
     def test_id_queries_mdb(self):
         self.id_queries("MongoDB")
+
+    def test_query_reactions(self):
+        rids = ["MNXR94726", "MNXR113731"]
+        qc = {"_id": {"$in": rids}}
+        reacts = qrymtntx.query_reactions(qc)
+        assert len(reacts) == len(rids)
+
+    def test_query_metabolites(self):
+        mids = ['MNXM39', 'MNXM89612']
+        qc = {"_id": {"$in": mids}}
+        metabolites = qrymtntx.query_metabolites(qc)
+        assert len(metabolites) == len(mids)
+
+    def test_query_compartments(self):
+        compartments = qrymtntx.query_compartments()
+        assert len(compartments) == 40
+
+    def test_reactionsandmetabolites(self):
+        rids = ["MNXR94726", "MNXR113731"]
+        qc = {"_id": {"$in": rids}}
+        reacts, metabolites = qrymtntx.\
+            universalmodel_reactionsandmetabolites(qc)
+        assert len(reacts) == len(rids)
+        assert len(metabolites) >= len(rids)
+
+    def test_universal_model(self):
+        eids = ["1.1.4.13", "2.3.1"]
+        qc = {"ecno": {"$in": eids}}
+        m = qrymtntx.universal_model(qc)
+        assert len(m.reactions) >= len(eids)
+        assert len(m.metabolites) >= len(eids)
+        import cobra
+        tempjson = "test.json"
+        cobra.io.save_json_model(m, tempjson, pretty=True)
+
+    def test_universal_model_forlibrary(self):  # execution time ~6s
+        qc = {"xrefs.lib": {"$in": ["reactome"]}, "balance": "true"}
+        m = qrymtntx.universal_model(qc)
+        assert len(m.reactions) >= 900
+        assert len(m.metabolites) >= 100
+        import cobra
+        tempjson = "test2.json"
+        cobra.io.save_json_model(m, tempjson, pretty=True)
 
 
 if __name__ == '__main__':
