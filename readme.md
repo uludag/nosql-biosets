@@ -4,7 +4,7 @@ We want to develop scripts for NoSQL indexing and querying of sample
 bioinformatics datasets.
 
 In the early stages of the project only Elasticsearch was supported.
-In most recent work (UniProt, MetaNetX, HMDB, SBML files, IntEnz)
+In more recent work (UniProt, MetaNetX, HMDB, SBML files, IntEnz)
 we have implemented MongoDB support as well.
 
 ## Datasets supported
@@ -18,7 +18,7 @@ http://www.metanetx.org/mnxdoc/mnxref.html
  [PSAMM project's yaml](https://github.com/zhanglab/psamm-model-collection)
   format: [`./nosqlbiosets/pathways/index_metabolic_networks.py`](
   nosqlbiosets/pathways/index_metabolic_networks.py)
-   (_recent work, not tested with many network files_)
+   (_recent work, tests made with BiGG and PSAMM model collections_)
 
 * UniProtKB [datasets](
 ftp://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/knowledgebase/complete/

@@ -7,13 +7,13 @@ from geneinfo.ensembl_regbuild import regregions
 from geneinfo.ensembl_regbuild import tfs
 from geneinfo.rnacentral_idmappings import mappingreader
 from hmdb.index import parse_hmdb_xmlfile
-from nosqlbiosets.metanetx.index import *
 from nosqlbiosets.kbase.index_modelseed import read_modelseed_datafile, \
     updatecompoundrecord, updatereactionrecord
 from nosqlbiosets.kegg.index import read_and_index_kegg_xmltarfile
+from nosqlbiosets.metanetx.index import *
 from nosqlbiosets.pathways.index_metabolic_networks \
-    import read_and_index_model_files, sbml_to_cobra_json, \
-    psamm_yaml_to_sbml, read_and_index_sbml_file
+    import sbml_to_cobra_json, \
+    psamm_yaml_to_sbml
 from nosqlbiosets.pubtator.index import parse_pub2gene_lines
 
 
@@ -136,13 +136,6 @@ class TestDataReaders(unittest.TestCase):
 
     psammmodelfiles = d + "/data/psamm/sbml/"
 
-    def mock_sbml_indexer(self, _, r):
-        self.assertTrue('metabolites' in r)
-        self.assertGreater(len(r['metabolites']), 10)
-        self.assertGreaterEqual(len(r['compartments']), 1)
-        self.npsammentries += 1
-        print("yaml files indexed = %d" % self.npsammentries)
-
     @unittest.skipUnless(os.path.exists(psammmodelfiles),
                          "Missing test files folder")
     def test_psamm_yamlfile_reader(self):
@@ -152,36 +145,6 @@ class TestDataReaders(unittest.TestCase):
             self.assertGreater(len(r['metabolites']), 10)
             self.assertGreaterEqual(len(r['compartments']), 1)
             self.assertGreater(len(r['genes']), 10)
-
-    # Failing test for cobra.io.read_sbml_model:
-    #     "compartments": { "C_c": null }  should be list
-    @unittest.skipUnless(os.path.exists(psammmodelfiles),
-                         "Missing test files folder")
-    def test_psamm_yamlfile_reader(self):
-        for m in ["S_coelicolor_fixed"]:
-            yaml = self.psammmodelfiles + m + "/model.yaml"
-            sbml = psamm_yaml_to_sbml(yaml)
-            r = sbml_to_cobra_json(sbml)
-            self.assertGreaterEqual(len(r['compartments']), 1)
-
-    @unittest.skipUnless(os.path.exists(psammmodelfiles),
-                         "Missing test files folder")
-    def test_psamm_yamlfilesfolder_reader(self):
-        self.npsammentries = 0
-        read_and_index_model_files(self.psammmodelfiles,
-                                   self.mock_sbml_indexer)
-        self.assertGreater(self.npsammentries, 0)
-
-    metanetxmodelfiles = d + "/data/metanetx/models/"
-
-    @unittest.skipUnless(os.path.exists(metanetxmodelfiles),
-                         "Missing test files folder")
-    def test_sbmlfile(self):
-        self.npsammentries = 0
-        read_and_index_sbml_file(self.metanetxmodelfiles +
-                                 "bigg_e_coli_core.COBRA-sbml3.xml",
-                                 self.mock_sbml_indexer)
-        self.assertGreater(self.npsammentries, 0)
 
 
 if __name__ == '__main__':
