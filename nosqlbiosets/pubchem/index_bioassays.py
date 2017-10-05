@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """ Index PubChem Bioassay json files with Elasticsearch or MongoDB"""
 from __future__ import print_function
 
@@ -14,9 +14,10 @@ from zipfile import ZipFile
 from nosqlbiosets.dbutils import DBconnection
 
 # Document type name for the Elascticsearch or Collection name for MongoDB
-doctype = 'bioassay'
+DOCTYPE = "bioassay"
+INDEX = "pubchem"
 # Maximum size of uncompressed files that should be indexed
-MaxEntrySize = 64*1024
+MaxEntrySize = 256*1024
 # Maximum total size of uncompressed files indexed
 # before an Elasticsearch  _refresh call (~equivalent of database commits)
 MaxBulkSize = 512*1024
@@ -83,11 +84,12 @@ def read_and_index_pubchem_bioassays_zipfile(zipfile, es, indexf):
 def read_and_index_pubchem_bioassays_file(infile, es, indexfunc):
     if infile.endswith(".gz"):
         print(getuncompressedsize(infile))
-        f = gzip.open(infile, 'rb')
+        f = gzip.open(infile, 'rt')
     else:
         f = open(infile, 'r')
     aid = infile[infile.rfind('/') + 1:infile.find(".json")]
-    r = indexfunc(es, f, 0, aid)
+    # r = indexfunc(es, f, 0, aid)
+    r = index_bioassay(es, f, 0, aid, indexfunc)
     return r
 
 
@@ -127,28 +129,28 @@ def index_bioassay(es, f, r, aid_, indexf):
     return r
 
 
-def es_index_bioassay(es, f, r, aid, doc):
+def es_index_bioassay(dbc, f, r, aid, doc):
     try:
         if r > 0 and (r + f.tell() > MaxBulkSize):
             print("r", end='', file=sys.stdout)
             sys.stdout.flush()
             # refresh/commit to avoid Elasticsearch out-of-memory errors
-            es.indices.refresh(index=args.index)
-            es.indices.clear_cache(index=args.index)
+            dbc.es.indices.refresh(index=args.index)
+            dbc.es.indices.clear_cache(index=args.index)
             r = 0
         print(".", end='', file=sys.stdout)
         sys.stdout.flush()
         docx = {"assay": doc['PC_AssaySubmit']['assay'],
                 "data": doc['PC_AssaySubmit']['data']}
-        es.index(index=args.index, doc_type=doctype,
-                 id=aid, body=json.dumps(docx))
+        dbc.es.index(index=dbc.index, doc_type=DOCTYPE,
+                     id=aid, body=json.dumps(docx))
         r += f.tell()
     except Exception as e:
         print(e)
     return r
 
 
-def mongodb_index_bioassay(db, f, r, aid, doc):
+def mongodb_index_bioassay(dbc, f, r, aid, doc):
     try:
         if r > 0 and (r + f.tell() > MaxBulkSize):
             print("r", end='', file=sys.stdout)
@@ -158,24 +160,24 @@ def mongodb_index_bioassay(db, f, r, aid, doc):
         sys.stdout.flush()
         docx = {"assay": doc['PC_AssaySubmit']['assay'],
                 "data": doc['PC_AssaySubmit']['data']}
-        db[doctype].update({"_id": aid}, docx, upsert=True)
+        dbc.mdbi[DOCTYPE].update({"_id": aid}, docx, upsert=True)
         r += f.tell()
     except Exception as e:
         print(e)
     return r
 
 
-def main(db, infile, index, host, port):
+def main(db, infile, index=INDEX, host=None, port=None):
     if db == 'Elasticsearch':
         d = os.path.dirname(os.path.abspath(__file__))
         cfg = json.load(open(d + "/../../mappings/pubchem-bioassays.json", "r"))
         dbc = DBconnection(db, index, host, port, recreateindex=True,
                            es_indexmappings=cfg["mappings"])
-        read_and_index_pubchem_bioassays(infile, dbc.es, es_index_bioassay)
+        read_and_index_pubchem_bioassays(infile, dbc, es_index_bioassay)
         dbc.es.indices.refresh(index=index)
     else:
         dbc = DBconnection(db, index, host, port)
-        read_and_index_pubchem_bioassays(infile, dbc.mdbi,
+        read_and_index_pubchem_bioassays(infile, dbc,
                                          mongodb_index_bioassay)
 
 
@@ -185,7 +187,7 @@ if __name__ == '__main__':
     parser.add_argument('-infile', '--infile',
                         default="./data/pubchem/bioassays/1259001_1260000.zip",
                         help='input file to index')
-    parser.add_argument('--index', default="pubchem-tests",
+    parser.add_argument('--index',
                         help='Name of Elasticsearch index or MongoDB database')
     parser.add_argument('--host',
                         help='Elasticsearch/MongoDB server hostname')
