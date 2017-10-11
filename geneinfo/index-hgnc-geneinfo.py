@@ -3,10 +3,12 @@
 
 import argparse
 import gzip
-import json, os
+import json
+import os
 
-from elasticsearch import Elasticsearch
 from elasticsearch.helpers import streaming_bulk
+
+from nosqlbiosets.dbutils import DBconnection
 
 # Document type name for the Elascticsearch index entries
 doctype = 'coding-gene'
@@ -19,8 +21,8 @@ def read_and_index_hgnc_file(infile, es, indexfunc):
         f = gzip.open(infile, 'rt')
     else:
         f = open(infile, 'r')
-    l = json.load(f)
-    r = indexfunc(es, l["response"])
+    genesinfo = json.load(f)
+    r = indexfunc(es, genesinfo["response"])
     return r
 
 
@@ -61,26 +63,21 @@ def main(es, infile, index):
 
 
 if __name__ == '__main__':
-    conf = {"host": "localhost", "port": 9200}
-    try:
-        d = os.path.dirname(os.path.abspath(__file__))
-        conf = json.load(open(d+"/../conf/elasticsearch.json", "r"))
-    finally:
-        pass
+    d = os.path.dirname(os.path.abspath(__file__))
     parser = argparse.ArgumentParser(
         description='Index HGNC gene-info files using Elasticsearch')
     parser.add_argument('--infile',
-                        default="./data/protein-coding_gene.json",
+                        default="./data/hgnc_complete_set.json",
                         help='input file to index')
     parser.add_argument('--index',
                         default="geneinfo",
                         help='Elasticsearch index')
-    parser.add_argument('--host', default=conf['host'],
+    parser.add_argument('--host',
                         help='Elasticsearch server hostname')
-    parser.add_argument('--port', default=conf['port'],
+    parser.add_argument('--port',
                         help="Elasticsearch server port")
     args = parser.parse_args()
     host = args.host
     port = args.port
-    con = Elasticsearch(host=host, port=port, timeout=3600)
-    main(con, args.infile, args.index)
+    con = DBconnection("Elasticsearch", args.index, host=host, port=port)
+    main(con.es, args.infile, args.index)

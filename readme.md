@@ -59,6 +59,10 @@ http://ftp.ncbi.nlm.nih.gov/pub/lu/PubTator):
  [data files in json format](
  http://ftp.ebi.ac.uk/pub/databases/genenames/new/json/),
   from EMBL-EBI: [`./geneinfo/index-hgnc-geneinfo.py`](geneinfo/index-hgnc-geneinfo)
+  (_not matured yet, tests made with [complete HGNC dataset](
+  ftp://ftp.ebi.ac.uk/pub/databases/genenames/new/json/hgnc_complete_set.json)
+  and with [protein-coding genes dataset](
+  ftp://ftp.ebi.ac.uk/pub/databases/genenames/new/json/locus_groups/protein-coding_gene.json)_)
 
 * RNAcentral [identifier mappings](
 http://ftp.ebi.ac.uk/pub/databases/RNAcentral/current_release/id_mapping/),
