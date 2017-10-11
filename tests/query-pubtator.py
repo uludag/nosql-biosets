@@ -7,18 +7,18 @@ from nosqlbiosets.dbutils import DBconnection
 
 
 class QueryPubTator(unittest.TestCase):
-    dbc = DBconnection("Elasticsearch", "nosqlbiosets")
     index = "pubtator"
+    dbc = DBconnection("Elasticsearch", index)
 
     def query(self, qc, aggqc):
-        print("querying %s with aggregations %s" % (str(qc), str(aggqc)))
+        print("Querying %s with aggregations %s" % (str(qc), str(aggqc)))
         r = self.dbc.es.search(index=self.index,
                                body={"size": 0, "query": qc, "aggs": aggqc})
         return r
 
     def test_query_sample_geneids(self):
-        l = [652, 17906, 39014]
-        for gid in l:
+        geneids = [652, 17906, 39014]
+        for gid in geneids:
             qc = {"match": {"geneids": gid}}
             n = self.query(qc, {})['hits']['total']
             self.assertGreater(n, 0, "No annotation found for gene %d" % gid)

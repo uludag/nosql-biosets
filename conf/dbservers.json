@@ -3,5 +3,9 @@
   "es_host": "localhost",
   "es_port": 9200,
   "mongodb_host": "localhost",
-  "mongodb_port": 27017
+  "mongodb_port": 27017,
+  "neo4j_host": "localhost",
+  "neo4j_port": 7687,
+  "neo4j_user": "neo4j",
+  "neo4j_password": "neo4j"
 }
