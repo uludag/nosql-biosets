@@ -4,8 +4,7 @@ We want to develop scripts for NoSQL indexing and querying of sample
 bioinformatics datasets.
 
 In the early stages of the project only Elasticsearch was supported.
-In more recent work (UniProt, MetaNetX, HMDB, SBML files, IntEnz)
-we have implemented MongoDB support as well.
+Later, we have implemented MongoDB support as well.
 
 ## Datasets supported
 

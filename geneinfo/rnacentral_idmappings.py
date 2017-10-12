@@ -4,15 +4,19 @@ import argparse
 import csv
 import gzip
 import logging
-import os
 import time
+from pprint import pprint
 
 from elasticsearch.helpers import streaming_bulk
+from pymongo.errors import BulkWriteError
 
 from nosqlbiosets.dbutils import DBconnection
 
 DOCTYPE = "rnacentral"
+INDEX = "geneinfo"  # default name for Elasticsearch-index or MongoDB-database
 CHUNKSIZE = 124
+SOURCEURL = 'http://ftp.ebi.ac.uk/pub/databases/RNAcentral/' \
+            'current_release/id_mapping/id_mapping.tsv.gz'
 
 
 # Reader for RNAcentral id mappings
@@ -59,12 +63,16 @@ def es_index_idmappings(es, csvfile, reader):
 
 def mongodb_index_idmappings(mdbi, csvfile, reader):
     entries = list()
-    for entry in reader(csvfile):
-        entries.append(entry)
-        if len(entries) == CHUNKSIZE:
-            mdbi[DOCTYPE].insert_many(entries)
-            entries.clear()
-    mdbi[DOCTYPE].insert_many(entries)
+    mdbi[DOCTYPE].delete_many({})
+    try:
+        for entry in reader(csvfile):
+            entries.append(entry)
+            if len(entries) == CHUNKSIZE:
+                mdbi[DOCTYPE].insert_many(entries)
+                entries = list()
+        mdbi[DOCTYPE].insert_many(entries)
+    except BulkWriteError as bwe:
+        pprint(bwe.details)
     return
 
 
@@ -77,21 +85,21 @@ def main(dbc, infile, index):
 
 
 if __name__ == '__main__':
-    d = os.path.dirname(os.path.abspath(__file__))
     parser = argparse.ArgumentParser(
-        description='Index RNAcentral id mappings with Elasticsearch')
+        description='Index RNAcentral id mappings'
+                    ' with Elasticsearch or MongoDB')
     parser.add_argument('--infile',
-                        default=d+"/../tests/data/"
-                                  "rnacentral-v7-id_mapping-first100.tsv",
-                        # required=True,
-                        help='Input file to index')
+                        required=True,
+                        help='Input file to index, downwloaded from '
+                             + SOURCEURL)
     parser.add_argument('--index',
-                        default="rnacentral",
-                        help='Name of the Elasticsearch index')
+                        default=INDEX,
+                        help='Name of the Elasticsearch index'
+                             ' or MongoDB database')
     parser.add_argument('--host',
-                        help='Elasticsearch server hostname')
+                        help='Elasticsearch or MongoDB server hostname')
     parser.add_argument('--port',
-                        help="Elasticsearch server port")
+                        help="Elasticsearch or MongoDB server port")
     parser.add_argument('--db', default='MongoDB',
                         help="Database: 'Elasticsearch' or 'MongoDB'")
     args = parser.parse_args()
