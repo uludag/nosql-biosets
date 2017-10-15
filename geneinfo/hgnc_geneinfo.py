@@ -120,6 +120,7 @@ class GeneInfo(Base):
     hgnc_id = Column(Text)
     imgt = Column(Text)
     iuphar = Column(Text)
+    lncipedia = Column(Text)
     lncrnadb = Column(Text)
     lsdb = Column(ARRAY(Text))
     merops = Column(Text)
