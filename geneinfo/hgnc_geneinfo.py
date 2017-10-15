@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Index HGNC gene info files with Elasticsearch
+# Index HGNC gene info files with Elasticsearch, MongoDB or PostgresSQL
 
 import argparse
 import gzip
@@ -7,49 +7,64 @@ import json
 from pprint import pprint
 
 from elasticsearch.helpers import streaming_bulk
-from pymongo.errors import BulkWriteError
-
 from nosqlbiosets.dbutils import DBconnection
+from pymongo.errors import BulkWriteError
+from sqlalchemy import (Column, Integer, Date, create_engine)
+from sqlalchemy import Text
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.types import ARRAY
 
-
-# Document type name for Elascticsearch index entries,
-# and collection name with MongoDB
-DOCTYPE = 'hgncgeneinfo'
+# Default index name with Elascticsearch,
+# database name with MongoDB and PostgresSQL
 INDEX = "geneinfo"
+# Default document type name for Elascticsearch index entries,
+# collection name with MongoDB, and table name with PostgresSQL
+DOCTYPE = 'hgncgeneinfo'
 CHUNKSIZE = 64
+SOURCEURL = "http://ftp.ebi.ac.uk/pub/databases/genenames/" \
+            "new/json/hgnc_complete_set.json"
 
 
-# Read protein-coding-genes file, index using the index function specified
-def read_and_index_hgnc_file(infile, es, indexfunc):
+# Read HGNC gene info file, index using the index function specified
+def read_and_index_hgnc_file(infile, dbc, indexfunc):
     if infile.endswith(".gz"):
         f = gzip.open(infile, 'rt')
     else:
         f = open(infile, 'r')
     genesinfo = json.load(f)
-    r = indexfunc(es, genesinfo["response"])
+    r = indexfunc(dbc, genesinfo["response"])
     return r
 
 
+# HGNC gene attributes information:
+# https://www.genenames.org/help/statistics-downloads
 def read_genes(l):
     for gene in l['docs']:
-        if 'pseudogene.org' in gene:
-            gene['pseudogene_dot_org_id'] = gene['pseudogene.org']
-            del(gene['pseudogene.org'])
+        for attr in ['pseudogene.org', "homeodb", "kznf_gene_catalog",
+                     "intermediate_filament_db", "bioparadigms_slc",
+                     "mamit-trnadb", "horde_id", "snornabase"]:
+            if attr in gene:
+                del(gene[attr])
+        gene["_id"] = int(gene["hgnc_id"][5:])  # skip prefix "HGNC:"
+        if "iuphar" in gene:
+            gene["iuphar"] = int(gene["iuphar"][9:])  # skip prefix "objectId:"
+        del gene["uuid"], gene["_version_"]
         gene["_id"] = int(gene["hgnc_id"][5:])  # skip prefix "HGNC:"
         yield gene
 
 
-def es_index_genes(es, genes):
+def es_index_genes(dbc, genes):
     r = 0
     for ok, result in streaming_bulk(
-            es,
+            dbc.es,
             read_genes(genes),
-            index=args.index,
+            index=dbc.index,
             doc_type=DOCTYPE,
             chunk_size=CHUNKSIZE
     ):
         action, result = result.popitem()
-        doc_id = '/%s/commits/%s' % (args.index, result['_id'])
+        doc_id = '/%s/commits/%s' % (dbc.index, result['_id'])
         if not ok:
             print('Failed to %s document %s: %r' % (action, doc_id, result))
         else:
@@ -72,29 +87,121 @@ def mongodb_index_genes(mdbi, genes):
     return
 
 
-def main(dbc, infile, index):
-    if dbc.db == "Elasticsearch":
-        read_and_index_hgnc_file(infile, dbc.es, es_index_genes)
-        dbc.es.indices.refresh(index=index)
+Base = declarative_base()
+
+
+class GeneInfo(Base):
+    __tablename__ = DOCTYPE
+    _id = Column(Integer, primary_key=True)
+    name = Column(Text)
+    symbol = Column(Text)
+    prev_name = Column(ARRAY(Text))
+    prev_symbol = Column(ARRAY(Text))
+    alias_name = Column(ARRAY(Text))
+    alias_symbol = Column(ARRAY(Text))
+    gene_family = Column(ARRAY(Text))
+    locus_type = Column(Text)
+    locus_group = Column(Text)
+    location = Column(Text)
+    location_sortable = Column(Text)
+    status = Column(Text)
+    date_modified = Column(Date)
+    date_approved_reserved = Column(Date)
+    date_symbol_changed = Column(Date)
+    date_name_changed = Column(Date)
+    ccds_id = Column(ARRAY(Text))
+    cd = Column(Text)
+    cosmic = Column(Text)
+    ena = Column(ARRAY(Text))
+    ensembl_gene_id = Column(Text)
+    entrez_id = Column(Text)
+    enzyme_id = Column(ARRAY(Text))
+    gene_family_id = Column(Text)
+    hgnc_id = Column(Text)
+    imgt = Column(Text)
+    iuphar = Column(Text)
+    lncrnadb = Column(Text)
+    lsdb = Column(ARRAY(Text))
+    merops = Column(Text)
+    mgd_id = Column(Text)
+    mirbase = Column(Text)
+    omim_id = Column(Text)
+    orphanet = Column(Text)
+    pubmed_id = Column(Text)
+    refseq_accession = Column(Text)
+    rgd_id = Column(Text)
+    rna_central_ids = Column(ARRAY(Text))
+    ucsc_id = Column(Text)
+    uniprot_ids = Column(ARRAY(Text))
+    vega_id = Column(Text)
+
+
+def pgsql_connect(host, port, user, password, db=INDEX):
+    if port is None:
+        port = 5432
+    if host is None:
+        host = 'localhost'
+    url = 'postgresql://{}:{}@{}:{}/{}'
+    url = url.format(user, password, host, port, db)
+    con = create_engine(url, client_encoding='utf8', echo=False)
+    Base.metadata.drop_all(con)
+    Base.metadata.create_all(con)
+    sm = sessionmaker(con)
+    session = sm()
+    return session
+
+
+def pgsql_index_genes(session, genes):
+    entries = list()
+    for entry in read_genes(genes):
+        entries.append(GeneInfo(**entry))
+        if len(entries) == CHUNKSIZE:
+            session.bulk_save_objects(entries)
+            session.commit()
+            entries = list()
+    session.bulk_save_objects(entries)
+    session.commit()
+
+
+def main(db, infile, index, user=None, password=None, host=None, port=None):
+    if db in ["Elasticsearch",  "MongoDB"]:
+        dbc = DBconnection(db, index, host=host, port=port)
+        if dbc.db == "Elasticsearch":
+            dbc.es.delete_by_query(index=index, doc_type=DOCTYPE,
+                                   body={"query": {"match_all": {}}})
+            read_and_index_hgnc_file(infile, dbc, es_index_genes)
+            dbc.es.indices.refresh(index=index)
+        elif dbc.db == "MongoDB":
+            read_and_index_hgnc_file(infile, dbc.mdbi, mongodb_index_genes)
     else:
-        read_and_index_hgnc_file(infile, dbc.mdbi, mongodb_index_genes)
+        session = pgsql_connect(host, port, user, password, index)
+        session.query(GeneInfo).delete()
+        read_and_index_hgnc_file(infile, session, pgsql_index_genes)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
-        description='Index HGNC gene-info files using Elasticsearch or MongoDB')
+        description='Index HGNC gene-info file using Elasticsearch, '
+                    'MongoDB or PostgresSQL, downloaded from ' + SOURCEURL)
     parser.add_argument('--infile',
-                        # required=True,
-                        default="./data/hgnc_complete_set.json",
-                        help='input file to index')
+                        required=True,
+                        help='Input HGNC file to index')
     parser.add_argument('--index', default=INDEX,
-                        help='Elasticsearch index')
+                        help='Index name for Elasticsearch, '
+                             'database name for MongoDB and PostgresSQL')
     parser.add_argument('--host',
-                        help='Elasticsearch server hostname')
+                        help='Hostname for the database server')
     parser.add_argument('--port',
-                        help="Elasticsearch server port")
-    parser.add_argument('--db', default='MongoDB',
-                        help="Database: 'Elasticsearch' or 'MongoDB'")
+                        help="Port number of the database server")
+    parser.add_argument('--db', default='PostgreSQL',
+                        help="Database: 'Elasticsearch', 'MongoDB',"
+                             " or 'PostgresSQL'")
+    parser.add_argument('--user',
+                        help="Database user name, "
+                             "supported with PostgresSQL option only")
+    parser.add_argument('--password',
+                        help="Password for the database user, "
+                             " supported with PostgresSQL option only")
     args = parser.parse_args()
-    dbc_ = DBconnection(args.db, args.index, host=args.host, port=args.port)
-    main(dbc_, args.infile, args.index)
+    main(args.db, args.infile, args.index,
+         args.user, args.password, args.host, args.port)
