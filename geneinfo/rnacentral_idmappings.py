@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Index RNAcentral id mappings with Elasticsearch"""
+"""Index RNAcentral id mappings with Elasticsearch and MongoDB"""
 import argparse
 import csv
 import gzip
@@ -8,13 +8,14 @@ import time
 from pprint import pprint
 
 from elasticsearch.helpers import streaming_bulk
+from pymongo import IndexModel
 from pymongo.errors import BulkWriteError
 
 from nosqlbiosets.dbutils import DBconnection
 
 DOCTYPE = "rnacentral"
 INDEX = "geneinfo"  # default name for Elasticsearch-index or MongoDB-database
-CHUNKSIZE = 124
+CHUNKSIZE = 2048
 SOURCEURL = 'http://ftp.ebi.ac.uk/pub/databases/RNAcentral/' \
             'current_release/id_mapping/id_mapping.tsv.gz'
 
@@ -33,12 +34,15 @@ def mappingreader(infile):
     previd = None
     for row in csv.reader(csvfile, delimiter='\t'):
         rid = row[0]
-        if i != 0 and previd != rid:
-            r = {'_id': previd, 'mappings': mappings}
-            yield r
-            mappings = []
+        org = int(row[3])
+        rtype = row[4]
+        if i != 0:
+            if previd != rid:
+                r = {'_id': previd, 'mappings': mappings}
+                yield r
+                mappings = []
         mappings.append({'db': row[1], 'id': row[2],
-                         'org': row[3], 'type': row[4]})
+                         'org': org, 'type': rtype})
         i += 1
         previd = rid
     yield {'_id': previd, 'mappings': mappings}
@@ -49,6 +53,7 @@ def mappingreader(infile):
 
 
 # Index RNAcentral id mappings csvfile with Elasticsearch
+# TODO: mappings; types of the db and the type fields should be 'keyword'
 def es_index_idmappings(es, csvfile, reader):
     for ok, result in streaming_bulk(
             es, reader(csvfile),
@@ -76,12 +81,24 @@ def mongodb_index_idmappings(mdbi, csvfile, reader):
     return
 
 
+def mongodb_indices(mdb):
+    index = IndexModel([("mappings.id", "text")])
+    mdb.create_indexes([index])
+    mdb.create_index("mappings.id")
+    mdb.create_index("mappings.org")
+    mdb.create_index("mappings.type")
+    return
+
+
 def main(dbc, infile, index):
     if dbc.db == "Elasticsearch":
+        dbc.es.delete_by_query(index=index, doc_type=DOCTYPE, timeout="2m",
+                               body={"query": {"match_all": {}}})
         es_index_idmappings(dbc.es, infile, mappingreader)
         dbc.es.indices.refresh(index=index)
     else:  # "MongoDB"
         mongodb_index_idmappings(dbc.mdbi, infile, mappingreader)
+        mongodb_indices(dbc.mdbi[DOCTYPE])
 
 
 if __name__ == '__main__':
