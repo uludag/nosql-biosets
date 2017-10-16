@@ -87,6 +87,9 @@ def mongodb_textindex(mdb, doctype):
             ("description", "text"), ("name", "text"),
             ("taxanomy.description", "text")])
         mdb.create_indexes([index])
+        mdb.create_index("accession")
+    else:  # Proteins
+        mdb.create_index("metabolite_associations.metabolite.accession")
     return
 
 
