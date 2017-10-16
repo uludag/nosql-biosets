@@ -48,7 +48,7 @@ http://ftp.ensembl.org/pub/current_regulation/homo_sapiens):
   [`./geneinfo/ensembl_regbuild.py`]([geneinfo/ensembl_regbuild.py)    
 
 * HMDB [proteins, metabolites datasets](http://www.hmdb.ca/downloads):
-  [`./hmdb/index.py`](hmdb/index.py)
+  [`./hmdb`](hmdb/)
 
 * NCBI PubTator [gene2pub and disease2pub mappings](
 http://ftp.ncbi.nlm.nih.gov/pub/lu/PubTator):
