@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """Index HMDB protein/metabolite records in xml,
  download page: http://www.hmdb.ca/downloads """
+# TODO: Elasticsearch default mappings may not be good enough
 from __future__ import print_function
 
 import argparse
@@ -11,8 +12,13 @@ from zipfile import ZipFile
 
 import xmltodict
 from pymongo import IndexModel
+from six import string_types
 
 from nosqlbiosets.dbutils import DBconnection
+
+
+DOCTYPE_METABOLITE = 'hmdbmetabolite'
+DOCTYPE_PROTEIN = 'hmdbprotein'
 
 
 # Read HMDB Metabolites/Proteins files, index using the function indexf
@@ -43,9 +49,14 @@ class Indexer(DBconnection):
         if db != "Elasticsearch":
             self.mcl = self.mdbi[doctype]
 
-    # index HMDB Metabolites/Proteins entry with Elasticsearch
+    # Index HMDB Metabolites/Proteins entry with Elasticsearch
     def es_index_hmdb_entry(self, _, entry):
         docid = entry['accession']
+        # TODO: make the same updates to the MongoDB entries as well
+        if 'synonyms' in entry and entry['synonyms'] is not None \
+                and 'synonym' in entry['synonyms']:
+            if isinstance(entry['synonyms']['synonym'], string_types):
+                entry['synonyms']['synonym'] = [entry['synonyms']['synonym']]
         try:
             self.es.index(index=self.index, doc_type=self.doctype,
                           id=docid, body=json.dumps(entry))
@@ -56,7 +67,7 @@ class Indexer(DBconnection):
             r = False
         return r
 
-    # index HMDB Metabolites/Proteins entry with MongoDB
+    # Index HMDB Metabolites/Proteins entry with MongoDB
     def mongodb_index_hmdb_entry(self, _, entry):
         docid = entry['accession']
         spec = {"_id": docid}
@@ -71,7 +82,7 @@ class Indexer(DBconnection):
 
 
 def mongodb_textindex(mdb, doctype):
-    if doctype == 'metabolite':
+    if doctype == DOCTYPE_METABOLITE:
         index = IndexModel([
             ("description", "text"), ("name", "text"),
             ("taxanomy.description", "text")])
@@ -82,6 +93,8 @@ def mongodb_textindex(mdb, doctype):
 def main(infile, index, doctype, db, host, port):
     indxr = Indexer(db, index, host, port, doctype)
     if db == 'Elasticsearch':
+        indxr.es.delete_by_query(index=index, doc_type=doctype,
+                                 body={"query": {"match_all": {}}})
         parse_hmdb_xmlfile(infile, indxr.es_index_hmdb_entry)
         indxr.es.indices.refresh(index=index)
     else:
@@ -95,10 +108,10 @@ if __name__ == '__main__':
         description='Index HMDB proteins/metabolites datasets,'
                     ' with Elasticsearch or MongoDB')
     parser.add_argument('-infile', '--infile',
-                        default=d+"/../data/hmdb_proteins-first10.xml.gz",
+                        required=True,
                         help='Input file name')
     parser.add_argument('--index',
-                        default="biosets",
+                        default="hmdb",
                         help='Name of the Elasticsearch index or MongoDB db')
     parser.add_argument('--doctype',
                         help='Document type (protein or metabolite)')
@@ -109,7 +122,7 @@ if __name__ == '__main__':
     parser.add_argument('--db', default='Elasticsearch',
                         help="Database: 'Elasticsearch' or 'MongoDB'")
     args = parser.parse_args()
-    doctype_ = 'metabolite'
+    doctype_ = DOCTYPE_METABOLITE
     if args.doctype is None and 'protein' in args.infile:
-        doctype_ = 'protein'
+        doctype_ = DOCTYPE_PROTEIN
     main(args.infile, args.index, doctype_, args.db, args.host, args.port)
