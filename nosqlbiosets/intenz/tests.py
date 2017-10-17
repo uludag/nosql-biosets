@@ -65,6 +65,14 @@ class TestQueryIntEnz(unittest.TestCase):
             assert len(r) >= 1
             assert enz in r
 
+    def test_ex_lookup_with_two_connected_metabolites(self):
+        source, target, e1, e2 = "2-oxoglutarate", "glyoxylate",\
+                                "LL-diaminopimelate aminotransferase",\
+                                "Glycine oxidase"  # EC 2.6.1.83 -> 1.4.3.19
+        r = qryintenz.lookup(source, target)
+        assert e1 in [e["_id"] for e in r]
+        assert e2 in {e["_id"]: e["enzyme2"] for e in r}[e1]
+
 
 if __name__ == '__main__':
     unittest.main()

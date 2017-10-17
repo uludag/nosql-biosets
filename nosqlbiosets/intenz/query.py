@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" Simple queries with IntEnz data indexed with MongoDB """
+""" Queries with IntEnz data indexed with MongoDB """
 
 from ..dbutils import DBconnection
 
@@ -29,9 +29,9 @@ class QueryIntEnz:
     def getenzymenames(self, qc):
         if self.dbc.db == 'MongoDB':
             r = ["_id", "accepted_name.#text"]
-            hits = self.dbc.mdbi[self.doctype].find(qc, projection=r, limit=100)
+            hits = self.dbc.mdbi[self.doctype].find(qc, projection=r)
             hits = [c for c in hits]
-            # TODO:
+            # TODO: accepted_name is list
             r = [(c[r[0]], c["accepted_name"]["#text"])
                  for c in hits if "accepted_name" in c and
                  not isinstance(c["accepted_name"], list)]
@@ -80,7 +80,7 @@ class QueryIntEnz:
     # Find all enzymes that catalyses a reaction with given reactant and product
     def query_reactantandproduct(self, reactant, product):
         if self.dbc.db == 'MongoDB':
-            # update query in case of
+            # TODO: reaction directions
             qc = {
                 "reactions.reaction.convention": "rhea:direction.BI",
                 "$or": [
@@ -97,6 +97,42 @@ class QueryIntEnz:
                 ]}
             hits = self.dbc.mdbi[self.doctype].find(qc, limit=10)
             hits = [c for c in hits]
-            # print(json.dumps(hits, indent=4))
             eids = [c['accepted_name']['#text'] for c in hits]
             return eids
+
+    # For metabolite paths with 2 enzymes
+    # Find 2 enzymes that the first enzyme catalyses a reaction
+    # with given reactant(source)
+    # and the second enzyme for the given product(target)
+    def lookup(self, source, target):
+        agpl = [
+            {"$match": {
+                "reactions.reaction.reactantList.reactant":
+                    {'$elemMatch': {"title": source}}}},
+            {"$project": {
+                "reactions.reaction.map": 0,
+                "links": 0,
+                "references": 0
+            }},
+            {"$unwind": {"path": "$reactions.reaction",
+                         "includeArrayIndex": "rindex"}},
+            {"$match": {
+                "reactions.reaction.productList": {"$exists": True}}},
+            {"$lookup": {
+                "from": "intenz",
+                "localField":
+                    "reactions.reaction.productList.product.title",
+                "foreignField":
+                    "reactions.reaction.reactantList.reactant.title",
+                "as": "enzyme2"
+            }},
+            {"$unwind": "$enzyme2"},
+            {"$match": {
+                "enzyme2.reactions.reaction.productList.product":
+                    {'$elemMatch': {"title": target}}}},
+            {"$group": {"_id": "$accepted_name.#text",
+                        "enzyme2": {"$push": "$enzyme2.accepted_name.#text"}}}
+        ]
+        hits = self.dbc.mdbi[self.doctype].aggregate(agpl)
+        r = [i for i in hits]
+        return r

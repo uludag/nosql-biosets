@@ -1,11 +1,25 @@
 
-# Index and query support for IntEnz Enzyme database
+# Index script for IntEnz Enzyme database
 
-* index.py: for indexing [IntEnz](http://www.ebi.ac.uk/intenz/) xml file:
-_only `ASCII/intenz.xml` file in http://ftp.ebi.ac.uk/pub/databases/intenz/xml/
-is supported, we want to support individual xml files as well as the XCHARS
-versions of the xml files_   
+* [index.py](index.py): Index [IntEnz](http://www.ebi.ac.uk/intenz/) xml files
 
-* query.py: Query API (at early stages)
+* query.py: Experimental query API, at its early stages
 
 * tests.py: Tests for the query API
+
+## Example command lines
+_Server default connection settings are read from [../../conf/dbservers.json](
+../../conf/dbservers.json
+)_
+
+```bash
+# Download IntEnz xml files data
+mkdir -p data
+wget -P ./data http://ftp.ebi.ac.uk/pub/databases/intenz/xml/ASCII/intenz.xml
+
+# Index with Elasticsearch
+./nosqlbiosets/intenz/index.py --db Elasticsearch --infile ./data/intenz.xml
+
+# Index with MongoDB
+./nosqlbiosets/intenz/index.py --db MongoDB --infile ./data/intenz.xml
+```
