@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Index IntEnz xml files, with Elasticsearch or MongoDB"""
+"""Index IntEnz xml files, with Elasticsearch, MongoDB, and Neo4j"""
 from __future__ import print_function
 
 import argparse
@@ -11,12 +11,12 @@ from six import string_types
 
 from nosqlbiosets.dbutils import DBconnection
 
-DOCTYPE = 'intenz'  # Default document type for IntEnz entries
+DOCTYPE = 'intenz'     # Default document-type or collection name
 
 
 class Indexer(DBconnection):
 
-    def __init__(self, db, index, host, port, doctype):
+    def __init__(self, db, index, host=None, port=None, doctype=DOCTYPE):
         self.doctype = doctype
         self.index = index
         self.db = db
@@ -27,15 +27,15 @@ class Indexer(DBconnection):
         super(Indexer, self).__init__(db, index, host, port,
                                       es_indexsettings=indxcfg,
                                       recreateindex=False)
-        if db != "Elasticsearch":
+        if db == "MongoDB":
             self.mcl = self.mdbi[doctype]
 
-    # Read IntEnz xml file, index using the function indexf
+    # Parses IntEnz xml file, then calls index function
     def parse_intenz_xmlfiles(self, infile):
         infile = str(infile)
         print("Reading/indexing %s " % infile)
         if not infile.endswith(".xml"):
-            print("Input file should be an .xml file")
+            print("Input file should be IntEnz xml file")
         else:
             with open(infile, 'rb', buffering=1000) as inf:
                 namespaces = {
@@ -48,25 +48,107 @@ class Indexer(DBconnection):
                                 namespaces=namespaces,
                                 attr_prefix='')
         print("\nCompleted")
+        if self.db == "Neo4j":
+            self.indexwithneo4j()
 
     def index_intenz_entry(self, _, entry):
         if not isinstance(entry, string_types):
             docid = entry['ec'][3:]
+            # TODO: remove extra layers, e.g. reactions.reaction -> reactions
             try:
                 if self.db == "Elasticsearch":
                     self.es.index(index=self.index, doc_type=self.doctype,
                                   op_type='create', ignore=409,
                                   filter_path=['hits.hits._id'],
                                   id=docid, body=entry)
-                else:  # assume MongoDB
+                elif self.db == "MongoDB":
                     spec = {"_id": docid}
                     self.mcl.update(spec, entry, upsert=True)
+                else:  # Neo4j
+                    self.updatereactionsandelements_sets(entry)
             except Exception as e:
                 print("ERROR: %s" % e)
                 print(traceback.format_exc())
                 exit(-1)
             self.reportprogress(40)
         return True
+
+    reactions = dict()
+    reactants = set()
+    products = set()
+
+    def indexwithneo4j(self):
+        print("Indexing collected data with Neo4j")
+        edges = set()
+        with self.neo4jc.begin_transaction() as tx:
+            tx.run("match ()-[a:Produces]-() delete a")
+            tx.run("match ()-[a:Reactant_of]-() delete a")
+            tx.run("match (a:Substrate) delete a")
+            tx.run("match (a:Product) delete a")
+            tx.run("match (a:Reaction) delete a")
+            tx.sync()
+            for r in self.reactants:
+                c = "CREATE (a:Substrate {id:{id}})"
+                tx.run(c, {"id": r})
+            for r in self.products:
+                c = "CREATE (a:Product {id:{id}})"
+                tx.run(c, {"id": r})
+        with self.neo4jc.begin_transaction() as tx:
+            for r in self.reactions.values():
+                if 'id' in r:
+                    rid = r['id']
+                    tx.run("CREATE (a:Reaction {id:{rid}, name:{name}})",
+                           rid=rid, name=r['name'])
+                    for re in r['reactantList']['reactant']:
+                        if isinstance(re, dict):
+                            substrate = re['title']
+                        else:
+                            substrate = re
+                        if (substrate, rid) not in edges:
+                            c = "MATCH (r:Reaction), (s:Substrate) " \
+                                " WHERE  r.id = {rid} " \
+                                " AND s.id = {substrate} " \
+                                "CREATE (s)-[:Reactant_of {r:{rid}}]->(r)"
+                            tx.run(c, rid=rid,
+                                   substrate=substrate)
+                            edges.add((substrate, rid))
+                    for pr in r['productList']['product']:
+                        if isinstance(pr, dict):
+                            product = pr['title']
+                        else:
+                            product = pr
+                        if (rid, product) not in edges:
+                            c = "MATCH (r:Reaction), (t:Product) " \
+                                " WHERE  r.id = {rid} " \
+                                " AND t.id = {productid} " \
+                                "CREATE (r)-[:Produces {r:{rid}}]->(t)"
+                            tx.run(c, rid=rid,
+                                   productid=product)
+                            edges.add((rid, product))
+                    tx.sync()
+
+    def updatereactionsandelements_sets(self, e):
+        if 'reactions' not in e:
+            return
+        for r in e['reactions']['reaction']:
+            if 'id' in r:
+                rid = r['id']
+                if rid not in self.reactions:
+                    self.reactions[rid] = r
+                rproducts = set()
+                for pr in r['productList']['product']:
+                    if isinstance(pr, dict):
+                        product = pr['title']
+                    else:
+                        product = pr
+                    rproducts.add(product)
+                    self.products.add(product)
+                for re in r['reactantList']['reactant']:
+                    if isinstance(re, dict):
+                        substrate = re['title']
+                    else:
+                        substrate = re
+                    self.reactants.add(substrate)
 
 
 def mongodb_textindex(mdb):
@@ -80,7 +162,7 @@ def main(infile, index, doctype, db, host, port):
     indxr.parse_intenz_xmlfiles(infile)
     if db == 'Elasticsearch':
         indxr.es.indices.refresh(index=index)
-    else:
+    elif db == 'MongoDB':
         mongodb_textindex(indxr.mcl)
 
 
@@ -90,8 +172,7 @@ if __name__ == '__main__':
         description='Index IntEnz xml files,'
                     ' with Elasticsearch or MongoDB')
     parser.add_argument('-infile', '--infile',
-                        default=d+"/../../data/intenz/ASCII/intenz.xml",
-                        help='Input file name')
+                        help='Input file name (intenz/ASCII/intenz.xml)')
     parser.add_argument('--index',
                         default="biosets",
                         help='Name of the Elasticsearch index'

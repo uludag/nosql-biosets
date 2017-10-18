@@ -104,7 +104,7 @@ class QueryIntEnz:
     # Find 2 enzymes that the first enzyme catalyses a reaction
     # with given reactant(source)
     # and the second enzyme for the given product(target)
-    def lookup(self, source, target):
+    def lookup_connected_metabolites(self, source, target):
         agpl = [
             {"$match": {
                 "reactions.reaction.reactantList.reactant":
@@ -132,6 +132,46 @@ class QueryIntEnz:
                     {'$elemMatch': {"title": target}}}},
             {"$group": {"_id": "$accepted_name.#text",
                         "enzyme2": {"$push": "$enzyme2.accepted_name.#text"}}}
+        ]
+        hits = self.dbc.mdbi[self.doctype].aggregate(agpl)
+        r = [i for i in hits]
+        return r
+
+    # For paths with 2 or more enzymes. Not fully implemented yet
+    def graphlookup_connected_metabolites(self, source, target, depth=0,
+                                          graphfilter=None):
+        if graphfilter is None:
+            graphfilter = {}
+        agpl = [
+            {"$match": {
+                "reactions.reaction.reactantList.reactant":
+                    {'$elemMatch': {"title": source}}}},
+            {"$project": {
+                "reactions.reaction.map": 0,
+                "links": 0, "references": 0, "comments": 0
+            }},
+            {"$unwind": {"path": "$reactions.reaction",
+                         "includeArrayIndex": "rindex"}},
+            {"$match": {
+                "reactions.reaction.productList": {"$exists": True}}},
+            {"$graphLookup": {
+                "from": "intenz",
+                "startWith": source,
+                "connectToField":
+                    "reactions.reaction.reactantList.reactant.title",
+                "connectFromField":
+                    "reactions.reaction.productList.product.title",
+                "as": "enzymes",
+                "maxDepth": depth,
+                "depthField": "depth",
+                "restrictSearchWithMatch": graphfilter
+            }},
+            {"$unwind": "$enzymes"},
+            {"$match": {"$or": [ {"depth": {"$lt": depth}},
+                {"enzymes.reactions.reaction.productList.product":
+                    {'$elemMatch': {"title": target}}}]}},
+            {"$group": {"_id": "$accepted_name.#text",
+                        "enzymes": {"$push": "$enzymes.accepted_name.#text"}}}
         ]
         hits = self.dbc.mdbi[self.doctype].aggregate(agpl)
         r = [i for i in hits]

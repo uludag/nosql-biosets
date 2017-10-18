@@ -2,7 +2,7 @@
 """ Test queries with IntEnz data indexed with MongoDB """
 
 import unittest
-
+from nosqlbiosets.dbutils import DBconnection
 from .query import QueryIntEnz
 
 qryintenz = QueryIntEnz()
@@ -65,13 +65,30 @@ class TestQueryIntEnz(unittest.TestCase):
             assert len(r) >= 1
             assert enz in r
 
-    def test_ex_lookup_with_two_connected_metabolites(self):
+    def test_ex_lookup_with_connected_metabolites(self):
         source, target, e1, e2 = "2-oxoglutarate", "glyoxylate",\
                                 "LL-diaminopimelate aminotransferase",\
                                 "Glycine oxidase"  # EC 2.6.1.83 -> 1.4.3.19
-        r = qryintenz.lookup(source, target)
+        r = qryintenz.lookup_connected_metabolites(source, target)
         assert e1 in [e["_id"] for e in r]
         assert e2 in {e["_id"]: e["enzyme2"] for e in r}[e1]
+
+    def test_ex_graphlookup_with_two_connected_metabolites(self):
+        source, target, e1, e2 = "2-oxoglutarate", "glyoxylate",\
+                                "LL-diaminopimelate aminotransferase",\
+                                "Glycine transaminase"  # EC 2.6.1.83 -> 2.6.1.4
+        r = qryintenz.graphlookup_connected_metabolites(source, target, 0)
+        assert e1 in [e["_id"] for e in r]
+        assert e2 in {e["_id"]: e["enzymes"] for e in r}[e1]
+
+    def test_ex_neo4j_graphsearch_with_two_connected_metabolites(self):
+        source, target = "2-oxoglutarate", "glyoxylate"
+        dbc = DBconnection("Neo4j", "")
+        q = 'MATCH ({id:{source}})-[]->(r)-[]->({id:{target}})' \
+            ' RETURN r.name'
+        r = list(dbc.neo4jc.run(q, source=source, target=target))
+        assert r[0]['r.name'] == '2-oxoglutarate + glycine <=>' \
+                                 ' L-glutamate + glyoxylate'
 
 
 if __name__ == '__main__':
