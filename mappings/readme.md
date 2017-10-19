@@ -4,6 +4,7 @@ are stored and indexed [1]
 
 We use default Elasticsearch mappings for most of the datasets in the project.
 Following custom mapping files are for PubTator and PubChem datasets:
+
 * [PubTator gene2pub mappings](pubtator.json)
 * [PubChem Bioassays mappings](pubchem-bioassays.json)
 

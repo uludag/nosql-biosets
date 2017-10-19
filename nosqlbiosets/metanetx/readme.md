@@ -54,7 +54,7 @@ See [../../tests/download.sh](../../tests/download.sh)
 * Use MongoDB Bulk Write API for more efficient indexing
 
 #### Notes
-MetaNetX scripts here used the words 'metabolite' and 'compound' to mean 
+MetaNetX scripts here used the words 'metabolite' and 'compound' with 
 the same meaning:
 
 A compound in chemistry is a combination of atoms from at least two

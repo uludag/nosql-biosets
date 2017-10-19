@@ -1,28 +1,16 @@
 # Project aim and summary 
 
 We want to develop scripts for NoSQL indexing and querying of sample
-bioinformatics datasets. Datasets are selected based on their quality and
+bioinformatics datasets. Datasets have been selected based on their quality and
 their popularity in modern bioinformatics research. 
 
 In the early stages of the project only indexing with Elasticsearch was supported.
 Later, we have implemented MongoDB support for all the datasets already included
 in the project.
 Recently we have started adding Neo4j and PostgresSQL support as the 3rd
-database option for few datasets (IntEnz, HGNC, PubTator). 
+database option for few datasets (IntEnz, PubTator, HGNC). 
 
 ## Datasets supported
-
-* MetaNetX [compounds, reactions, and compartments data](
-http://www.metanetx.org/mnxdoc/mnxref.html
-): [`./nosqlbiosets/metanetx`](./nosqlbiosets/metanetx)
-  
-
-* Metabolic network files in [SBML](http://sbml.org) format or
- [PSAMM project's yaml](https://github.com/zhanglab/psamm-model-collection)
-  format: [`./nosqlbiosets/pathways/index_metabolic_networks.py`](
-  nosqlbiosets/pathways/index_metabolic_networks.py)
-   (_recent work, tests made with [BiGG](http://bigg.ucsd.edu/)
-    and PSAMM collections_)
 
 * UniProtKB [datasets](
 ftp://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/knowledgebase/complete/
@@ -33,6 +21,29 @@ ftp://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/knowledgebase/complete
 ftp://ftp.ebi.ac.uk/pub/databases/intenz/xml/
 ) in XML format, from EMBL-EBI:
   [`./nosqlbiosets/intenz`](nosqlbiosets/intenz)
+
+* MetaNetX [compounds, reactions, and compartments data](
+http://www.metanetx.org/mnxdoc/mnxref.html
+): [`./nosqlbiosets/metanetx`](./nosqlbiosets/metanetx)
+
+* HMDB [proteins, metabolites datasets](http://www.hmdb.ca/downloads):
+  [`./hmdb`](hmdb/)
+
+* HGNC, [genenames.org](http://www.genenames.org/cgi-bin/statistics),
+ [data files in json format](
+ http://ftp.ebi.ac.uk/pub/databases/genenames/new/json/),
+  from EMBL-EBI: [`./geneinfo/index-hgnc-geneinfo.py`](geneinfo/index-hgnc-geneinfo)
+  (_not matured yet, tests made with [complete HGNC dataset](
+  ftp://ftp.ebi.ac.uk/pub/databases/genenames/new/json/hgnc_complete_set.json)
+  and with [protein-coding genes dataset](
+  ftp://ftp.ebi.ac.uk/pub/databases/genenames/new/json/locus_groups/protein-coding_gene.json)_) 
+
+* Metabolic network files in [SBML](http://sbml.org) format or
+ [PSAMM project's yaml](https://github.com/zhanglab/psamm-model-collection)
+  format: [`./nosqlbiosets/pathways/index_metabolic_networks.py`](
+  nosqlbiosets/pathways/index_metabolic_networks.py)
+   (_recent work, tests made with [BiGG](http://bigg.ucsd.edu/)
+    and PSAMM collections_)
   
 * PubChem [BioAssay](http://ftp.ncbi.nlm.nih.gov/pubchem/Bioassay) json files:
   [`./nosqlbiosets/pubchem`](
@@ -51,21 +62,9 @@ http://www.wikipathways.org/index.php/Download_Pathways):
 http://ftp.ensembl.org/pub/current_regulation/homo_sapiens):
   [`./geneinfo/ensembl_regbuild.py`]([geneinfo/ensembl_regbuild.py)    
 
-* HMDB [proteins, metabolites datasets](http://www.hmdb.ca/downloads):
-  [`./hmdb`](hmdb/)
-
 * NCBI PubTator [gene2pub and disease2pub mappings](
 http://ftp.ncbi.nlm.nih.gov/pub/lu/PubTator):
   [`./nosqlbiosets/pubtator`](nosqlbiosets/pubtator)
-
-* HGNC, [genenames.org](http://www.genenames.org/cgi-bin/statistics),
- [data files in json format](
- http://ftp.ebi.ac.uk/pub/databases/genenames/new/json/),
-  from EMBL-EBI: [`./geneinfo/index-hgnc-geneinfo.py`](geneinfo/index-hgnc-geneinfo)
-  (_not matured yet, tests made with [complete HGNC dataset](
-  ftp://ftp.ebi.ac.uk/pub/databases/genenames/new/json/hgnc_complete_set.json)
-  and with [protein-coding genes dataset](
-  ftp://ftp.ebi.ac.uk/pub/databases/genenames/new/json/locus_groups/protein-coding_gene.json)_)
 
 * RNAcentral [identifier mappings](
 http://ftp.ebi.ac.uk/pub/databases/RNAcentral/current_release/id_mapping/),

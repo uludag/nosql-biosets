@@ -10,10 +10,6 @@ Tests made with HMDB version 4.0
  Includes example queries
 
 
-### HMDB downloads page
-
-http://www.hmdb.ca/downloads
-
 ### Usage
 
 ```bash
