@@ -1,14 +1,13 @@
 # Project aim and summary 
 
 We want to develop scripts for NoSQL indexing and querying of sample
-bioinformatics datasets. Datasets have been selected based on their quality and
-their popularity in modern bioinformatics research. 
-
+bioinformatics datasets. 
 In the early stages of the project only indexing with Elasticsearch was supported.
 Later, we have implemented MongoDB support for all the datasets already included
 in the project.
-Recently we have started adding Neo4j and PostgresSQL support as the 3rd
-database option for few datasets (IntEnz, PubTator, HGNC). 
+For few datasets (IntEnz, PubTator, HGNC) Neo4j and PostgresSQL support
+was added as the 3rd database option. We want to extend Neo4j and PostgresSQL
+support to more datasets.
 
 ## Datasets supported
 
