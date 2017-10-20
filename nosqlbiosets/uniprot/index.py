@@ -29,7 +29,7 @@ DOCTYPE = 'uniprot'
 
 class Indexer(DBconnection):
 
-    def __init__(self, db, index, host, port, doctype):
+    def __init__(self, db, index, host=None, port=None, doctype=DOCTYPE):
         self.doctype = doctype
         self.index = index
         self.db = db
@@ -209,7 +209,7 @@ if __name__ == '__main__':
                         help='Document type name')
     parser.add_argument('--host',
                         help='Elasticsearch or MongoDB server hostname')
-    parser.add_argument('--port',
+    parser.add_argument('--port', type=int,
                         help="Elasticsearch or MongoDB server port number")
     parser.add_argument('--db', default='Elasticsearch',
                         help="Database: 'Elasticsearch' or 'MongoDB'")
