@@ -26,7 +26,7 @@ class TestDataReaders(unittest.TestCase):
     @unittest.skipUnless(os.path.exists(modelseedcompounds),
                          "Missing test data file")
     def test_modelseed_creader(self):
-        idlist = [r for r in read_modelseed_datafile(modelseedcompounds,
+        idlist = [r for r in read_modelseed_datafile(self.modelseedcompounds,
                                                      updatecompoundrecord)]
         self.assertGreaterEqual(len(idlist), 2000)
         r = idlist[0]
@@ -36,8 +36,7 @@ class TestDataReaders(unittest.TestCase):
     @unittest.skipUnless(os.path.exists(modelseedreactions),
                          "Missing test data file")
     def test_modelseed_rreader(self):
-        infile = self.data + "modelseed/reactions.tsv"
-        idlist = [r for r in read_modelseed_datafile(modelseedreactions,
+        idlist = [r for r in read_modelseed_datafile(self.modelseedreactions,
                                                      updatereactionrecord)]
         self.assertGreaterEqual(len(idlist), 2000)
         r = idlist[0]
@@ -45,12 +44,13 @@ class TestDataReaders(unittest.TestCase):
         self.assertEqual(r['_id'], 'rxn00001')
 
     def test_rnacentral_idmapping_reader(self):
-        infile = self.data + "rnacentral-6.0-id_mapping-first1000.tsv"
+        infile = self.data + "rnacentral-v7-id_mapping-first100.tsv"
         idlist = [r for r in mappingreader(infile)]
-        self.assertEqual(len(idlist), 342)
+        self.assertEqual(len(idlist), 30)
         r = idlist[0]
         self.assertEqual(r['_id'], 'URS0000000001')
         self.assertEqual(len(r['mappings']), 11)
+        assert r['mappings'][0]['type'] == 'rRNA'
 
     def test_ensembl_regbuild_regions_reader(self):
         infile = self.data + "hg38.ensrb_features.r88.first100.gff"
