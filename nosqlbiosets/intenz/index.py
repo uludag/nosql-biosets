@@ -82,7 +82,7 @@ class Indexer(DBconnection):
         edges = set()
         with self.neo4jc.begin_transaction() as tx:
             tx.run("match ()-[a:Produces]-() delete a")
-            tx.run("match ()-[a:Reactant_of]-() delete a")
+            tx.run("match ()-[a:Reactant_in]-() delete a")
             tx.run("match (a:Substrate) delete a")
             tx.run("match (a:Product) delete a")
             tx.run("match (a:Reaction) delete a")
@@ -108,7 +108,7 @@ class Indexer(DBconnection):
                             c = "MATCH (r:Reaction), (s:Substrate) " \
                                 " WHERE  r.id = {rid} " \
                                 " AND s.id = {substrate} " \
-                                "CREATE (s)-[:Reactant_of {r:{rid}}]->(r)"
+                                "CREATE (s)-[:Reactant_in {r:{rid}}]->(r)"
                             tx.run(c, rid=rid,
                                    substrate=substrate)
                             edges.add((substrate, rid))
@@ -170,7 +170,7 @@ if __name__ == '__main__':
     d = os.path.dirname(os.path.abspath(__file__))
     parser = argparse.ArgumentParser(
         description='Index IntEnz xml files,'
-                    ' with Elasticsearch or MongoDB')
+                    ' with Elasticsearch, MongoDB or Neo4j')
     parser.add_argument('-infile', '--infile',
                         help='Input file name (intenz/ASCII/intenz.xml)')
     parser.add_argument('--index',
@@ -178,12 +178,13 @@ if __name__ == '__main__':
                         help='Name of the Elasticsearch index'
                              ' or MongoDB database')
     parser.add_argument('--doctype', default=DOCTYPE,
-                        help='Document type name')
+                        help='Document type name for Elasticsearch, '
+                             'collection name for MongoDB')
     parser.add_argument('--host',
-                        help='Elasticsearch or MongoDB server hostname')
-    parser.add_argument('--port',
-                        help="Elasticsearch or MongoDB server port number")
+                        help='Elasticsearch, MongoDB or Neo4j server hostname')
+    parser.add_argument('--port', type=int,
+                        help="Elasticsearch, MongoDB or Neo4j server port")
     parser.add_argument('--db', default='Elasticsearch',
-                        help="Database: 'Elasticsearch' or 'MongoDB'")
+                        help="Database: 'Elasticsearch', 'MongoDB' or 'Neo4j'")
     args = parser.parse_args()
     main(args.infile, args.index, args.doctype, args.db, args.host, args.port)
