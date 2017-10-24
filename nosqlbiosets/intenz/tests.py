@@ -87,8 +87,21 @@ class TestQueryIntEnz(unittest.TestCase):
         q = 'MATCH ({id:{source}})-[]->(r)-[]->({id:{target}})' \
             ' RETURN r.name'
         r = list(dbc.neo4jc.run(q, source=source, target=target))
+        assert len(r) > 0
         assert r[0]['r.name'] == '2-oxoglutarate + glycine <=>' \
                                  ' L-glutamate + glyoxylate'
+
+    def test_ex_neo4j_shortestpathsearch_with_two_connected_metabolites(self):
+        source, target = "2-oxoglutarate", "glyoxylate"
+        r = qryintenz.neo4j_shortestpathsearch_connected_metabolites(source,
+                                                                     target)
+        assert len(r) > 0
+        path = r[0]['path']
+        assert path.start.properties == {"id": "2-oxoglutarate"}
+        assert path.end.properties == {"id": "glyoxylate"}
+        assert path.relationships[0].type == "Reactant_in"
+        assert len(path.nodes) == 3
+        assert len(path.relationships) == 2
 
 
 if __name__ == '__main__':

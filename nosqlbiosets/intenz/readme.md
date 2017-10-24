@@ -3,7 +3,7 @@
 
 * [index.py](index.py): Index [IntEnz](http://www.ebi.ac.uk/intenz/) xml files
 
-* [query.py](query.py): Experimental query API, at its early stages
+* [query.py](query.py): Query API, at its early stages
 
 * [tests.py](tests.py): Tests for the query API
 

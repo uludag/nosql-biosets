@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """ Queries with IntEnz data indexed with MongoDB """
+# TODO: Reads server connection details from  conf/dbservers.json file
 
 from ..dbutils import DBconnection
 
@@ -167,12 +168,23 @@ class QueryIntEnz:
                 "restrictSearchWithMatch": graphfilter
             }},
             {"$unwind": "$enzymes"},
-            {"$match": {"$or": [ {"depth": {"$lt": depth}},
-                {"enzymes.reactions.reaction.productList.product":
-                    {'$elemMatch': {"title": target}}}]}},
+            {"$match": {
+                "$or": [{"depth": {"$lt": depth}},
+                        {"enzymes.reactions.reaction.productList.product": {
+                            '$elemMatch': {"title": target}}}]}},
             {"$group": {"_id": "$accepted_name.#text",
                         "enzymes": {"$push": "$enzymes.accepted_name.#text"}}}
         ]
         hits = self.dbc.mdbi[self.doctype].aggregate(agpl)
         r = [i for i in hits]
         return r
+
+    def neo4j_shortestpathsearch_connected_metabolites(self, source, target,
+                                                       k=5):
+        dbc = DBconnection("Neo4j", "")
+        q = 'MATCH (source_:Substrate{id:{source}}),' \
+            ' (target_:Product{id:{target}}),' \
+            '  path=allShortestPaths((source_)-[*..' + str(k) + ']->(target_))'\
+                                                                ' RETURN path'
+        r = dbc.neo4jc.run(q, source=source, target=target)
+        return list(r)
