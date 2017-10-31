@@ -1,13 +1,16 @@
-# Project aim and summary 
+# Project aim and summary
 
 We want to develop scripts for NoSQL indexing and querying of sample
-bioinformatics datasets. 
+bioinformatics datasets.
 In the early stages of the project only indexing with Elasticsearch was supported.
 Later, we have implemented MongoDB support for all the datasets already included
 in the project.
-For few datasets (IntEnz, PubTator, HGNC) Neo4j and PostgresSQL support
+For few datasets (IntEnz, PubTator, HGNC) Neo4j or PostgresSQL support
 was added as the 3rd database option. We want to extend Neo4j and PostgresSQL
-support to more datasets.
+support to more datasets. We are also working on saving some of the datasets
+as [NetworkX](https://networkx.github.io/) graph files,
+either the complete datasets by parsing the dataset source files,
+or subsets of the data after the datasets has been indexed.
 
 ## Datasets supported
 
@@ -28,6 +31,9 @@ http://www.metanetx.org/mnxdoc/mnxref.html
 * HMDB [proteins, metabolites datasets](http://www.hmdb.ca/downloads):
   [`./hmdb`](hmdb/)
 
+* DrugBank [drugs and drug targets dataset](https://www.drugbank.ca/releases/latest):
+  [`./hmdb`](hmdb/drugbank.py)
+
 * HGNC, [genenames.org](http://www.genenames.org/cgi-bin/statistics),
  [data files in json format](
  http://ftp.ebi.ac.uk/pub/databases/genenames/new/json/),
@@ -35,7 +41,7 @@ http://www.metanetx.org/mnxdoc/mnxref.html
   (_not matured yet, tests made with [complete HGNC dataset](
   ftp://ftp.ebi.ac.uk/pub/databases/genenames/new/json/hgnc_complete_set.json)
   and with [protein-coding genes dataset](
-  ftp://ftp.ebi.ac.uk/pub/databases/genenames/new/json/locus_groups/protein-coding_gene.json)_) 
+  ftp://ftp.ebi.ac.uk/pub/databases/genenames/new/json/locus_groups/protein-coding_gene.json)_)
 
 * Metabolic network files in [SBML](http://sbml.org) format or
  [PSAMM project's yaml](https://github.com/zhanglab/psamm-model-collection)
@@ -43,10 +49,10 @@ http://www.metanetx.org/mnxdoc/mnxref.html
   nosqlbiosets/pathways/index_metabolic_networks.py)
    (_recent work, tests made with [BiGG](http://bigg.ucsd.edu/)
     and PSAMM collections_)
-  
+
 * PubChem [BioAssay](http://ftp.ncbi.nlm.nih.gov/pubchem/Bioassay) json files:
   [`./nosqlbiosets/pubchem`](
-  nosqlbiosets/pubchem)  
+  nosqlbiosets/pubchem)
 
 * WikiPathways [gpml files](
 http://www.wikipathways.org/index.php/Download_Pathways):
@@ -59,7 +65,7 @@ http://www.wikipathways.org/index.php/Download_Pathways):
 
 * Ensembl regulatory build [GFF files](
 http://ftp.ensembl.org/pub/current_regulation/homo_sapiens):
-  [`./geneinfo/ensembl_regbuild.py`]([geneinfo/ensembl_regbuild.py)    
+  [`./geneinfo/ensembl_regbuild.py`]([geneinfo/ensembl_regbuild.py)
 
 * NCBI PubTator [gene2pub and disease2pub mappings](
 http://ftp.ncbi.nlm.nih.gov/pub/lu/PubTator):
@@ -79,12 +85,13 @@ http://www.kegg.jp/kegg/download/Readme/README.kgml):
   [`./nosqlbiosets/kegg/index.py`](nosqlbiosets/kegg/index.py)
   (_KEGG data distribution policy lets us think twice when spending
    time on KEGG data_)
-  
 
 We want to connect above datasets as much as possible
-and aim to implement scripts with example queries for individual indexes
-as well as connected data. We want to implement automated tests as early as
-possible, this should help us to understand where we are in minimal time. 
+and aim to implement query APIs for common query patterns with individual indexes
+as well as connected data.
+
+We want to implement automated tests as early as
+possible, this should help us to understand where we are in minimal time.
 
 In a separate [project](https://github.com/uludag/hspsdb-indexer)
 we have developed index scripts for sequence
@@ -139,7 +146,9 @@ indexing process).
 $ ./nosqlbiosets/uniprot/index.py --infile ./uniprot_sprot.xml.gz\
  --host localhost --db Elasticsearch --index uniprot
 ```
-Query top mentioned gene names: 
+
+Query top mentioned gene names:
+
 ```bash
 curl -XGET "http://localhost:9200/uniprot/_search?pretty=true"\
  -H 'Content-Type: application/json' -d'
@@ -163,13 +172,22 @@ curl -XGET "http://localhost:9200/uniprot/_search?pretty=true"\
   }
 }'
 ```
+
 Check [`./tests/test_uniprot_queries.py`](tests/test_uniprot_queries.py) 
 and [`./nosqlbiosets/uniprot/query.py`](./nosqlbiosets/uniprot/query.py) for
 example queries with Elasticsearch and MongoDB.
 
 ## Copyright
-This project has been developed
+
+NoSQL-biosets project has been developed
 at King Abdullah University of Science and Technology, http://www.kaust.edu.sa
 
+NoSQL-biosets project is licensed with MIT license.
+If you would like to support the project
+with selecting a different license please let us know with creating an issue
+on github project page.
+We will help you with contacting the relavant bodies of KAUST.
+
 ## Acknowledgement
+
 Computers and file systems used in developing this work has been maintained by John Hanks
