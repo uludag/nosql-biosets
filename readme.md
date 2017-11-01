@@ -3,14 +3,14 @@
 We want to develop scripts for NoSQL indexing and querying of sample
 bioinformatics datasets.
 In the early stages of the project only indexing with Elasticsearch was supported.
-Later we have implemented MongoDB support for all the datasets already included
+Later MongoDB support was implemented for all datasets already included
 in the project.
 For IntEnz, PubTator and HGNC datasets Neo4j or PostgresSQL support
-was added as the 3rd database option. We want to extend Neo4j and PostgresSQL
-support to more datasets. We are also working on saving IntEnz and DrugBank
+was added as the 3rd database option.
+We are also working on saving selected networks in IntEnz and DrugBank
 datasets as  graph files;
 either the complete datasets by parsing the dataset source files,
-or subsets of the data after the datasets has been indexed.
+or selected subsets of the networks after the datasets has been indexed.
 
 ## Datasets supported
 
