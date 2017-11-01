@@ -3,12 +3,12 @@
 We want to develop scripts for NoSQL indexing and querying of sample
 bioinformatics datasets.
 In the early stages of the project only indexing with Elasticsearch was supported.
-Later, we have implemented MongoDB support for all the datasets already included
+Later we have implemented MongoDB support for all the datasets already included
 in the project.
-For few datasets (IntEnz, PubTator, HGNC) Neo4j or PostgresSQL support
+For IntEnz, PubTator and HGNC datasets Neo4j or PostgresSQL support
 was added as the 3rd database option. We want to extend Neo4j and PostgresSQL
-support to more datasets. We are also working on saving some of the datasets
-as [NetworkX](https://networkx.github.io/) graph files,
+support to more datasets. We are also working on saving IntEnz and DrugBank
+datasets as  graph files;
 either the complete datasets by parsing the dataset source files,
 or subsets of the data after the datasets has been indexed.
 
@@ -38,14 +38,12 @@ http://www.metanetx.org/mnxdoc/mnxref.html
  [data files in json format](
  http://ftp.ebi.ac.uk/pub/databases/genenames/new/json/),
   from EMBL-EBI: [`./geneinfo/index-hgnc-geneinfo.py`](geneinfo/index-hgnc-geneinfo)
-  (_not matured yet, tests made with [complete HGNC dataset](
+  (_tests made with [complete HGNC dataset](
   ftp://ftp.ebi.ac.uk/pub/databases/genenames/new/json/hgnc_complete_set.json)
-  and with [protein-coding genes dataset](
-  ftp://ftp.ebi.ac.uk/pub/databases/genenames/new/json/locus_groups/protein-coding_gene.json)_)
 
 * Metabolic network files in [SBML](http://sbml.org) format or
- [PSAMM project's yaml](https://github.com/zhanglab/psamm-model-collection)
-  format: [`./nosqlbiosets/pathways/index_metabolic_networks.py`](
+ [PSAMM project](https://github.com/zhanglab/psamm-model-collection)'s
+  yaml format: [`./nosqlbiosets/pathways/index_metabolic_networks.py`](
   nosqlbiosets/pathways/index_metabolic_networks.py)
    (_recent work, tests made with [BiGG](http://bigg.ucsd.edu/)
     and PSAMM collections_)
