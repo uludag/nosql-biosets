@@ -2,9 +2,11 @@
 """ Queries with DrugBank data indexed with MongoDB """
 import unittest
 
+import networkx as nx
+
 from nosqlbiosets.dbutils import DBconnection
 
-DOCTYPE = 'drugbankdrug'
+DOCTYPE = 'drugbankdrug'  # MongoDB collection name
 
 
 # todo: move tests to a test class
@@ -31,48 +33,78 @@ class QueryDrugBank(unittest.TestCase):
         assert len(names) == 242
 
     def test_distinct_pfam_classes(self):
-        key = "transporters.transporter.polypeptide.pfams.pfam.name"
+        key = "transporters.polypeptide.pfams.pfam.name"
         names = self.distinctquery(key)
         self.assertIn("Alpha_kinase", names)
         assert len(names) == 86
 
     def test_distinct_go_classes(self):
-        key = "transporters.transporter.polypeptide.go-classifiers." \
+        key = "transporters.polypeptide.go-classifiers." \
               "go-classifier.description"
         names = self.distinctquery(key)
         self.assertIn("lipid transport", names)
         assert len(names) == 1114
 
     def test_distinct_atc_codes(self):
-        key = "atc-codes.atc-code.level.#text"
+        key = "atc-codes.level.#text"
         atc_codes = self.distinctquery(key)
         self.assertIn("Direct thrombin inhibitors", atc_codes)
         assert len(atc_codes) == 940
-        key = "atc-codes.atc-code.code"
+        key = "atc-codes.code"
         atc_codes = self.distinctquery(key)
         self.assertIn("A10AC04", atc_codes)
         assert len(atc_codes) == 3470
 
-    def test_get_atc_codes(self):
+    def test_query_atc_codes(self):
         project = {"atc-codes": 1}
         qc = {"_id": "DB00001"}
         r = list(self.query(qc, projection=project))
         expected = "ANTITHROMBOTIC AGENTS"
-        assert r[0]["atc-codes"]["atc-code"]["level"][1]["#text"] == expected
+        assert r[0]["atc-codes"][0]["level"][1]["#text"] == expected
         qc = {"_id": "DB00945"}
         r = list(self.query(qc, projection=project))
         expected = "C10BX04"
-        assert r[0]["atc-codes"]["atc-code"][0]["code"] == expected
+        assert r[0]["atc-codes"][0]["code"] == expected
 
-    def test_get_drug_interactions(self):
+    def test_query_drug_interactions(self):
         project = {"drug-interactions": 1}
         qc = {"_id": "DB00001"}
         r = list(self.query(qc, projection=project))
         assert len(r) == 1
-        interactions = r[0]["drug-interactions"]["drug-interaction"]
+        interactions = r[0]["drug-interactions"]
         assert interactions[1]["drugbank-id"] == 'DB00346'
         assert interactions[1]["name"] == 'Alfuzosin'
 
+    def get_connections(self, qc, connections):
+        project = {"name": 1, connections + ".name": 1}
+        r = self.query(qc, projection=project)
+        interactions = list()
+        for d in r:
+            name = d['name']
+            if connections in d:
+                for t in d[connections]:
+                    interactions.append((name, t['name']))
+        return interactions
 
-if __name__ == '__main__':
-    unittest.main()
+    def get_connections_graph(self, qc, connections):
+        interactions = self.get_connections(qc, connections)
+        graph = nx.MultiDiGraph(list(interactions))
+        nx.write_adjlist(graph, connections + ".adjl")
+        nx.write_gexf(graph, connections + ".gexf")
+        return graph
+
+    def test_drug_interactions_graph(self):
+        qc = {"affected-organisms": {
+            "$in": ["Hepatitis B virus"]}}
+        g = self.get_connections_graph(qc, "drug-interactions")
+        assert g.number_of_edges() == 274
+        assert g.number_of_nodes() == 266
+        assert g.number_of_selfloops() == 0
+
+    def test_drug_targets_graph(self):
+        qc = {"affected-organisms": {
+            "$in": ["Hepatitis B virus"]}}
+        g = self.get_connections_graph(qc, "targets")
+        assert g.number_of_edges() == 15
+        assert g.number_of_nodes() == 17
+        assert g.number_of_selfloops() == 0

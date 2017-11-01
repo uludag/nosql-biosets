@@ -37,7 +37,8 @@ wget -P ./data http://www.hmdb.ca/system/downloads/current/hmdb_proteins.zip
 
 ```bash
 mkdir -p data
-# Download DrugBank xml dataset, drugbank_all_full_database.xml.zip
+# Download DrugBank xml dataset from https://www.drugbank.ca/releases/latest,
+# drugbank_all_full_database.xml.zip
 # to the data folder, requires registration
 
 # Index with MongoDB,  takes ~12m
@@ -52,4 +53,6 @@ mkdir -p data
 
 * https://github.com/ashrafsarhan/drugbank-relational-database
   Project home page includes graph of the DrugBank schema which could be useful
-  in undestanding the DrugBank data
+  in undestanding the DrugBank data. _The graph is for version 4.3 of the
+  DrugBank database, it looks there are some differences compared to version 5
+  such as 'transporters' field is missing_
