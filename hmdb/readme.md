@@ -49,6 +49,14 @@ mkdir -p data
 
 ```
 
+#### DrugBank graphs
+
+Example command line to generate and save graphs from subsets of DrugBank data 
+
+```bash
+./hmdb/queries.py --qc='{"carriers.name": "Serum albumin"}' --graphfile targets-sa.gml
+```
+
 ## Related work
 
 * https://github.com/ashrafsarhan/drugbank-relational-database

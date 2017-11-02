@@ -95,12 +95,14 @@ class Indexer(DBconnection):
                 self.interactions.add((eid, did))
         return True
 
-    # Save drug-drug interactions as graph files in 2 different formats
+    # Save drug-drug interactions as graph files in GML format
+    # Both Cytoscape and Gephi are able to read GML files
+    # For saving networks other than drug-drug interactions
+    # and for saving subsets of the data see queries.py in this folder
     def saveasgraph(self):
         print("#edges = %d" % len(self.interactions))
         graph = nx.MultiDiGraph(list(self.interactions))
-        nx.write_adjlist(graph, self.index + ".adjl")
-        nx.write_gexf(graph, self.index + ".gexf")
+        nx.write_gml(graph, self.index + ".gml")
         return graph
 
 
