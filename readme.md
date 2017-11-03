@@ -1,16 +1,12 @@
 # Project aim and summary
 
-We want to develop scripts for NoSQL indexing and querying of sample
-bioinformatics datasets.
+We want to develop scripts for NoSQL indexing and querying of selected reference
+bioinformatics datasets and data types.
 In the early stages of the project only indexing with Elasticsearch was supported.
 Later MongoDB support was implemented for all datasets already included
 in the project.
-For IntEnz, PubTator and HGNC datasets Neo4j or PostgresSQL support
+For IntEnz, PubTator and HGNC datasets, Neo4j or PostgresSQL support
 was added as the 3rd database option.
-We are also working on saving selected networks in IntEnz and DrugBank
-datasets as  graph files;
-either the complete datasets by parsing the dataset source files,
-or selected subsets of the networks after the datasets has been indexed.
 
 ## Datasets supported
 
@@ -87,6 +83,11 @@ http://www.kegg.jp/kegg/download/Readme/README.kgml):
 We want to connect above datasets as much as possible
 and aim to implement query APIs for common query patterns with individual indexes
 as well as connected data.
+We are also working on saving selected networks from IntEnz and DrugBank
+datasets as  graph files;
+either the complete datasets by parsing the dataset source files,
+or selected subsets of the networks after the datasets has been indexed.
+
 
 We want to implement automated tests as early as
 possible, this should help us to understand where we are in minimal time.

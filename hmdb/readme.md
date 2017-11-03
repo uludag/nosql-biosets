@@ -8,13 +8,17 @@
   Includes example queries
 
 * [drugbank.py](drugbank.py) Index DrugBank xml dataset with MongoDB,
-  or save drug interactions as NetworkX graph file.
+  or Elasticsearch, or save drug-drug interactions as graph file in GML format.
   Tests made with DrugBank version 5.0
 
 * [queries.py](queries.py) Query API for DrugBank data indexed with MongoDB,
-  _at its early stages_
-
-
+  _at its early stages_.
+  
+  When executed from command line can save DrugBank
+   interaction networks as graph files in GML format, _an example command line
+    is presented further on this page_ 
+   * `--qc`: MongoDB query clause to select subsets of DrugBank entries
+   *  `--graphfile`: File name for saving the output graph in GML format
 ### Usage HMDB
 
 ```bash
@@ -35,23 +39,26 @@ wget -P ./data http://www.hmdb.ca/system/downloads/current/hmdb_proteins.zip
 
 ### Usage DrugBank
 
-```bash
-mkdir -p data
-# Download DrugBank xml dataset from https://www.drugbank.ca/releases/latest,
-# drugbank_all_full_database.xml.zip
-# to the data folder, requires registration
+Download DrugBank xml dataset from http://www.drugbank.ca/releases/latest,
+requires registration. Save `drugbank_all_full_database.xml.zip` file to the
+`data` folder
 
-# Index with MongoDB,  takes ~12m
+```bash
+# Index with MongoDB,  takes ~10m
 ./hmdb/drugbank.py --infile ./data/drugbank_all_full_database.xml.zip --db MongoDB
 
-# Save as NetworkX graph,  takes ~12m,  #edges = 578072, #nodes = 2550
+# Index with Elasticsearch,  takes ~22m
+./hmdb/drugbank.py --infile ./data/drugbank_all_full_database.xml.zip --db Elasticsearch
+
+# Save drug-drug interactions as graph file in GML format
+# takes ~10m,  #edges = 578072, #nodes = 2550
 ./hmdb/drugbank.py --infile ./data/drugbank_all_full_database.xml.zip --db NetworkX
 
 ```
 
 #### DrugBank graphs
 
-Example command line to generate and save graphs from subsets of DrugBank data 
+Example command line to generate and save graphs from subsets of DrugBank data
 
 ```bash
 ./hmdb/queries.py --qc='{"carriers.name": "Serum albumin"}' --graphfile targets-sa.gml
