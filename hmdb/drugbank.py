@@ -1,6 +1,7 @@
 #!/usr/bin/env python
-""" Index DrugBank xml dataset with MongoDB,
- also can save drug interactions graph as NetworkX graph file """
+""" Index DrugBank xml dataset with MongoDB or Elasticsearch,
+ also can save drug interactions graph as graph file (experimental) """
+# TODO: Improve Elasticsearch mappings, default mappings not good enough
 from __future__ import print_function
 
 import argparse
@@ -17,10 +18,10 @@ DOCTYPE = 'drugbankdrug'  # MongoDB collection name
 # List attributes, is processed by function unifylistattributes()
 LIST_ATTRS = ["transporters", "drug-interactions", "food-interactions",
               "atc-codes", "affected-organisms", "targets", "enzymes",
-              "carriers", "groups"]
+              "carriers", "groups", "salts"]
 
 
-# Make sure list attributes type are always list, TODO: inner list attributes
+# Make sure type of list attributes are list, TODO: inner list attributes
 def unifylistattributes(e):
     for listname in LIST_ATTRS:
         objname = listname[:-1]
@@ -31,6 +32,22 @@ def unifylistattributes(e):
                 e[listname] = e[listname][objname]
             else:
                 e[listname] = [e[listname][objname]]
+
+
+# Make sure type of numeric attributes are numeric
+def numericattributes(e):
+    atts = ["carriers", "enzymes", "targets", "transporters"]
+    for att in atts:
+        if att in e:
+            for i in e[att]:
+                if 'position' in i:
+                    i['position'] = int(i['position'])
+    atts = ["average-mass", "monoisotopic-mass"]
+    for att in atts:
+        if att in e:
+            e[att] = float(e[att])
+        if 'salts' in e and att in e['salts']:
+            e['salts'][att] = float(e['salts'][att])
 
 
 # Read DrugBank xml files, index using the function indexf
@@ -62,6 +79,7 @@ class Indexer(DBconnection):
     # Index DrugBank entry with MongoDB
     def mongodb_index_entry(self, _, entry):
         unifylistattributes(entry)
+        numericattributes(entry)
         docid = self.getdrugid(entry)
         spec = {"_id": docid}
         try:
@@ -73,7 +91,21 @@ class Indexer(DBconnection):
             r = False
         return r
 
-    interactions = set()
+    # Index DrugBank entry with Elasticsearch
+    def es_index_entry(self, _, entry):
+        unifylistattributes(entry)
+        numericattributes(entry)
+        docid = self.getdrugid(entry)
+        entry['drugbank-id'] = docid  # TODO: keep all ids
+        try:
+            self.es.index(index=self.index, doc_type=self.doctype,
+                          id=docid, body=entry)
+            self.reportprogress()
+            r = True
+        except Exception as e:
+            print(e)
+            r = False
+        return r
 
     def getdrugid(self, e):
         if isinstance(e['drugbank-id'], list):
@@ -81,6 +113,8 @@ class Indexer(DBconnection):
         else:
             eid = e['drugbank-id']['#text']
         return eid
+
+    interactions = set()
 
     def saveinteractions(self, _, e):
         eid = self.getdrugid(e)
@@ -125,11 +159,14 @@ def mongodb_indices(mdb):
     mdb.create_index("drugbank-id")
 
 
-def main(infile, index, doctype, db, host, port):
+def main(infile, db, index, doctype=DOCTYPE, host=None, port=None):
     indxr = Indexer(db, index, host, port, doctype)
     if db == 'MongoDB':
         parse_drugbank_xmlfile(infile, indxr.mongodb_index_entry)
         mongodb_indices(indxr.mdbi[DOCTYPE])
+    elif db == 'Elasticsearch':
+        parse_drugbank_xmlfile(infile, indxr.es_index_entry)
+        indxr.es.indices.refresh(index=index)
     else:
         parse_drugbank_xmlfile(infile, indxr.saveinteractions)
         indxr.saveasgraph()
@@ -138,7 +175,7 @@ def main(infile, index, doctype, db, host, port):
 if __name__ == '__main__':
     d = os.path.dirname(os.path.abspath(__file__))
     parser = argparse.ArgumentParser(
-        description='Index DrugBank xml dataset with MongoDB, '
+        description='Index DrugBank xml dataset with MongoDB or Elasticsearch, '
                     'downloaded from ' + SOURCE_URL +
                     ', can also save drug interactions as NetworkX graph file')
     parser.add_argument('-infile', '--infile',
@@ -146,16 +183,19 @@ if __name__ == '__main__':
                         help='Input file name')
     parser.add_argument('--index',
                         default="drugbank",
-                        help='Name of the MongoDB database,'
-                             ' or filename for NetworkX graph')
+                        help='Name of the MongoDB database or Elasticsearch'
+                             ' index, or filename for NetworkX graph')
     parser.add_argument('--doctype',
                         default=DOCTYPE,
-                        help='MongoDB collection name')
+                        help='MongoDB collection name or'
+                             ' Elasticsearch document type name')
     parser.add_argument('--host',
-                        help='MongoDB server hostname')
+                        help='MongoDB or Elasticsearch server hostname')
     parser.add_argument('--port',
-                        help="MongoDB server port number")
-    parser.add_argument('--db', default='MongoDB',
-                        help="Database: 'MongoDB' or NetworkX")
+                        help="MongoDB or Elasticsearch server port number")
+    parser.add_argument('--db', default='Elasticsearch',
+                        help="Database: 'MongoDB' or 'Elasticsearch',"
+                             "or 'NetworkX' for saving drug-drug interaction"
+                             "network as graph file")
     args = parser.parse_args()
-    main(args.infile, args.index, args.doctype, args.db, args.host, args.port)
+    main(args.infile, args.db, args.index, args.doctype, args.host, args.port)
