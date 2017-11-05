@@ -27,6 +27,21 @@ class TestQueryDrugBank(unittest.TestCase):
         self.assertIn("lipid transport", names)
         assert len(names) == 1114
 
+    def test_distinct_drug_targets(self):
+        key = "targets.name"
+        names = self.qry.distinctquery(key)
+        self.assertIn("Isoleucine--tRNA ligase", names)
+        assert len(names) == 3985
+        key = "targets.polypeptide.source"
+        names = self.qry.distinctquery(key)
+        self.assertIn("Swiss-Prot", names)
+        assert len(names) == 2
+        key = "targets.actions.action"
+        names = self.qry.distinctquery(key)
+        actions = "inhibitor antagonist antibody activator binder intercalation"
+        assert set(actions.split(' ')).issubset(names)
+        assert len(names) == 49
+
     def test_distinct_atc_codes(self):
         key = "atc-codes.level.#text"
         atc_codes = self.qry.distinctquery(key)
@@ -36,6 +51,15 @@ class TestQueryDrugBank(unittest.TestCase):
         atc_codes = self.qry.distinctquery(key)
         self.assertIn("A10AC04", atc_codes)
         assert len(atc_codes) == 3470
+
+    def test_query_approved(self):
+        project = {"_id": 1}
+        qc = {"products.product.approved": "true"}
+        r = list(self.qry.query(qc, projection=project))
+        assert len(r) == 2677
+        qc = {"products.product.approved": "false"}
+        r = list(self.qry.query(qc, projection=project))
+        assert len(r) == 473
 
     def test_query_atc_codes(self):
         project = {"atc-codes": 1}
