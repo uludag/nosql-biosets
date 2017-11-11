@@ -1,9 +1,12 @@
 # Project aim and summary
 
-We want to develop scripts for NoSQL indexing and querying of selected reference
-bioinformatics datasets and data types.
+NoSQL-biosets project includes scripts for NoSQL indexing and querying of
+selected free bioinformatics datasets. In adition to datasets, project aims
+to include index/query scripts for commonly used bioinformatics data types
+and formats, such as SBML and GFF.
+   
 In the early stages of the project only indexing with Elasticsearch was supported.
-Later MongoDB support was implemented for all datasets already included
+Later MongoDB support was implemented for most of the datasets already included
 in the project.
 For IntEnz, PubTator and HGNC datasets, Neo4j or PostgresSQL support
 was added as the 3rd database option.
@@ -17,7 +20,7 @@ ftp://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/knowledgebase/complete
 
 * IntEnz [dataset](
 ftp://ftp.ebi.ac.uk/pub/databases/intenz/xml/
-) in XML format, from EMBL-EBI:
+) in XML format:
   [`./nosqlbiosets/intenz`](nosqlbiosets/intenz)
 
 * MetaNetX [compounds, reactions, and compartments data](
@@ -35,7 +38,7 @@ http://www.metanetx.org/mnxdoc/mnxref.html
  http://ftp.ebi.ac.uk/pub/databases/genenames/new/json/),
   from EMBL-EBI: [`./geneinfo/index-hgnc-geneinfo.py`](geneinfo/index-hgnc-geneinfo)
   (_tests made with [complete HGNC dataset](
-  ftp://ftp.ebi.ac.uk/pub/databases/genenames/new/json/hgnc_complete_set.json)
+  ftp://ftp.ebi.ac.uk/pub/databases/genenames/new/json/hgnc_complete_set.json))
 
 * Metabolic network files in [SBML](http://sbml.org) format or
  [PSAMM project](https://github.com/zhanglab/psamm-model-collection)'s
@@ -58,10 +61,11 @@ http://www.wikipathways.org/index.php/Download_Pathways):
   ./nosqlbiosets/pubmed/index_pmc_articles.py)
 
 * Ensembl regulatory build [GFF files](
-http://ftp.ensembl.org/pub/current_regulation/homo_sapiens):
+http://ftp.ensemblorg.ebi.ac.uk/pub/current_regulation/homo_sapiens/):
   [`./geneinfo/ensembl_regbuild.py`]([geneinfo/ensembl_regbuild.py)
+  _at its early stages of development_
 
-* NCBI PubTator [gene2pub and disease2pub mappings](
+* PubTator [gene2pub and disease2pub mappings](
 http://ftp.ncbi.nlm.nih.gov/pub/lu/PubTator):
   [`./nosqlbiosets/pubtator`](nosqlbiosets/pubtator)
 
@@ -77,6 +81,7 @@ in tsv format:
 * KEGG [pathway kgml/xml files](
 http://www.kegg.jp/kegg/download/Readme/README.kgml):
   [`./nosqlbiosets/kegg/index.py`](nosqlbiosets/kegg/index.py)
+  _at its early stages of development_ 
   (_KEGG data distribution policy lets us think twice when spending
    time on KEGG data_)
 
