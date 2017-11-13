@@ -19,6 +19,7 @@
     is presented further on this page_ 
    * `--qc`: MongoDB query clause to select subsets of DrugBank entries
    *  `--graphfile`: File name for saving the output graph in GML format
+   
 ### Usage HMDB
 
 ```bash
@@ -27,11 +28,11 @@ mkdir -p data
 wget -P ./data http://www.hmdb.ca/system/downloads/current/hmdb_metabolites.zip
 wget -P ./data http://www.hmdb.ca/system/downloads/current/hmdb_proteins.zip
 
-# Index with Elasticsearch
+# Index with Elasticsearch, time for proteins is ~7m, for metabolites ~33m
 ./hmdb/index.py --infile ./data/hmdb_metabolites.zip --db Elasticsearch
 ./hmdb/index.py --infile ./data/hmdb_proteins.zip --db Elasticsearch
 
-# Index with MongoDB
+# Index with MongoDB, time for proteins is ~5m, for metabolites ~20m
 ./hmdb/index.py --infile ./data/hmdb_metabolites.zip --db MongoDB
 ./hmdb/index.py --infile ./data/hmdb_proteins.zip --db MongoDB
 ```

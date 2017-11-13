@@ -1,21 +1,18 @@
 #!/usr/bin/env python
-"""Index HMDB protein/metabolite records in xml,
- download page: http://www.hmdb.ca/downloads """
+"""Index HMDB protein/metabolite records with MongoDB and Elasticsearch,
+ Download page: http://www.hmdb.ca/downloads """
 # TODO: Elasticsearch default mappings may not be good enough
 from __future__ import print_function
 
 import argparse
-import json
 import os
 from gzip import GzipFile
 from zipfile import ZipFile
 
 import xmltodict
 from pymongo import IndexModel
-from six import string_types
 
 from nosqlbiosets.dbutils import DBconnection
-
 
 DOCTYPE_METABOLITE = 'hmdbmetabolite'
 DOCTYPE_PROTEIN = 'hmdbprotein'
@@ -49,17 +46,22 @@ class Indexer(DBconnection):
         if db != "Elasticsearch":
             self.mcl = self.mdbi[doctype]
 
+    # Tune entries for better database representation
+    def tune(self, entry):
+        from nosqlbiosets.objutils import unifylistattributes
+        list_attrs = ["synonyms", "pathways"]
+        unifylistattributes(entry, list_attrs)
+        list_attrs = ["alternative_parents", "substituents"]
+        if "taxonomy" in entry:
+            unifylistattributes(entry["taxonomy"], list_attrs)
+
     # Index HMDB Metabolites/Proteins entry with Elasticsearch
     def es_index_hmdb_entry(self, _, entry):
         docid = entry['accession']
-        # TODO: make the same updates to the MongoDB entries as well
-        if 'synonyms' in entry and entry['synonyms'] is not None \
-                and 'synonym' in entry['synonyms']:
-            if isinstance(entry['synonyms']['synonym'], string_types):
-                entry['synonyms']['synonym'] = [entry['synonyms']['synonym']]
+        self.tune(entry)
         try:
             self.es.index(index=self.index, doc_type=self.doctype,
-                          id=docid, body=json.dumps(entry))
+                          id=docid, body=entry)
             self.reportprogress()
             r = True
         except Exception as e:
@@ -70,6 +72,7 @@ class Indexer(DBconnection):
     # Index HMDB Metabolites/Proteins entry with MongoDB
     def mongodb_index_hmdb_entry(self, _, entry):
         docid = entry['accession']
+        self.tune(entry)
         spec = {"_id": docid}
         try:
             self.mcl.update(spec, entry, upsert=True)
@@ -81,7 +84,7 @@ class Indexer(DBconnection):
         return r
 
 
-def mongodb_textindex(mdb, doctype):
+def mongodb_indices(mdb, doctype):
     if doctype == DOCTYPE_METABOLITE:
         index = IndexModel([
             ("description", "text"), ("name", "text"),
@@ -93,7 +96,12 @@ def mongodb_textindex(mdb, doctype):
     return
 
 
-def main(infile, index, doctype, db, host, port):
+def main(infile, index, doctype, db, host=None, port=None):
+    if doctype is None:
+        if 'protein' in infile:
+            doctype = DOCTYPE_PROTEIN
+        else:
+            doctype = DOCTYPE_METABOLITE
     indxr = Indexer(db, index, host, port, doctype)
     if db == 'Elasticsearch':
         indxr.es.delete_by_query(index=index, doc_type=doctype,
@@ -102,7 +110,7 @@ def main(infile, index, doctype, db, host, port):
         indxr.es.indices.refresh(index=index)
     else:
         parse_hmdb_xmlfile(infile, indxr.mongodb_index_hmdb_entry)
-        mongodb_textindex(indxr.mcl, doctype)
+        mongodb_indices(indxr.mcl, doctype)
 
 
 if __name__ == '__main__':
@@ -125,7 +133,4 @@ if __name__ == '__main__':
     parser.add_argument('--db', default='Elasticsearch',
                         help="Database: 'Elasticsearch' or 'MongoDB'")
     args = parser.parse_args()
-    doctype_ = DOCTYPE_METABOLITE
-    if args.doctype is None and 'protein' in args.infile:
-        doctype_ = DOCTYPE_PROTEIN
-    main(args.infile, args.index, doctype_, args.db, args.host, args.port)
+    main(args.infile, args.index, args.doctype, args.db, args.host, args.port)
