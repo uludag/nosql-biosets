@@ -18,8 +18,14 @@
    interaction networks as graph files in GML format, _an example command line
     is presented further on this page_ 
    * `--qc`: MongoDB query clause to select subsets of DrugBank entries
-   *  `--graphfile`: File name for saving the output graph in GML format
-   
+   *  `--graphfile`: File name for saving the output graph;
+    If the file name ends with .xml extension [GraphML](
+    https://en.wikipedia.org/wiki/GraphML) format is selected,
+    if the file name ends with .d3.json extension graph is saved in
+     a form easier to read with [D3js](d3js.org),
+    if the file name ends with .json extension graph is saved in
+     [Cytoscape.js](js.cytoscape.org) graph format,     
+    otherwise it is saved in GML format
 ### Usage HMDB
 
 ```bash
