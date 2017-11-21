@@ -63,15 +63,6 @@ class QueryDrugBank:
             self._save_connections_graph(graph, outfile)
         return graph
 
-    def get_allneighbors(self, qc):
-        connections = ["targets", "enzymes", "transporters", "carriers"]
-        interactions = set()
-        for connection in connections:
-            interactions = interactions.union(
-                set(self.get_connections(qc, connection)))
-        graph = nx.MultiDiGraph(list(interactions), name="allnetworks")
-        return graph
-
     def get_allnetworks(self, qc):
         connections = ["targets", "enzymes", "transporters", "carriers"]
         interactions = set()
