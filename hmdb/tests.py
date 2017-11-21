@@ -59,10 +59,10 @@ class TestQueryDrugBank(unittest.TestCase):
 
     def test_query_approved(self):
         project = {"_id": 1}
-        qc = {"products.product.approved": "true"}
+        qc = {"products.approved": True}
         r = list(self.qry.query(qc, projection=project))
         assert len(r) == 2677
-        qc = {"products.product.approved": "false"}
+        qc = {"products.approved": False}
         r = list(self.qry.query(qc, projection=project))
         assert len(r) == 473
 
@@ -136,17 +136,6 @@ class TestQueryDrugBank(unittest.TestCase):
         g = nx.compose_all([g1, g2, g3, g4], "lipid network")
         assert g.number_of_edges() == 3956
         assert g.number_of_nodes() == 2163
-
-    def test_get_allneighbors(self):
-        tests = [
-            ({}, 22648, 11298),
-            ({"name": "Acetaminophen"}, 26, 27),
-            ({'$text': {'$search': 'lipid'}}, 3883, 2163)
-            ]
-        for qc, nedges, nnodes in tests:
-            g = self.qry.get_allneighbors(qc)
-            assert g.number_of_edges() == nedges
-            assert g.number_of_nodes() == nnodes
 
     def test_get_allnetworks(self):
         tests = [

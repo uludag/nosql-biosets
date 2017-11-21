@@ -51,7 +51,7 @@ requires registration. Save `drugbank_all_full_database.xml.zip` file to the
 `data` folder
 
 ```bash
-# Index with MongoDB,  takes ~10m
+# Index with MongoDB,  takes ~10-15m
 ./hmdb/drugbank.py --infile ./data/drugbank_all_full_database.xml.zip --db MongoDB
 
 # Index with Elasticsearch,  takes ~22m
@@ -75,6 +75,5 @@ Example command line to generate and save graphs from subsets of DrugBank data
 
 * https://github.com/ashrafsarhan/drugbank-relational-database
   Project home page includes graph of the DrugBank schema which could be useful
-  in undestanding the DrugBank data. _The graph is for version 4.3 of the
-  DrugBank database, it looks there are some differences compared to version 5
-  such as 'transporters' field is missing_
+  in understanding the DrugBank data. _The graph is for version 4.3 of the
+  database_

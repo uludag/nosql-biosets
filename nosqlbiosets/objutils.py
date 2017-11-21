@@ -1,4 +1,4 @@
-""" Methods to update objects for better representation in databases """
+""" Methods to update objects for better data representation in databases """
 
 
 # Make sure type of list attributes are list
@@ -14,3 +14,14 @@ def unifylistattributes(e, list_attrs):
                 e[listname] = e[listname][objname]
             else:
                 e[listname] = [e[listname][objname]]
+
+
+# Make sure type of boolean attributes are boolean
+def checkbooleanattributes(e, attrs):
+    for attr in attrs:
+        if attr in e:
+            if not isinstance(e[attr], bool):
+                if e[attr] in ['true', 'True']:
+                    e[attr] = True
+                else:
+                    e[attr] = False

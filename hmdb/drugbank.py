@@ -8,34 +8,28 @@ import argparse
 import os
 from zipfile import ZipFile
 
-import xmltodict
 import networkx as nx
+import xmltodict
 
 from nosqlbiosets.dbutils import DBconnection
+from nosqlbiosets.objutils import checkbooleanattributes
+from nosqlbiosets.objutils import unifylistattributes
 
 SOURCE_URL = "https://www.drugbank.ca/releases/latest"
 DOCTYPE = 'drugbankdrug'  # MongoDB collection name
 # List attributes, is processed by function unifylistattributes()
 LIST_ATTRS = ["transporters", "drug-interactions", "food-interactions",
               "atc-codes", "affected-organisms", "targets", "enzymes",
-              "carriers", "groups", "salts"]
+              "carriers", "groups", "salts", "products"]
 
 
-# Make sure type of list attributes are list, TODO: inner list attributes
-def unifylistattributes(e):
-    for listname in LIST_ATTRS:
-        objname = listname[:-1]
-        if e[listname] is None:
-            del e[listname]
-        else:
-            if isinstance(e[listname][objname], list):
-                e[listname] = e[listname][objname]
-            else:
-                e[listname] = [e[listname][objname]]
-
-
-# Make sure type of numeric attributes are numeric
-def numericattributes(e):
+def checkattributetypes(e):
+    unifylistattributes(e, LIST_ATTRS)
+    if "products" in e:
+        for product in e["products"]:
+            checkbooleanattributes(product,
+                                   ["generic", "approved", "over-the-counter"])
+    # Make sure type of numeric attributes are numeric
     atts = ["carriers", "enzymes", "targets", "transporters"]
     for att in atts:
         if att in e:
@@ -78,11 +72,10 @@ class Indexer(DBconnection):
 
     # Index DrugBank entry with MongoDB
     def mongodb_index_entry(self, _, entry):
-        unifylistattributes(entry)
-        numericattributes(entry)
-        docid = self.getdrugid(entry)
-        spec = {"_id": docid}
         try:
+            checkattributetypes(entry)
+            docid = self.getdrugid(entry)
+            spec = {"_id": docid}
             self.mcl.update(spec, entry, upsert=True)
             self.reportprogress()
             r = True
@@ -93,11 +86,10 @@ class Indexer(DBconnection):
 
     # Index DrugBank entry with Elasticsearch
     def es_index_entry(self, _, entry):
-        unifylistattributes(entry)
-        numericattributes(entry)
-        docid = self.getdrugid(entry)
-        entry['drugbank-id'] = docid  # TODO: keep all ids
         try:
+            checkattributetypes(entry)
+            docid = self.getdrugid(entry)
+            entry['drugbank-id'] = docid  # TODO: keep all ids
             self.es.index(index=self.index, doc_type=self.doctype,
                           id=docid, body=entry)
             self.reportprogress()

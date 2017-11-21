@@ -46,7 +46,7 @@ class Indexer(DBconnection):
         if db != "Elasticsearch":
             self.mcl = self.mdbi[doctype]
 
-    # Tune entries for better database representation
+    # Tune entries for better data representation
     def tune(self, entry):
         from nosqlbiosets.objutils import unifylistattributes
         list_attrs = ["synonyms", "pathways"]
