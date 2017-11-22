@@ -16,7 +16,7 @@ from nosqlbiosets.objutils import checkbooleanattributes
 from nosqlbiosets.objutils import unifylistattributes
 
 SOURCE_URL = "https://www.drugbank.ca/releases/latest"
-DOCTYPE = 'drugbankdrug'  # MongoDB collection name
+DOCTYPE = 'drug'  # MongoDB collection name
 # List attributes, is processed by function unifylistattributes()
 LIST_ATTRS = ["transporters", "drug-interactions", "food-interactions",
               "atc-codes", "affected-organisms", "targets", "enzymes",

@@ -6,7 +6,7 @@ import networkx as nx
 from nosqlbiosets.dbutils import DBconnection
 from nosqlbiosets.graphutils import *
 
-DOCTYPE = 'drugbankdrug'  # MongoDB collection name
+DOCTYPE = 'drug'  # MongoDB collection name, Elasticsearch type name
 
 
 class QueryDrugBank:
@@ -84,7 +84,8 @@ if __name__ == '__main__':
                              ' of DrugBank entries')
     parser.add_argument('-graphfile', '--graphfile',
                         help='File name for saving the output graph'
-                             ' in GML format or in Cytoscape json format')
+                             ' in GraphML, GML, Cytoscape.js or d3js formats,'
+                             ' see readme.md for details')
     args = parser.parse_args()
     qry = QueryDrugBank()
     qc_ = json.loads(args.qc)
