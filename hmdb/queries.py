@@ -40,19 +40,6 @@ class QueryDrugBank:
                     interactions.append((name, t['name']))
         return interactions
 
-    def _save_connections_graph(self, graph, outfile=None):
-        import json
-        if outfile.endswith(".xml"):
-            nx.write_graphml(graph, outfile)
-        elif outfile.endswith(".d3js.json"):
-            cygraph = networkx2d3_json(graph)
-            json.dump(cygraph, open(outfile, "w"), indent=4)
-        elif outfile.endswith(".json"):
-            cygraph = networkx2cytoscape_json(graph)
-            json.dump(cygraph, open(outfile, "w"), indent=4)
-        else:  # Assume GML format
-            nx.write_gml(graph, outfile)
-
     # Gets and saves networks from subsets of DrugBank records
     # filtered by query clause, qc. Graph file format is selected
     #  based on file extension used, as detailed in the readme.md file
@@ -60,7 +47,7 @@ class QueryDrugBank:
         interactions = self.get_connections(qc, connections)
         graph = nx.MultiDiGraph(list(interactions), name=connections)
         if outfile is not None:
-            self._save_connections_graph(graph, outfile)
+            save_graph(graph, outfile)
         return graph
 
     def get_allnetworks(self, qc):

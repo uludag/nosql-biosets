@@ -54,7 +54,7 @@ requires registration. Save `drugbank_all_full_database.xml.zip` file to the
 # Index with MongoDB,  takes ~10-15m
 ./hmdb/drugbank.py --infile ./data/drugbank_all_full_database.xml.zip --db MongoDB
 
-# Index with Elasticsearch,  takes ~22m
+# Index with Elasticsearch,  takes ~16-22m
 ./hmdb/drugbank.py --infile ./data/drugbank_all_full_database.xml.zip --db Elasticsearch
 
 # Save drug-drug interactions as graph file in GML format
