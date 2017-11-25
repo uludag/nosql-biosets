@@ -65,7 +65,7 @@ class TestQueryIntEnz(unittest.TestCase):
             assert len(r) >= 1
             assert enz in r
 
-    def test_ex_lookup_with_connected_metabolites(self):
+    def test__lookup_with_connected_metabolites(self):
         source, target, e1, e2 = "2-oxoglutarate", "glyoxylate",\
                                 "LL-diaminopimelate aminotransferase",\
                                 "Glycine oxidase"  # EC 2.6.1.83 -> 1.4.3.19
@@ -73,7 +73,7 @@ class TestQueryIntEnz(unittest.TestCase):
         assert e1 in [e["_id"] for e in r]
         assert e2 in {e["_id"]: e["enzyme2"] for e in r}[e1]
 
-    def test_ex_graphlookup_with_two_connected_metabolites(self):
+    def test_graphlookup_with_two_connected_metabolites(self):
         source, target, e1, e2 = "2-oxoglutarate", "glyoxylate",\
                                 "LL-diaminopimelate aminotransferase",\
                                 "Glycine transaminase"  # EC 2.6.1.83 -> 2.6.1.4
@@ -81,20 +81,21 @@ class TestQueryIntEnz(unittest.TestCase):
         assert e1 in [e["_id"] for e in r]
         assert e2 in {e["_id"]: e["enzymes"] for e in r}[e1]
 
-    def test_ex_neo4j_graphsearch_with_two_connected_metabolites(self):
+    def test_neo4j_graphsearch_with_two_connected_metabolites(self):
         source, target = "2-oxoglutarate", "glyoxylate"
         dbc = DBconnection("Neo4j", "")
         q = 'MATCH ({id:{source}})-[]->(r)-[]->({id:{target}})' \
             ' RETURN r.name'
         r = list(dbc.neo4jc.run(q, source=source, target=target))
         assert len(r) > 0
-        assert r[0]['r.name'] == '2-oxoglutarate + glycine <=>' \
+        assert r[0]['r.name'] == '2-oxoglutarate + glycine <?>' \
                                  ' L-glutamate + glyoxylate'
 
-    def test_ex_neo4j_shortestpathsearch_with_two_connected_metabolites(self):
+    def test_neo4j_shortestpathsearch_with_two_connected_metabolites(self):
+        nqry = QueryIntEnz("Neo4j")
         source, target = "2-oxoglutarate", "glyoxylate"
-        r = qryintenz.neo4j_shortestpathsearch_connected_metabolites(source,
-                                                                     target)
+        r = list(nqry.neo4j_shortestpathsearch_connected_metabolites(source,
+                                                                     target))
         assert len(r) > 0
         path = r[0]['path']
         assert path.start.properties == {"id": "2-oxoglutarate"}
@@ -102,6 +103,16 @@ class TestQueryIntEnz(unittest.TestCase):
         assert path.relationships[0].type == "Reactant_in"
         assert len(path.nodes) == 3
         assert len(path.relationships) == 2
+
+    def test_neo4j_getreactions(self):
+        nqry = QueryIntEnz("Neo4j")
+        r = list(nqry.getreactions())
+        assert len(r) == 38
+
+    def test_mdb_getreactions(self):
+        qc = {'$text': {'$search': 'semialdehyde'}}
+        r = list(qryintenz.getreactions(qc))
+        assert len(r) == 64
 
 
 if __name__ == '__main__':

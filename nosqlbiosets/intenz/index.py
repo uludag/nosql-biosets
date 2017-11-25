@@ -50,11 +50,15 @@ class Indexer(DBconnection):
         print("\nCompleted")
         if self.db == "Neo4j":
             self.indexwithneo4j()
+        # TODO: option to save graph, using graphutils.save_graph()
+        # graph = nx.MultiDiGraph(list(self.edges))
 
     def index_intenz_entry(self, _, entry):
         if not isinstance(entry, string_types):
             docid = entry['ec'][3:]
             # TODO: remove extra layers, e.g. reactions.reaction -> reactions
+            # reactantList.reactant -> reactants
+            # productList.product -> products
             try:
                 if self.db == "Elasticsearch":
                     self.es.index(index=self.index, doc_type=self.doctype,
@@ -76,10 +80,10 @@ class Indexer(DBconnection):
     reactions = dict()
     reactants = set()
     products = set()
+    edges = set()
 
     def indexwithneo4j(self):
         print("Indexing collected data with Neo4j")
-        edges = set()
         with self.neo4jc.begin_transaction() as tx:
             tx.run("match ()-[a:Produces]-() delete a")
             tx.run("match ()-[a:Reactant_in]-() delete a")
@@ -104,27 +108,27 @@ class Indexer(DBconnection):
                             substrate = re['title']
                         else:
                             substrate = re
-                        if (substrate, rid) not in edges:
+                        if (substrate, rid) in self.edges:
                             c = "MATCH (r:Reaction), (s:Substrate) " \
                                 " WHERE  r.id = {rid} " \
                                 " AND s.id = {substrate} " \
                                 "CREATE (s)-[:Reactant_in {r:{rid}}]->(r)"
                             tx.run(c, rid=rid,
                                    substrate=substrate)
-                            edges.add((substrate, rid))
+                            self.edges.remove((substrate, rid))
                     for pr in r['productList']['product']:
                         if isinstance(pr, dict):
                             product = pr['title']
                         else:
                             product = pr
-                        if (rid, product) not in edges:
+                        if (rid, product) in self.edges:
                             c = "MATCH (r:Reaction), (t:Product) " \
                                 " WHERE  r.id = {rid} " \
                                 " AND t.id = {productid} " \
                                 "CREATE (r)-[:Produces {r:{rid}}]->(t)"
                             tx.run(c, rid=rid,
                                    productid=product)
-                            edges.add((rid, product))
+                            self.edges.remove((rid, product))
                     tx.sync()
 
     def updatereactionsandelements_sets(self, e):
@@ -143,12 +147,14 @@ class Indexer(DBconnection):
                         product = pr
                     rproducts.add(product)
                     self.products.add(product)
+                    self.edges.add((rid, product))
                 for re in r['reactantList']['reactant']:
                     if isinstance(re, dict):
                         substrate = re['title']
                     else:
                         substrate = re
                     self.reactants.add(substrate)
+                    self.edges.add((substrate, rid))
 
 
 def mongodb_textindex(mdb):

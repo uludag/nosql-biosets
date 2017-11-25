@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" Queries with IntEnz data indexed with MongoDB """
+""" Queries with IntEnz data indexed with MongoDB or Neo4j"""
 # TODO: Reads server connection details from  conf/dbservers.json file
 
 from ..dbutils import DBconnection
@@ -7,10 +7,9 @@ from ..dbutils import DBconnection
 
 class QueryIntEnz:
 
-    def __init__(self):
-        index = "biosets"
+    def __init__(self, db="MongoDB", index="biosets"):
         self.doctype = "intenz"
-        self.dbc = DBconnection("MongoDB", index)
+        self.dbc = DBconnection(db, index)
 
     def getreactantnames(self, filterc=None):
         if self.dbc.db == 'MongoDB':
@@ -83,7 +82,7 @@ class QueryIntEnz:
         if self.dbc.db == 'MongoDB':
             # TODO: reaction directions
             qc = {
-                "reactions.reaction.convention": "rhea:direction.BI",
+                "reactions.reaction.convention": "rhea:direction.UN",
                 "$or": [
                     {
                         "reactions.reaction.reactantList.reactant.title": {
@@ -96,7 +95,7 @@ class QueryIntEnz:
                         "reactions.reaction.productList.product.title": {
                             '$in': [reactant]}}
                 ]}
-            hits = self.dbc.mdbi[self.doctype].find(qc, limit=10)
+            hits = self.dbc.mdbi[self.doctype].find(qc)
             hits = [c for c in hits]
             eids = [c['accepted_name']['#text'] for c in hits]
             return eids
@@ -181,10 +180,34 @@ class QueryIntEnz:
 
     def neo4j_shortestpathsearch_connected_metabolites(self, source, target,
                                                        k=5):
-        dbc = DBconnection("Neo4j", "")
         q = 'MATCH (source_:Substrate{id:{source}}),' \
             ' (target_:Product{id:{target}}),' \
             '  path=allShortestPaths((source_)-[*..' + str(k) + ']->(target_))'\
                                                                 ' RETURN path'
-        r = dbc.neo4jc.run(q, source=source, target=target)
-        return list(r)
+        r = self.dbc.neo4jc.run(q, source=source, target=target)
+        return r
+
+    def getreactions(self, filterc=None):
+        if self.dbc.db == 'Neo4j':
+            q = 'MATCH (r:Reaction) RETURN r'
+            r = self.dbc.neo4jc.run(q)
+            return r
+        if self.dbc.db == 'MongoDB':
+            agpl = [
+                {"$match": filterc},
+                {"$project": {
+                    "reactions.reaction.map": 0,
+                    "links": 0,
+                    "references": 0
+                }},
+                {"$unwind": {"path": "$reactions.reaction",
+                             "includeArrayIndex": "rindex"}},
+                {"$project": {
+                    "reactions": 1
+                }},
+                {"$group": {"_id": "$reactions.reaction.id",
+                            "reaction": {"$addToSet": "$reactions.reaction"}}}
+            ]
+            hits = self.dbc.mdbi[self.doctype].aggregate(agpl)
+            r = [i for i in hits]
+            return r
