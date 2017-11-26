@@ -1,26 +1,28 @@
 #!/usr/bin/env python
 """ Test queries with UniProt data indexed with MongoDB or Elasticsearch """
 
-import json
 import unittest
 
-from nosqlbiosets.dbutils import DBconnection
 from nosqlbiosets.uniprot.query import QueryUniProt
 
-qryuniprot = QueryUniProt("MongoDB")
-qryuniprot_es = QueryUniProt("Elasticsearch")
+qryuniprot = QueryUniProt("MongoDB", "biosets", "protein")
+qryuniprot_es = QueryUniProt("Elasticsearch", "uniprot", "protein")
 
 
 class TestQueryUniProt(unittest.TestCase):
     index = "biosets"
-    doctype = "uniprot"
+    doctype = "protein"
 
-    def test_keggid_queries(self, db="Elasticsearch"):
-        mids = qryuniprot.getnamesforkegggeneids(['hsa:7157', 'hsa:121504'], db)
+    def test_keggid_queries_es(self):
+        db = "Elasticsearch"
+        mids = qryuniprot_es.getnamesforkegggeneids(
+            ['hsa:7157', 'hsa:121504'], db)
         self.assertSetEqual(set(mids), {'P53_HUMAN', 'H4_HUMAN'})
 
     def test_keggid_queries_mdb(self):
-        self.test_keggid_queries("MongoDB")
+        db = "MongoDB"
+        mids = qryuniprot.getnamesforkegggeneids(['hsa:7157', 'hsa:121504'], db)
+        self.assertSetEqual(set(mids), {'P53_HUMAN', 'H4_HUMAN'})
 
     def test_genes_linkedto_keggreaction(self, db="MongoDB"):
         keggids = [('R01047', {'dhaB'}), ('R03119', {'dhaT'})]

@@ -2,14 +2,14 @@
 """ Simple queries with UniProt data indexed with MongoDB or Elasticsearch """
 # Server connection details are read from conf/dbserver.json file
 
-from ..dbutils import DBconnection
+from nosqlbiosets.dbutils import DBconnection
 
 
 class QueryUniProt:
 
-    def __init__(self, db="MongoDB"):
-        self.index = "biosets"
-        self.doctype = "uniprot"
+    def __init__(self, db, index, doctype):
+        self.index = index
+        self.doctype = doctype
         self.dbc = DBconnection(db, self.index)
 
     # Get UniProt acc ids for given enzyme
@@ -39,21 +39,23 @@ class QueryUniProt:
                                                      limit=limit)
         return r
 
-    # Find names of the genes for given KEGG reaction
-    def genes_linkedto_keggreaction(self, keggid):
-        doctype = "metanetx_reaction"
+    # Find related genes for given KEGG reaction
+    # Finds UniProt ids by querying the IntEnz dataset
+    def genes_linkedto_keggreaction(self, keggrid):
+        doctype = "intenz"
         if self.dbc.db == 'MongoDB':
             agpl = [
-                {"$match": {"xrefs.id": keggid}},
-                {"$project": {"ecno": 1}},
+                {"$match": {"reactions.reaction.map.link.title": keggrid}},
+                {"$unwind": "$links.link"},
+                {"$match": {"links.link.db": "UniProt"}},
                 {"$lookup": {
-                    "from": "uniprot",
-                    "localField": "ecno",
-                    "foreignField": "dbReference.id",
+                    "from": self.doctype,
+                    "localField": "links.link.accession_number",
+                    "foreignField": "accession",
                     "as": "uniprot"
                 }},
                 {"$unwind": "$uniprot"},
-                {"$project": {"ecno": 1, "uniprot.gene.name.#text": 1}},
+                {"$project": {"uniprot.gene.name.#text": 1}},
             ]
             docs = self.dbc.mdbi[doctype].aggregate(agpl)
             r = {doc['uniprot']['gene']['name']['#text']
@@ -111,7 +113,7 @@ class QueryUniProt:
         if db == 'Elasticsearch':
             esc = DBconnection(db, self.index)
             qc = {"match": {
-                "dbReference.id": "(\"%s\")" % '" OR "'.join(kgids)}}
+                "dbReference.id": "(%s)" % ' OR '.join(kgids)}}
             hits, n, _ = self.esquery(esc.es, self.index, {"query": qc},
                                       self.doctype, len(kgids))
             r = [xref['_id'] for xref in hits]
@@ -126,7 +128,8 @@ class QueryUniProt:
 
     @staticmethod
     def esquery(es, index, qc, doc_type=None, size=0):
-        print("Querying '%s'  %s" % (doc_type, str(qc)))
+        import json
+        print("Querying '%s'  %s" % (doc_type, json.dumps(qc, indent=4)))
         r = es.search(index=index, doc_type=doc_type, body=qc, size=size)
         nhits = r['hits']['total']
         aggs = r["aggregations"] if "aggregations" in r else None

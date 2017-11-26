@@ -8,7 +8,6 @@
 from __future__ import print_function
 
 import argparse
-import logging
 import os
 import traceback
 from gzip import GzipFile
@@ -19,12 +18,8 @@ from pymongo import IndexModel
 
 from nosqlbiosets.dbutils import DBconnection
 
-logger = logging.getLogger(__name__)
-ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
-logger.addHandler(ch)
 pool = ThreadPool(10)
-DOCTYPE = 'uniprot'
+DOCTYPE = 'protein'
 
 
 class Indexer(DBconnection):
@@ -63,7 +58,6 @@ class Indexer(DBconnection):
         def index():
             self.update_entry(entry)
             docid = entry['name']
-            logger.debug(docid)
             try:
                 if self.db == "Elasticsearch":
                     self.es.index(index=self.index, doc_type=self.doctype,
@@ -85,6 +79,8 @@ class Indexer(DBconnection):
     # Sample err msg: failed to parse [comment.absorption.text]
     @staticmethod
     def updatecomment(c):
+        # Following attributes are deleted for various reasons
+        # We want to implement support for all UniProt attributes
         al = ['isoform', 'subcellularLocation', 'kinetics', 'phDependence',
               'temperatureDependence', 'redoxPotential', 'absorption']
         for a in al:
@@ -171,24 +167,25 @@ class Indexer(DBconnection):
         self.updatesequence(entry['sequence'])
 
 
-def mongodb_textindex(mdb):
+def mongodb_indices(mdb):
     index = IndexModel([
         ("comment.text.#text", "text"),
         ("feature.description", "text"),
         ("keyword.#text", "text")])
     mdb.create_indexes([index])
-    mdb.create_index("dbReference.id")
-    mdb.create_index("organism.name.#text")
-    return
+    indx_fields = ["accession", "dbReference.id", "gene.name.type",
+                   "organism.name.#text"]
+    for field in indx_fields:
+        mdb.create_index(field)
 
 
-def main(infile, index, doctype, db, host, port):
+def main(infile, index, doctype, db, host=None, port=None):
     indxr = Indexer(db, index, host, port, doctype)
     indxr.parse_uniprot_xmlfiles(infile)
     if db == 'Elasticsearch':
         indxr.es.indices.refresh(index=index)
     else:
-        mongodb_textindex(indxr.mcl)
+        mongodb_indices(indxr.mcl)
     pool.close()
     pool.join()
 
@@ -206,7 +203,8 @@ if __name__ == '__main__':
                         help='Name of the Elasticsearch index'
                              ' or MongoDB database')
     parser.add_argument('--doctype', default=DOCTYPE,
-                        help='Document type name')
+                        help='Document type name for Elasticsearch, '
+                             'collection name for MongoDB')
     parser.add_argument('--host',
                         help='Elasticsearch or MongoDB server hostname')
     parser.add_argument('--port', type=int,

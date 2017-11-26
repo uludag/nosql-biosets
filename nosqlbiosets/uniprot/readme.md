@@ -1,8 +1,10 @@
 
-# Index/query scripts for UniProtKB dataset
+# Index/query scripts for UniProtKB datasets
 
-* [index.py](index.py): Index UniProtKB xml files (_tested with Swiss-Prot
- dataset only, should also work with UniProtKB/TrEMBL dataset_)
+* [index.py](index.py): Index UniProtKB xml files
+  
+  _Tested with Swiss-Prot dataset only (release Nov 2017),
+  should also work with UniProtKB/TrEMBL dataset_
 
 * [query.py](query.py): Experimental query API, at its early stages
 
@@ -12,7 +14,7 @@
                                       
 ## Usage
 
-Example command lines for downloading xml data files and for indexing:
+Example command lines for downloading `uniprot_sprot.xml` file and for indexing:
 
 #### Download UniProt/Swiss-Prot data set
 
