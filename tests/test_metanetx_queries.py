@@ -8,7 +8,7 @@ from nosqlbiosets.metanetx.query import QueryMetaNetX
 from nosqlbiosets.uniprot.query import QueryUniProt
 
 qrymtntx = QueryMetaNetX()
-qryuniprot = QueryUniProt()
+qryuniprot = QueryUniProt("MongoDB", "biosets", "protein")
 
 
 class TestQueryMetanetx(unittest.TestCase):
@@ -40,7 +40,7 @@ class TestQueryMetanetx(unittest.TestCase):
         for keggid, ec, genes in keggids:
             if db == "Elasticsearch":
                 qc = {"match": {"xrefs.id": keggid}}
-                hits, n = qrymtntx.esquery(dbc.es, self.index, qc, doctype, 10)
+                hits, n = qrymtntx.esquery(dbc.es, "*", qc, doctype, 10)
                 ecnos = [r['_source']['ecno'] for r in hits]
             else:
                 doctype = "metanetx_reaction"
@@ -88,24 +88,58 @@ class TestQueryMetanetx(unittest.TestCase):
         assert len(reacts) == len(rids)
         assert len(metabolites) >= len(rids)
 
-    def test_universal_model(self):
+    def test_universal_model_tiny(self):
         eids = ["1.1.4.13", "2.3.1"]
         qc = {"ecno": {"$in": eids}}
         m = qrymtntx.universal_model(qc)
         assert len(m.reactions) >= len(eids)
         assert len(m.metabolites) >= len(eids)
         import cobra
-        tempjson = "test.json"
+        tempjson = "metanetx_2enzymes_umodel.json"
         cobra.io.save_json_model(m, tempjson, pretty=True)
 
-    def test_universal_model_forlibrary(self):  # execution time ~6s
-        qc = {"xrefs.lib": {"$in": ["reactome"]}, "balance": "true"}
+    def test_universal_model_for_reactome(self):  # execution time ~6s
+        qc = {"source.lib": "reactome", "balance": "true"}
         m = qrymtntx.universal_model(qc)
-        assert len(m.reactions) >= 900
-        assert len(m.metabolites) >= 100
+        assert len(m.reactions) == 336
+        assert len(m.metabolites) == 458
         import cobra
-        tempjson = "test2.json"
+        tempjson = "metanetx_reactome_umodel.json"
         cobra.io.save_json_model(m, tempjson, pretty=True)
+
+    # Find different 'balance' values for reactions referring to KEGG
+    def test_kegg_reaction_balances(self):
+        balance = {"false": 8, "ambiguous": 1077, "true": 7950,
+                   "redox": 56, "NA": 1412}
+        aggpl = [
+            {"$project": {"xrefs": 1, "balance": 1}},
+            {"$unwind": "$xrefs"},
+            {"$match": {"xrefs.lib": "kegg"}},
+            {"$group": {
+                "_id": "$balance",
+                "reactions": {"$addToSet": "$xrefs.id"}
+            }}
+            ]
+        r = qrymtntx.dbc.mdbi["metanetx_reaction"].aggregate(aggpl)
+        for i in r:
+            assert len(i['reactions']) == balance[i['_id']]
+
+    # Similar to above test,
+    # only MetaNetX reactions with source.lib == kegg is queried
+    def test_kegg_reaction_balances__(self):
+        balance = {"false": 3, "ambiguous": 330, "true": 685,
+                   "redox": 23, "NA": 881}
+        aggpl = [
+            {"$project": {"source": 1, "balance": 1}},
+            {"$match": {"source.lib": "kegg"}},
+            {"$group": {
+                "_id": "$balance",
+                "reactions": {"$addToSet": "$source.id"}
+            }}
+            ]
+        r = qrymtntx.dbc.mdbi["metanetx_reaction"].aggregate(aggpl)
+        for i in r:
+            assert len(i['reactions']) == balance[i['_id']]
 
 
 if __name__ == '__main__':

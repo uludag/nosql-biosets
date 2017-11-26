@@ -8,7 +8,8 @@ import re
 import json
 
 # Regular expression for metabolite compartments in reaction equations
-compartment_re = re.compile(r'@(MNXD[\d]|BOUNDARY)')
+COMPARTEMENT_RE = re.compile(r'@(MNXD[\d]|BOUNDARY)')
+DOCTYPE = "metanetx_compound"
 
 
 class QueryMetaNetX:
@@ -18,30 +19,30 @@ class QueryMetaNetX:
         self.dbc = DBconnection("MongoDB", self.index)
 
     # Query MetaNetX compounds with their ids return descs
-    def query_metanetxids(self, dbc, mids):
+    def query_metanetxids(self, dbc, mids, limit=0):
         if dbc.db == 'Elasticsearch':
-            index, doctype = "metanetx", "metanetx_compound"
+            index, doctype = "metanetx", DOCTYPE
             qc = {"ids": {"values": mids}}
             hits, n = self.esquery(dbc.es, index, qc, doctype, len(mids))
             descs = [c['_source']['desc'] for c in hits]
         else:  # MongoDB
-            doctype = "metanetx_compound"
+            doctype = DOCTYPE
             qc = {"_id": {"$in": mids}}
-            hits = dbc.mdbi[doctype].find(qc, limit=10)
+            hits = dbc.mdbi[doctype].find(qc, limit=limit)
             descs = [c['desc'] for c in hits]
         return descs
 
     # Given KEGG compound ids find MetaNetX ids
-    def keggcompoundids2metanetxids(self, dbc, cids):
+    def keggcompoundids2metanetxids(self, dbc, cids, limit=0):
         if dbc.db == 'Elasticsearch':
-            index, doctype = "metanetx", "metanetx_compound"
+            index, doctype = "metanetx", DOCTYPE
             qc = {"match": {"xrefs.id": ' '.join(cids)}}
             hits, n = self.esquery(dbc.es, index, qc, doctype, len(cids))
             mids = [xref['_id'] for xref in hits]
         else:  # MongoDB
-            doctype = "metanetx_compound"
+            doctype = DOCTYPE
             qc = {'xrefs.id': {'$in': cids}}
-            hits = dbc.mdbi[doctype].find(qc, limit=10)
+            hits = dbc.mdbi[doctype].find(qc, limit=limit)
             mids = [c['_id'] for c in hits]
         return mids
 
@@ -57,7 +58,7 @@ class QueryMetaNetX:
     def query_metabolites(self, qc):
         if qc is None:
             qc = {}
-        doctype = "metanetx_compound"
+        doctype = DOCTYPE
         hits = self.dbc.mdbi[doctype].find(qc)
         r = [c for c in hits]
         return r
@@ -72,9 +73,9 @@ class QueryMetaNetX:
         return r
 
     # Query reactions with given query clause
-    def query_reactions(self, qc):
+    def query_reactions(self, qc, limit=0):
         doctype = "metanetx_reaction"
-        hits = self.dbc.mdbi[doctype].find(qc, limit=10)
+        hits = self.dbc.mdbi[doctype].find(qc, limit=limit)
         r = [c for c in hits]
         return r
 
@@ -96,7 +97,7 @@ class QueryMetaNetX:
         metabolites = self.query_metabolites(qc)
         return reacts, metabolites
 
-    # Construct universal metabolic model with the reactions subset
+    # Construct universal metabolic models with subset of reactions
     # specified by the query clause 'qc'
     def universal_model(self, qc):
         reacts, metabolites_ = self.universalmodel_reactionsandmetabolites(qc)
@@ -116,10 +117,10 @@ class QueryMetaNetX:
                                 upper_bound=1000.0)
             um.add_reactions([reaction])
 
-            # cobrapy compartment_finder doesn't recognize MetaNetX compartments
+            # COBRApy compartment_finder doesn't recognize MetaNetX compartments
             eq = r['equation']
             if eq.find('n') == -1:
-                eq = compartment_re.sub("", eq)
+                eq = COMPARTEMENT_RE.sub("", eq)
                 reaction.build_reaction_from_string(eq,
                                                     reversible_arrow='=',
                                                     verbose=True)
