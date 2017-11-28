@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """ Index ModelSEED compounds/reactions data with Elasticsearch or MongoDB"""
 # https://github.com/ModelSEED/ModelSEEDDatabase/blob/master/Biochemistry
+# TODO: move to .json files, we currently index the .csv files
 from __future__ import print_function
 
 import argparse
@@ -58,6 +59,7 @@ def updatereactionrecord(row, _):
 
 def read_modelseed_datafile(infile, lineparser):
     i = 0
+    print(infile)
     with open(infile) as csvfile:
         reader = csv.DictReader(csvfile, delimiter='\t', quotechar='"')
         for row in reader:
@@ -66,14 +68,14 @@ def read_modelseed_datafile(infile, lineparser):
             yield r
 
 
-def es_index(escon, reader):
-    print("Reading from %s" % reader.gi_frame.f_locals['infile'])
+def es_index(escon, typetuner):
+    print("Reading from %s" % typetuner.gi_frame.f_locals['infile'])
     i = 0
     t1 = time.time()
     for ok, result in streaming_bulk(
             escon,
-            reader,
-            index=args.index,
+            typetuner,
+            index=escon.index,
             chunk_size=ES_CHUNK_SIZE
     ):
         action, result = result.popitem()
@@ -87,11 +89,11 @@ def es_index(escon, reader):
     return 1
 
 
-def mongodb_index(mdbc, infile, reader):
+def mongodb_index(mdbc, infile, typetuner):
     print("Reading from %s" % infile)
     i = 0
     t1 = time.time()
-    for entry in read_modelseed_datafile(infile, reader):
+    for entry in read_modelseed_datafile(infile, typetuner):
         del(entry['_type'])
         mdbc.insert(entry)
         i += 1
@@ -99,6 +101,22 @@ def mongodb_index(mdbc, infile, reader):
     print("-- Processed %d entries, in %d sec"
           % (i, (t2 - t1)))
     return 1
+
+
+# TODO: this is new, not tested yet
+def main(infile, index, doctype, db, host=None, port=None):
+    indxr = DBconnection(db, index, host, port)
+    if doctype == TYPE_REACTION:
+        typetuner = updatereactionrecord
+    else:
+        typetuner = updatecompoundrecord
+    if db == 'Elasticsearch':
+        es = indxr.es
+        es_index(es, read_modelseed_datafile(infile, typetuner))
+        es.indices.refresh(index=index)
+    else:  # assume MongoDB
+        indxr.mdbi.drop_collection(doctype)
+        mongodb_index(indxr.mdbi[doctype], infile, typetuner)
 
 
 if __name__ == '__main__':
@@ -124,21 +142,7 @@ if __name__ == '__main__':
                         help="Database: 'Elasticsearch' or 'MongoDB'")
     args = parser.parse_args()
 
-    indxr = DBconnection(args.db, args.index, args.host, args.port)
-
-    if args.db == 'Elasticsearch':
-        es = indxr.es
-        es_index(es, read_modelseed_datafile(args.compoundsfile,
-                                             updatecompoundrecord))
-        es_index(es, read_modelseed_datafile(args.reactionsfile,
-                                             updatereactionrecord))
-        es.indices.refresh(index=args.index)
-    else:  # assume MongoDB
-        doctype = TYPE_COMPOUND
-        indxr.mdbi.drop_collection(doctype)
-        mongodb_index(indxr.mdbi[doctype],
-                      args.compoundsfile, updatecompoundrecord)
-        doctype = TYPE_REACTION
-        indxr.mdbi.drop_collection(doctype)
-        mongodb_index(indxr.mdbi[doctype],
-                      args.reactionsfile, updatereactionrecord)
+    main(args.compoundsfile, args.index, TYPE_COMPOUND,
+         args.db, args.host, args.port)
+    main(args.reactionsfile, args.index, TYPE_REACTION,
+         args.db, args.host, args.port)
