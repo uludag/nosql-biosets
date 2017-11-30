@@ -37,6 +37,28 @@ class TestQueryModelSEEDDatabase(unittest.TestCase):
             if len(i['kegg_ids']) > 15:
                 assert len(i['kegg_ids']) == rstatus[i['_id']]
 
+    def test_comparewithMetaNetX(self):
+        aggpl = [
+            {"$match": {"status": "OK"}},
+            {"$project": {"abbreviation": 1}},
+            {"$match": {"abbreviation": {"$regex": "^R[0-9]*$"}}}
+        ]
+        r = dbc.mdbi["modelseed_reaction"].aggregate(aggpl)
+        inmodelseeddb = {i['abbreviation'] for i in r}
+        assert len(inmodelseeddb) == 6766
+        aggpl = [
+            {"$match": {"balance": "true"}},
+            {"$project": {"xrefs": 1}},
+            {"$unwind": "$xrefs"},
+            {"$match": {"xrefs.lib": "kegg"}}
+        ]
+        r = dbc.mdbi["metanetx_reaction"].aggregate(aggpl)
+        inmetanetx = {i['xrefs']['id'] for i in r}
+        assert len(inmetanetx) == 7950
+        assert len(inmodelseeddb - inmetanetx) == 501
+        assert len(inmodelseeddb.union(inmetanetx)) == 8451
+        assert len(inmodelseeddb.intersection(inmetanetx)) == 6265
+
 
 if __name__ == '__main__':
     unittest.main()
