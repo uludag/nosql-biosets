@@ -1,12 +1,11 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """Index UniProt uniprot_sprot.xml.gz files, with Elasticsearch or MongoDB"""
 # TODO:
 # - Proper mapping for all attributes
 #   (unhandled attributes are deleted for now)
-# - Python2 support: type str vs unicode for text attributes ????
 
 from __future__ import print_function
-
+from six import string_types
 import argparse
 import os
 import traceback
@@ -19,7 +18,7 @@ from pymongo import IndexModel
 from nosqlbiosets.dbutils import DBconnection
 
 pool = ThreadPool(10)
-DOCTYPE = 'protein'
+DOCTYPE = 'uniprot'
 
 
 class Indexer(DBconnection):
@@ -31,7 +30,7 @@ class Indexer(DBconnection):
         indxcfg = {
             "index.number_of_replicas": 0,
             "index.number_of_shards": 10,
-            "index.refresh_interval": "10s"}
+            "index.refresh_interval": "60s"}
         super(Indexer, self).__init__(db, index, host, port,
                                       es_indexsettings=indxcfg,
                                       recreateindex=False)
@@ -79,6 +78,9 @@ class Indexer(DBconnection):
     # Sample err msg: failed to parse [comment.absorption.text]
     @staticmethod
     def updatecomment(c):
+        if 'text' in c:
+            if isinstance(c['text'], string_types):
+                c['text'] = {'#text': c['text']}
         # Following attributes are deleted for various reasons
         # We want to implement support for all UniProt attributes
         al = ['isoform', 'subcellularLocation', 'kinetics', 'phDependence',
@@ -130,7 +132,7 @@ class Indexer(DBconnection):
               'domain', 'component', 'cdAntigenName', 'innName']
         for a in al:
             if hasattr(e['protein'], a):
-                if isinstance(e['protein'][a], str):
+                if isinstance(e['protein'][a], string_types):
                     text = {'#text': e['protein'][a]}
                     e['protein'][a] = text
             elif a in e['protein']:
@@ -145,16 +147,22 @@ class Indexer(DBconnection):
 
     # Prepare UniProt entry for indexing
     def update_entry(self, entry):
+        # Make sure type of 'gene' attr is list
+        if not isinstance(entry['gene'], list):
+            entry['gene'] = [entry['gene']]
+        # Make sure type of 'gene.name' attrs are list
+        for gene in entry['gene']:
+            if not isinstance(gene['name'], list):
+                gene['name'] = [gene['name']]
         if 'comment' in entry:
             if isinstance(entry['comment'], list):
                 for c in entry['comment']:
                     self.updatecomment(c)
-                    if 'text' in c:
-                        if isinstance(c['text'], str):
-                            c['text'] = {'#text': c['text']}
                     self.updatelocation(c)
             else:
-                del entry['comment']
+                self.updatecomment(entry['comment'])
+                self.updatelocation(entry['comment'])
+                entry['comment'] = [entry['comment']]
         self.updateprotein(entry)
         if 'reference' in entry:
             if isinstance(entry['reference'], list):
@@ -173,8 +181,8 @@ def mongodb_indices(mdb):
         ("feature.description", "text"),
         ("keyword.#text", "text")])
     mdb.create_indexes([index])
-    indx_fields = ["accession", "dbReference.id", "gene.name.type",
-                   "organism.name.#text"]
+    indx_fields = ["accession", "dbReference.id", "feature.type",
+                   "gene.name.type", "organism.name.#text"]
     for field in indx_fields:
         mdb.create_index(field)
 
