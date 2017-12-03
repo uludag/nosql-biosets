@@ -68,19 +68,19 @@ def read_modelseed_datafile(infile, lineparser):
             yield r
 
 
-def es_index(escon, typetuner):
-    print("Reading from %s" % typetuner.gi_frame.f_locals['infile'])
+def es_index(dbc, infile, typetuner):
+    print("Reading from %s" % infile)
     i = 0
     t1 = time.time()
     for ok, result in streaming_bulk(
-            escon,
-            typetuner,
-            index=escon.index,
+            dbc.es,
+            read_modelseed_datafile(infile, typetuner),
+            index=dbc.index,
             chunk_size=ES_CHUNK_SIZE
     ):
         action, result = result.popitem()
         i += 1
-        doc_id = '/%s/commits/%s' % (args.index, result['_id'])
+        doc_id = '/%s/commits/%s' % (dbc.index, result['_id'])
         if not ok:
             print('Failed to %s document %s: %r' % (action, doc_id, result))
     t2 = time.time()
@@ -103,20 +103,18 @@ def mongodb_index(mdbc, infile, typetuner):
     return 1
 
 
-# TODO: this is new, not tested yet
 def main(infile, index, doctype, db, host=None, port=None):
-    indxr = DBconnection(db, index, host, port)
+    dbc = DBconnection(db, index, host, port)
     if doctype == TYPE_REACTION:
         typetuner = updatereactionrecord
     else:
         typetuner = updatecompoundrecord
     if db == 'Elasticsearch':
-        es = indxr.es
-        es_index(es, read_modelseed_datafile(infile, typetuner))
-        es.indices.refresh(index=index)
+        es_index(dbc, infile, typetuner)
+        dbc.es.indices.refresh(index=index)
     else:  # assume MongoDB
-        indxr.mdbi.drop_collection(doctype)
-        mongodb_index(indxr.mdbi[doctype], infile, typetuner)
+        dbc.mdbi.drop_collection(doctype)
+        mongodb_index(dbc.mdbi[doctype], infile, typetuner)
 
 
 if __name__ == '__main__':

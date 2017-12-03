@@ -4,7 +4,8 @@
 * [index_modelseed.py](index_modelseed.py) Index ModelSEED compounds/reactions
  data with MongoDB
  
-  _Indexing with Elasticsearch is broken_
+  TODO:: Indexing with Elasticsearch 6 requires different indices for reactions and compounds,
+  use a meta field such as '_collection' to differentiate types _
  
   _Last tested on 28 Nov 2017_
 
@@ -13,6 +14,7 @@
 https://github.com/ModelSEED/ModelSEEDDatabase
 
 
+## Example command lines for downloading and indexing
 
 ```bash
 # Download ModelSEEDDatabase Biochemistry files
@@ -25,4 +27,3 @@ wget -O ./data/reactions.tsv https://github.com/ModelSEED/ModelSEEDDatabase/blob
 # Index reactions, requires ~2m
 ./nosqlbiosets/kbase/index_modelseed.py --db MongoDB --index biosets --reactionsfile data/reactions.tsv
 ```
-
