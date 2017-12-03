@@ -47,7 +47,7 @@ class Indexer(DBconnection):
                                 item_callback=self.index_uniprot_entry,
                                 attr_prefix='')
         else:
-            with open(infile, 'rb', buffering=1000) as inf:
+            with open(infile, 'rb') as inf:
                 xmltodict.parse(inf, item_depth=2,
                                 item_callback=self.index_uniprot_entry,
                                 attr_prefix='')
@@ -55,9 +55,9 @@ class Indexer(DBconnection):
 
     def index_uniprot_entry(self, _, entry):
         def index():
-            self.update_entry(entry)
-            docid = entry['name']
             try:
+                self.update_entry(entry)
+                docid = entry['name']
                 if self.db == "Elasticsearch":
                     self.es.index(index=self.index, doc_type=self.doctype,
                                   op_type='create', ignore=409,
@@ -148,12 +148,13 @@ class Indexer(DBconnection):
     # Prepare UniProt entry for indexing
     def update_entry(self, entry):
         # Make sure type of 'gene' attr is list
-        if not isinstance(entry['gene'], list):
-            entry['gene'] = [entry['gene']]
-        # Make sure type of 'gene.name' attrs are list
-        for gene in entry['gene']:
-            if not isinstance(gene['name'], list):
-                gene['name'] = [gene['name']]
+        if 'gene' in entry:
+            if not isinstance(entry['gene'], list):
+                entry['gene'] = [entry['gene']]
+            # Make sure type of 'gene.name' attrs are list
+            for gene in entry['gene']:
+                if not isinstance(gene['name'], list):
+                    gene['name'] = [gene['name']]
         if 'comment' in entry:
             if isinstance(entry['comment'], list):
                 for c in entry['comment']:
