@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" Simple queries with UniProt data indexed with MongoDB or Elasticsearch """
+""" Queries with UniProt data indexed with MongoDB or Elasticsearch """
 # Server connection details are read from conf/dbserver.json file
 
 from nosqlbiosets.dbutils import DBconnection
@@ -11,6 +11,15 @@ class QueryUniProt:
         self.index = index
         self.doctype = doctype
         self.dbc = DBconnection(db, self.index)
+
+    def query(self, qc, projection=None, limit=0):
+        c = self.dbc.mdbi[self.doctype].find(qc, projection=projection,
+                                             limit=limit)
+        return c
+
+    def aggregate_query(self, agpl):
+        r = self.dbc.mdbi[self.doctype].aggregate(agpl)
+        return r
 
     # Get UniProt acc ids for given enzyme
     def getaccs(self, ecn):
@@ -55,9 +64,12 @@ class QueryUniProt:
                     "as": "uniprot"
                 }},
                 {"$unwind": "$uniprot"},
+                {"$unwind": "$uniprot.gene"},
+                {"$unwind": "$uniprot.gene.name"},
                 {"$project": {"uniprot.gene.name.#text": 1}},
             ]
             docs = self.dbc.mdbi[doctype].aggregate(agpl)
+            docs = list(docs)
             r = {doc['uniprot']['gene']['name']['#text']
                  for doc in docs}
             return r

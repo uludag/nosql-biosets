@@ -35,11 +35,11 @@ _Server default connection settings are read from [../../conf/dbservers.json](
 ```bash
 # Index with Elasticsearch
 ./nosqlbiosets/uniprot/index.py --infile ./data/uniprot_sprot.xml.gz\
- --host localhost --db Elasticsearch
+ --host localhost --db Elasticsearch  --index uniprot
 
 # Index with MongoDB
 ./nosqlbiosets/uniprot/index.py --infile ./data/uniprot_sprot.xml.gz\
- --host localhost --db MongoDB 
+ --host localhost --db MongoDB --index biosets
 ```
 
 ## PSI MI-TAB support
@@ -51,7 +51,7 @@ This folder also includes support for PSI-MI TAB interaction data files
   * _At its early stages, field names were selected similart to
    the filed names in [Molecular Interactions Query Language](
    http://psicquic.github.io/MiqlReference27.html)_
-  * _Tested with [HIPPIE](http://cbdm-01.zdv.uni-mainz.de/~mschaefer/hippie/)
+  * _Tested with [HIPPIE](http://cbdm-01.zdv.uni-mainz.de/~mschaefer/hippie)
    database only, Human Integrated Protein-Protein Interaction rEference_ 
  
  ### Links for the PSI MI-TAB format
