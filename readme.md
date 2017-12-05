@@ -23,6 +23,11 @@ ftp://ftp.ebi.ac.uk/pub/databases/intenz/xml/
 ) in XML format:
   [`./nosqlbiosets/intenz`](nosqlbiosets/intenz)
 
+* ModelSEEDDatabase [compounds and reactions data files](
+https://github.com/ModelSEED/ModelSEEDDatabase/tree/master/Biochemistry/)
+in tsv format:
+  [`./nosqlbiosets/kbase/index_modelseed.py`](nosqlbiosets/kbase/index_modelseed.py)
+
 * MetaNetX [compounds, reactions, and compartments data](
 http://www.metanetx.org/mnxdoc/mnxref.html
 ): [`./nosqlbiosets/metanetx`](./nosqlbiosets/metanetx)
@@ -72,11 +77,6 @@ http://ftp.ncbi.nlm.nih.gov/pub/lu/PubTator):
 * RNAcentral [identifier mappings](
 http://ftp.ebi.ac.uk/pub/databases/RNAcentral/current_release/id_mapping/),
   [`./geneinfo/rnacentral_idmappings.py`](geneinfo/rnacentral_idmappings.py)
-
-* ModelSEED [compounds and reactions data files](
-https://github.com/ModelSEED/ModelSEEDDatabase/tree/master/Biochemistry/)
-in tsv format:
-  [`./nosqlbiosets/kbase/index_modelseed.py`](nosqlbiosets/kbase/index_modelseed.py)
 
 * KEGG [pathway kgml/xml files](
 http://www.kegg.jp/kegg/download/Readme/README.kgml):
@@ -188,7 +188,7 @@ at King Abdullah University of Science and Technology, http://www.kaust.edu.sa
 
 NoSQL-biosets project is licensed with MIT license.
 If you would like to support the project
-with selecting a different license please let us know with creating an issue
+with selecting a different license please let us know by creating an issue
 on github project page.
 We will help you with contacting the relavant bodies of KAUST.
 
