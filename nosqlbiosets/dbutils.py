@@ -19,7 +19,7 @@ logger.addHandler(ch)
 class DBconnection(object):
     i = 0
 
-    # todo: rename es_indexsettings as es_settings
+    # TODO: rename es_indexsettings as es_settings
     def __init__(self, db, index, host=None, port=None,
                  user=None, password=None, recreateindex=False,
                  es_indexsettings=None, es_indexmappings=None):
@@ -29,6 +29,7 @@ class DBconnection(object):
         if port is not None and not isinstance(port, int):
             port = int(port)
         try:
+            # TODO: option to specify config file
             with open(d + "/../conf/dbservers.json", "r") as conff:
                 conf = json.load(conff)
         except IOError:
@@ -39,6 +40,7 @@ class DBconnection(object):
                 host = conf['es_host']
             if port is None:
                 port = conf['es_port']
+            # TODO: should ES index default be * ?
             self.es = Elasticsearch(host=host, port=port, timeout=120,
                                     maxsize=130)
             logger.info("New Elasticsearch connection to host '%s'" % host)
@@ -58,7 +60,7 @@ class DBconnection(object):
                                                auth=basic_auth(user, password))
             logger.info("New Neo4j connection to host '%s'" % host)
             self.neo4jc = self.driver.session()
-        else:  # MongoDB
+        elif db == "MongoDB":
             if host is None:
                 host = conf['mongodb_host']
             if port is None:
@@ -66,6 +68,15 @@ class DBconnection(object):
             mc = MongoClient(host, port)
             logger.info("New MongoDB connection: '%s:%d'" % (host, port))
             self.mdbi = mc[index]
+        else:  # Assume PostgreSQL
+            from sqlalchemy import create_engine
+            if port is None:
+                port = 5432
+            if host is None:
+                host = 'localhost'
+            url = 'postgresql://{}:{}@{}:{}/{}'
+            url = url.format(user, password, host, port, index)
+            self.sqlc = create_engine(url, client_encoding='utf8', echo=False)
 
     def check_elasticsearch_index(self, recreate, settings, indexmappings):
         if self.db == 'Elasticsearch':

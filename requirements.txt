@@ -8,3 +8,5 @@ psamm
 cobra
 six
 SQLAlchemy
+networkx
+pandas
