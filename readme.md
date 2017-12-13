@@ -14,17 +14,15 @@ was added as the 3rd database option.
 ## Datasets supported
 
 * UniProtKB [datasets](
-ftp://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/knowledgebase/complete/
+ftp://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/knowledgebase/complete
 ) in XML format:
   [`./nosqlbiosets/uniprot`](nosqlbiosets/uniprot)
 
-* IntEnz [dataset](
-ftp://ftp.ebi.ac.uk/pub/databases/intenz/xml/
-) in XML format:
+* IntEnz [dataset](ftp://ftp.ebi.ac.uk/pub/databases/intenz/xml) in XML format:
   [`./nosqlbiosets/intenz`](nosqlbiosets/intenz)
 
 * ModelSEEDDatabase [compounds and reactions data files](
-https://github.com/ModelSEED/ModelSEEDDatabase/tree/master/Biochemistry/)
+https://github.com/ModelSEED/ModelSEEDDatabase/tree/master/Biochemistry)
 in tsv format:
   [`./nosqlbiosets/kbase/index_modelseed.py`](nosqlbiosets/kbase/index_modelseed.py)
 
@@ -40,8 +38,8 @@ http://www.metanetx.org/mnxdoc/mnxref.html
 
 * HGNC, [genenames.org](http://www.genenames.org/cgi-bin/statistics),
  [data files in json format](
- http://ftp.ebi.ac.uk/pub/databases/genenames/new/json/),
-  from EMBL-EBI: [`./geneinfo/index-hgnc-geneinfo.py`](geneinfo/index-hgnc-geneinfo)
+ http://ftp.ebi.ac.uk/pub/databases/genenames/new/json),
+  from EMBL-EBI: [`./geneinfo/hgnc_geneinfo.py`](geneinfo/hgnc_geneinfo.py)
   (_tests made with [complete HGNC dataset](
   ftp://ftp.ebi.ac.uk/pub/databases/genenames/new/json/hgnc_complete_set.json))
 
@@ -49,7 +47,7 @@ http://www.metanetx.org/mnxdoc/mnxref.html
  [PSAMM project](https://github.com/zhanglab/psamm-model-collection)'s
   yaml format: [`./nosqlbiosets/pathways/index_metabolic_networks.py`](
   nosqlbiosets/pathways/index_metabolic_networks.py)
-   (_recent work, tests made with [BiGG](http://bigg.ucsd.edu/)
+   (_recent work, tests made with [BiGG](http://bigg.ucsd.edu)
     and PSAMM collections_)
 
 * PubChem [BioAssay](http://ftp.ncbi.nlm.nih.gov/pubchem/Bioassay) json files:
@@ -66,8 +64,8 @@ http://www.wikipathways.org/index.php/Download_Pathways):
   ./nosqlbiosets/pubmed/index_pmc_articles.py)
 
 * Ensembl regulatory build [GFF files](
-http://ftp.ensemblorg.ebi.ac.uk/pub/current_regulation/homo_sapiens/):
-  [`./geneinfo/ensembl_regbuild.py`]([geneinfo/ensembl_regbuild.py)
+http://ftp.ensemblorg.ebi.ac.uk/pub/current_regulation/homo_sapiens):
+  [`./geneinfo/ensembl_regbuild.py`](geneinfo/ensembl_regbuild.py)
   _at its early stages of development_
 
 * PubTator [gene2pub and disease2pub mappings](
@@ -75,7 +73,7 @@ http://ftp.ncbi.nlm.nih.gov/pub/lu/PubTator):
   [`./nosqlbiosets/pubtator`](nosqlbiosets/pubtator)
 
 * RNAcentral [identifier mappings](
-http://ftp.ebi.ac.uk/pub/databases/RNAcentral/current_release/id_mapping/),
+http://ftp.ebi.ac.uk/pub/databases/RNAcentral/current_release/id_mapping),
   [`./geneinfo/rnacentral_idmappings.py`](geneinfo/rnacentral_idmappings.py)
 
 * KEGG [pathway kgml/xml files](
@@ -98,7 +96,7 @@ We want to implement automated tests as early as
 possible, this should help us to understand where we are in minimal time.
 
 In a separate [project](https://github.com/uludag/hspsdb-indexer)
-we have developed index scripts for sequence
+we have been developing index scripts for sequence
 similarity search results, either in NCBI-BLAST xml/json formats
 or in SAM/BAM formats
 
