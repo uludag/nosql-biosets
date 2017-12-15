@@ -1,11 +1,11 @@
 
-# Index script for IntEnz Enzyme database
+# Index script for IntEnz Enzyme dataset
 
-* [index.py](index.py): Index [IntEnz](http://www.ebi.ac.uk/intenz/) xml files,
-  tested with IntEnz release Nov 2017
+* [index.py](index.py): Index [IntEnz](http://www.ebi.ac.uk/intenz) xml files,
+  tested with IntEnz release Dec 2017
 
 * [query.py](query.py): Query API, at its early stages,
-  more with MongoDB, few with Neo4j
+  more queries with MongoDB, few with Neo4j
 
 * [tests.py](tests.py): Tests for the query API
 
@@ -19,7 +19,7 @@ _Server default connection settings are read from [../../conf/dbservers.json](
 mkdir -p data
 wget -P ./data http://ftp.ebi.ac.uk/pub/databases/intenz/xml/ASCII/intenz.xml
 
-# Index with Elasticsearch, requires ~3m
+# Index with Elasticsearch, requires ~2m
 ./nosqlbiosets/intenz/index.py --db Elasticsearch --infile ./data/intenz.xml\
  --index intenz
 

@@ -65,7 +65,7 @@ class TestQueryIntEnz(unittest.TestCase):
             assert len(r) >= 1
             assert enz in r
 
-    def test__lookup_with_connected_metabolites(self):
+    def test_lookup_with_connected_metabolites(self):
         source, target, e1, e2 = "2-oxoglutarate", "glyoxylate",\
                                 "LL-diaminopimelate aminotransferase",\
                                 "Glycine oxidase"  # EC 2.6.1.83 -> 1.4.3.19
@@ -107,7 +107,7 @@ class TestQueryIntEnz(unittest.TestCase):
     def test_neo4j_getreactions(self):
         nqry = QueryIntEnz("Neo4j")
         r = list(nqry.getreactions())
-        assert len(r) == 38
+        assert len(r) == 6197
 
     def test_mdb_getreactions(self):
         qc = {'$text': {'$search': 'semialdehyde'}}
