@@ -11,16 +11,16 @@ qryuniprot_es = QueryUniProt("Elasticsearch", "uniprot", "uniprot")
 
 class TestQueryUniProt(unittest.TestCase):
 
-    def test_keggid_queries_es(self):
+    def test_kegg_geneid_queries_es(self):
         db = "Elasticsearch"
-        mids = qryuniprot_es.getnamesforkegggeneids(
+        mids = qryuniprot_es.getnamesforkegg_geneids(
             ['hsa:7157', 'hsa:121504'], db)
         self.assertSetEqual(set(mids), {'P53_HUMAN', 'H4_HUMAN'})
 
-    def test_keggid_queries_mdb(self):
+    def test_kegg_geneid_queries_mdb(self):
         db = "MongoDB"
-        mids = qryuniprot.getnamesforkegggeneids(['hsa:7157', 'hsa:121504'], db)
-        self.assertSetEqual(set(mids), {'P53_HUMAN', 'H4_HUMAN'})
+        ids = qryuniprot.getnamesforkegg_geneids(['hsa:7157', 'hsa:121504'], db)
+        self.assertSetEqual(set(ids), {'P53_HUMAN', 'H4_HUMAN'})
 
     def test_genes_linkedto_keggreaction(self, db="MongoDB"):
         keggids = [('R01047', {'dhaB'}), ('R03119', {'dhaT'})]
@@ -28,6 +28,19 @@ class TestQueryUniProt(unittest.TestCase):
             for keggid, genes in keggids:
                 self.assertSetEqual(genes, qryuniprot.
                                     genes_linkedto_keggreaction(keggid))
+
+    def test_get_lca(self):
+        tests = [
+            (['CLPC1_ARATH', 'CLPB_GLOVI', 'CLPC2_ORYSJ', 'CLPB_CHLCV'], None),
+            (['RPOB_RHOS1', 'RPOB_RHOS4', 'RPOB_RHOSK', 'RPOB_RHOS5'],
+             'Rhodobacter')]
+        for ids, taxon in tests:
+            r = qryuniprot.get_lca({'_id': {"$in": ids}})
+            r = list(r)
+            if taxon is None:
+                assert [] == r
+            else:
+                assert taxon == r[-1]
 
     '''
     http://www.uniprot.org/help/evidences
@@ -43,7 +56,7 @@ class TestQueryUniProt(unittest.TestCase):
             312: 623    # imported information used in manual assertion
         }
         qc = {'$text': {'$search': 'antimicrobial'}}
-        assert len(list(qryuniprot.query(qc, {'_id': 1}))) == 4057
+        assert 4057 == len(list(qryuniprot.query(qc, {'_id': 1})))
         aggqc = [
             {"$match": qc},
             {"$unwind": "$evidence"},
@@ -54,7 +67,7 @@ class TestQueryUniProt(unittest.TestCase):
         hits = qryuniprot.aggregate_query(aggqc)
         r = [c for c in hits]
         print(r)
-        assert len(r) == 7
+        assert 7 == len(r)
         for i in r:
             assert ecodes[int(i['_id'][8:])] == i['sum']
 

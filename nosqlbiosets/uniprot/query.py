@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" Queries with UniProt data indexed with MongoDB or Elasticsearch """
+""" Queries UniProt data indexed with MongoDB or Elasticsearch """
 # Server connection details are read from conf/dbserver.json file
 
 from nosqlbiosets.dbutils import DBconnection
@@ -22,22 +22,26 @@ class QueryUniProt:
         return r
 
     # Get UniProt acc ids for given enzyme
-    def getaccs(self, ecn):
-        qc = {"dbReference.id": ecn}
+    def getaccs(self, ecn, reftype="EC"):
+        qc = {"dbReference.id": ecn, "dbReference.type": reftype}
         key = 'accession'
         r = self.dbc.mdbi[self.doctype].distinct(key, filter=qc)
         return r
 
     # Get names of the genes for given enzyme
-    def getgenes(self, ecn, limit=100):
+    def getgenes(self, ecn, reftype="EC", limit=100):
         if self.dbc.db == 'Elasticsearch':
-            qc = {"query": {"match": {"dbReference.id": ecn}},
-                  "aggs": {
-                      "genes": {
-                          "terms": {
-                              "field": "gene.name.#text.keyword",
-                              "size": limit
-                          }}}}
+            qc = {
+                "query": {
+                    "bool": {
+                        "must": [{"match": {"dbReference.id": ecn}},
+                                 {"match": {"dbReference.type": reftype}}]}},
+                "aggs": {
+                    "genes": {
+                        "terms": {
+                            "field": "gene.name.#text.keyword",
+                            "size": limit
+                        }}}}
             hits, n, aggs = self.esquery(
                 self.dbc.es, self.index, qc, self.doctype)
             r = (b['key'] for b in aggs['genes']['buckets'])
@@ -49,7 +53,7 @@ class QueryUniProt:
         return r
 
     # Find related genes for given KEGG reaction
-    # Finds UniProt ids by querying the IntEnz dataset
+    # Finds UniProt ids by querying the IntEnz dataset with given KEGG ids
     def genes_linkedto_keggreaction(self, keggrid):
         doctype = "intenz"
         if self.dbc.db == 'MongoDB':
@@ -74,8 +78,9 @@ class QueryUniProt:
                  for doc in docs}
             return r
 
-    # Get names of the organisms for given enzyme
-    def getorganisms(self, ecn, limit=100):
+    # Get names of the organisms for given enzyme or for entries selected
+    # by the query clause qc
+    def getorganisms(self, ecn, qc=None, limit=100):
         if self.dbc.db == 'Elasticsearch':
             qc = {"query": {"match": {"dbReference.id": ecn}},
                   "aggs": {
@@ -88,11 +93,34 @@ class QueryUniProt:
                 self.dbc.es, self.index, qc, self.doctype)
             r = (b['key'] for b in aggs['organisms']['buckets'])
         else:
-            qc = {"dbReference.id": ecn}
-            key = 'gene.name.#text'
+            if qc is None:
+                qc = {"dbReference.id": ecn}
+            key = 'organism.name.#text'
             r = self.dbc.mdbi[self.doctype].distinct(key, filter=qc,
                                                      limit=limit)
         return r
+
+    # Get lowest common ancestor for entries selected by the query clause qc
+    def get_lca(self, qc):
+        aggq = [
+            {"$match": qc},
+            {"$project": {'organism.lineage.taxon': 1}},
+            {"$project": {'_id': 0, 'taxon': '$organism.lineage.taxon'}}
+        ]
+        r = self.aggregate_query(aggq)
+        lca = None
+        for i in r:
+            if lca is None:
+                lca = i['taxon']
+            else:
+                j = 0
+                for taxon in lca:
+                    if taxon != i['taxon'][j]:
+                        lca = lca[:j]
+                        break
+                    else:
+                        j += 1
+        return lca
 
     # Get names of the metabolic pathway(s) associated with an enzyme
     # http://www.uniprot.org/help/pathway
@@ -103,7 +131,7 @@ class QueryUniProt:
             {"$match": {"comment.type": "pathway"}},
             {"$group": {"_id": "$comment.text.#text"}}
         ]
-        r = self.dbc.mdbi[self.doctype].aggregate(aggq)
+        r = self.aggregate_query(aggq)
         r = [pathway['_id'] for pathway in r]
         return r
 
@@ -121,7 +149,7 @@ class QueryUniProt:
         return r
 
     # Get UniProt names(=ids) for given KEGG gene ids
-    def getnamesforkegggeneids(self, kgids, db="MongoDB"):
+    def getnamesforkegg_geneids(self, kgids, db="MongoDB"):
         if db == 'Elasticsearch':
             esc = DBconnection(db, self.index)
             qc = {"match": {
@@ -133,9 +161,6 @@ class QueryUniProt:
             qc = {"dbReference.id": {'$in': kgids}}
             key = 'name'
             r = self.dbc.mdbi[self.doctype].distinct(key, filter=qc)
-            print("#accs = %d" % len(r))
-            print(qc)
-        print(r)
         return r
 
     @staticmethod
