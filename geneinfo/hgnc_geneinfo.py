@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Index HGNC gene info files with Elasticsearch, MongoDB or PostgresSQL
+# Index HGNC gene info files with Elasticsearch, MongoDB or PostgreSQL
 
 import argparse
 import gzip
@@ -16,10 +16,10 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.types import ARRAY
 
 # Default index name with Elascticsearch,
-# database name with MongoDB and PostgresSQL
+# database name with MongoDB and PostgreSQL
 INDEX = "geneinfo"
 # Default document type name for Elascticsearch index entries,
-# collection name with MongoDB, and table name with PostgresSQL
+# collection name with MongoDB, and table name with PostgreSQL
 DOCTYPE = 'hgncgeneinfo'
 CHUNKSIZE = 64
 SOURCEURL = "http://ftp.ebi.ac.uk/pub/databases/genenames/" \
@@ -41,6 +41,7 @@ def read_and_index_hgnc_file(infile, dbc, indexfunc):
 # https://www.genenames.org/help/statistics-downloads
 def read_genes(l):
     for gene in l['docs']:
+        # Following attributes are ignored until we implemented support
         for attr in ['pseudogene.org', "homeodb", "kznf_gene_catalog",
                      "intermediate_filament_db", "bioparadigms_slc",
                      "mamit-trnadb", "horde_id", "snornabase"]:
@@ -182,27 +183,27 @@ def main(db, infile, index, user=None, password=None, host=None, port=None):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
-        description='Index HGNC gene-info file using Elasticsearch, '
-                    'MongoDB or PostgresSQL, downloaded from ' + SOURCEURL)
+        description='Index HGNC gene-info json file using Elasticsearch, '
+                    'MongoDB or PostgreSQL, downloaded from ' + SOURCEURL)
     parser.add_argument('--infile',
                         required=True,
                         help='Input HGNC file to index')
     parser.add_argument('--index', default=INDEX,
                         help='Index name for Elasticsearch, '
-                             'database name for MongoDB and PostgresSQL')
+                             'database name for MongoDB and PostgreSQL')
     parser.add_argument('--host',
                         help='Hostname for the database server')
     parser.add_argument('--port',
                         help="Port number of the database server")
     parser.add_argument('--db', default='PostgreSQL',
                         help="Database: 'Elasticsearch', 'MongoDB',"
-                             " or 'PostgresSQL'")
+                             " or 'PostgreSQL'")
     parser.add_argument('--user',
                         help="Database user name, "
-                             "supported with PostgresSQL option only")
+                             "supported with PostgreSQL option only")
     parser.add_argument('--password',
                         help="Password for the database user, "
-                             " supported with PostgresSQL option only")
+                             " supported with PostgreSQL option only")
     args = parser.parse_args()
     main(args.db, args.infile, args.index,
          args.user, args.password, args.host, args.port)

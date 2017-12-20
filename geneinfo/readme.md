@@ -2,24 +2,28 @@
 ## HGNC gene info
 
 [hgnc_geneinfo.py](hgnc_geneinfo.py); Index HGNC data using Elasticsearch,
- MongoDB or PostgresSQL
+ MongoDB or PostgreSQL
+ 
+ Tested with Dec 2017 release
 
 ```bash
 mkdir -p data
+# ~30M
 wget -P ./data http://ftp.ebi.ac.uk/pub/databases/genenames/new/json/hgnc_complete_set.json
-
+# Requires ~1m
 ./geneinfo/hgnc_geneinfo.py --infile ./data/hgnc_complete_set.json --db Elasticsearch
-
-./geneinfo/hgnc_geneinfo.py --infile ./data/hgnc_complete_set.json --db MongoDB
-
-# Assume PostgresSQL database with name geneinfo has already been created
+# Requires ~10s
+./geneinfo/hgnc_geneinfo.py --infile ./data/hgnc_complete_set.json --db MongoDB\
+ --index biosets
+# Requires ~1m
+# Assume PostgreSQL database with name geneinfo has already been created
 # and the user `tests` have access to the database with password 'tests'
 # Use --hosts and  --port options if the database host is different than localhost
 # or if its port number is different than 5432
 ./geneinfo/hgnc_geneinfo.py --infile ./data/hgnc_complete_set.json\
- --db PostgresSQL --index geneinfo --user tests --password tests
+ --db PostgreSQL --index geneinfo --user tests --password tests
 ```
-PostgresSQL support is based on [SQLAlchemy](http://www.sqlalchemy.org/) library
+PostgreSQL support is based on [SQLAlchemy](http://www.sqlalchemy.org) library
 
 ### Similar work
 
@@ -28,12 +32,18 @@ PostgresSQL support is based on [SQLAlchemy](http://www.sqlalchemy.org/) library
 
 ## RNAcentral id mappings
 
+Tested with RNAcentral Release 8, 5/12/2017
+
 ```bash
 mkdir -p data
+# ~300M
 wget -P ./data http://ftp.ebi.ac.uk/pub/databases/RNAcentral/current_release/id_mapping/id_mapping.tsv.gz
-./geneinfo/rnacentral_idmappings.py --infile ./data/rnacentral-v7_id_mapping.tsv.gz --db Elasticsearch
-./geneinfo/rnacentral_idmappings.py --infile ./data/rnacentral-v7_id_mapping.tsv.gz --db MongoDB
-
+# Requires ~50m
+./geneinfo/rnacentral_idmappings.py --infile ./data/id_mapping.tsv.gz --db Elasticsearch\
+ --index rnacentral
+# Requires ~25m
+./geneinfo/rnacentral_idmappings.py --infile ./data/id_mapping.tsv.gz --db MongoDB\
+ --index biosets
 ```
 
 MongoDB index time; ~12m for inserts, ~15m for text/field indicies
