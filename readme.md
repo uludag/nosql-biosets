@@ -8,7 +8,7 @@ and formats, such as SBML and GFF.
 In the early stages of the project only indexing with Elasticsearch was supported.
 Later MongoDB support was implemented for most of the datasets already included
 in the project.
-For IntEnz, PubTator and HGNC datasets, Neo4j or PostgresSQL support
+For IntEnz, PubTator and HGNC datasets, Neo4j or PostgreSQL support
 was added as the 3rd database option.
 
 ## Datasets supported
@@ -127,7 +127,7 @@ parameters in command line.
 ## Usage
 
 Example command lines for downloading UniProt Knowledgebase Swiss-Prot data set
-(~680M) and for indexing:
+(~690M) and for indexing:
 ```bash
 $ wget ftp://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/\
 knowledgebase/complete/uniprot_sprot.xml.gz
@@ -140,7 +140,8 @@ After extracting the tar file just `cd` to your Elasticsearch folder
 and run `./bin/elasticsearch` command.
 
 Now we can index downloaded UniProt xml file by running the following command
-from nosqlbiosets project root folder (typically takes 5 to 8 hours,
+from nosqlbiosets project root folder (typically requires 7 to 8 hours
+with Elasticsearch, and between 4 and 5 hours with MongoDB) 
 we can go to the next step without waiting the termination of whole
 indexing process).
 
@@ -178,6 +179,14 @@ curl -XGET "http://localhost:9200/uniprot/_search?pretty=true"\
 Check [`./tests/test_uniprot_queries.py`](tests/test_uniprot_queries.py) 
 and [`./nosqlbiosets/uniprot/query.py`](./nosqlbiosets/uniprot/query.py) for
 example queries with Elasticsearch and MongoDB.
+
+## Similar Work
+
+* https://github.com/daler/gffutils
+  "GFF and GTF Files are loaded into sqlite3 databases,
+  allowing much more complex manipulation of hierarchical features
+  (e.g., genes, transcripts, and exons) than is possible with plain-text methods alone"
+* https://github.com/quinlan-lab/vcf2db (sqlite, mysql, postgres)
 
 ## Copyright
 

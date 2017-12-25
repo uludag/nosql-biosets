@@ -120,13 +120,18 @@ class QueryUniProt:
                         break
                     else:
                         j += 1
+                if j == 0:
+                    break
         return lca
 
-    # Get names of the metabolic pathway(s) associated with an enzyme
+    # Get names of the metabolic pathway(s) associated with an enzyme,
+    # or for entries selected by the query clause qc
     # http://www.uniprot.org/help/pathway
-    def getpathways(self, ecn):
+    def getpathways(self, ecn, qc=None):
+        if qc is None:
+            qc = {"dbReference.id": ecn}
         aggq = [
-            {"$match": {"dbReference.id": ecn}},
+            {"$match": qc},
             {"$unwind": "$comment"},
             {"$match": {"comment.type": "pathway"}},
             {"$group": {"_id": "$comment.text.#text"}}
@@ -135,11 +140,15 @@ class QueryUniProt:
         r = [pathway['_id'] for pathway in r]
         return r
 
-    # Catalytic activity of an enzyme, i.e. the chemical reaction it catalyzes
+    # Catalytic activities of an enzyme, or of entries selected
+    # by the query clause qc
+    # i.e. the chemical reactions catalyzed by enzyme(s)
     # http://www.uniprot.org/help/catalytic_activity
-    def getcatalyticactivity(self, ecn):
+    def getcatalyticactivity(self, ecn, qc=None):
+        if qc is None:
+            qc = {"dbReference.id": ecn}
         aggq = [
-            {"$match": {"dbReference.id": ecn}},
+            {"$match": qc},
             {"$unwind": "$comment"},
             {"$match": {"comment.type": "catalytic activity"}},
             {"$group": {"_id": "$comment.text.#text"}}

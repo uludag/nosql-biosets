@@ -42,21 +42,19 @@ class TestQueryUniProt(unittest.TestCase):
             else:
                 assert taxon == r[-1]
 
-    '''
-    http://www.uniprot.org/help/evidences
-    '''
+    # Distribution of evidence codes in a test query result set
     def test_evidence_codes(self):
-        ecodes = {
-            255: 3342,  # match to sequence model evidence, manual assertion
-            269: 4596,  # experimental evidence used in manual assertion
-            305: 3678,  # curator inference used in manual assertion
-            250: 2754,  # sequence similarity evidence used in manual assertion
-            303: 1183,  # non-traceable author statement, manual assertion
-            244: 649,   # combinatorial evidence used in manual assertion
-            312: 623    # imported information used in manual assertion
-        }
         qc = {'$text': {'$search': 'antimicrobial'}}
-        assert 4057 == len(list(qryuniprot.query(qc, {'_id': 1})))
+        ecodes = {  # http://www.uniprot.org/help/evidences
+            255: 3343,  # match to sequence model evidence, manual assertion
+            269: 4627,  # experimental evidence used in manual assertion
+            305: 3699,  # curator inference used in manual assertion
+            250: 2770,  # sequence similarity evidence used in manual assertion
+            303: 1209,  # non-traceable author statement, manual assertion
+            244: 651,   # combinatorial evidence used in manual assertion
+            312: 626    # imported information used in manual assertion
+        }
+        assert 4067 == len(list(qryuniprot.query(qc, {'_id': 1})))
         aggqc = [
             {"$match": qc},
             {"$unwind": "$evidence"},
