@@ -182,11 +182,16 @@ example queries with Elasticsearch and MongoDB.
 
 ## Similar Work
 
-* https://github.com/daler/gffutils
-  "GFF and GTF Files are loaded into sqlite3 databases,
+* https://github.com/daler/gffutils:
+  "GFF and GTF files are loaded into SQLite3 databases,
   allowing much more complex manipulation of hierarchical features
-  (e.g., genes, transcripts, and exons) than is possible with plain-text methods alone"
-* https://github.com/quinlan-lab/vcf2db (sqlite, mysql, postgres)
+  (e.g., genes, transcripts, and exons) than is possible with plain-text methods
+  alone"
+  
+  _We are inspired by the gffutils project but needless to say that nosql-biosets
+   project doesn't yet have a level of maturity comparable to the gffutils library_.
+  
+* https://github.com/quinlan-lab/vcf2db (SQLite, MySQL, PostgreSQL)
 
 ## Copyright
 
