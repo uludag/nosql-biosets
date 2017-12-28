@@ -74,24 +74,28 @@ class TestQueryUniProt(unittest.TestCase):
                   "Aromatic compound metabolism.",
                   'D-fructose 1,6-bisphosphate = glycerone phosphate'
                   ' + D-glyceraldehyde 3-phosphate.',
-                  'Methanococcus jannaschii'),
+                  'Methanococcus jannaschii', 'common', 1),
                  ('2.5.1.-', {'Q3J5F9'}, {'ctaB'},
                   "Alkaloid biosynthesis.",
                   '2,5-dichlorohydroquinone + 2 glutathione ='
                   ' chloride + chlorohydroquinone + glutathione disulfide.',
-                  'Arabidopsis thaliana'),
+                  'Arabidopsis thaliana', 'scientific', 19),
                  ('5.4.2.2', {'P93804'}, {'PGM1'},
                   "Glycolipid metabolism;"
                   " diglucosyl-diacylglycerol biosynthesis.",
                   'Alpha-D-ribose 1-phosphate = D-ribose 5-phosphate.',
-                  'Baker\'s yeast')]
-        for ecn, accs, genes, pathway, reaction, org in enzys:
+                  'Baker\'s yeast', 'common', 2)
+                 ]
+        for ecn, accs, genes, pathway, reaction, org, nametype, n in enzys:
             assert genes.issubset(set(qryuniprot_es.getgenes(ecn)))
             assert genes.issubset(set(qryuniprot.getgenes(ecn)))
             assert accs.issubset(qryuniprot.getaccs(ecn))
             assert pathway in qryuniprot.getpathways(ecn)
             assert reaction in qryuniprot.getcatalyticactivity(ecn)
-            assert org in qryuniprot_es.getorganisms(ecn)
+            r = qryuniprot_es.getorganisms(ecn, limit=20)
+            assert (org, n) in [i for i in r[nametype]]
+            r = qryuniprot.getorganisms(ecn, limit=20)
+            assert (org, n) in [i for i in r[nametype]]
 
 
 if __name__ == '__main__':

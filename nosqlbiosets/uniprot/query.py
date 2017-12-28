@@ -81,24 +81,54 @@ class QueryUniProt:
     # Get names of the organisms for given enzyme or for entries selected
     # by the query clause qc
     def getorganisms(self, ecn, qc=None, limit=100):
+        if qc is None:
+            qc = {"dbReference.id": ecn}
         if self.dbc.db == 'Elasticsearch':
-            qc = {"query": {"match": {"dbReference.id": ecn}},
+            qc = {"query": {"match": qc},
                   "aggs": {
                       "organisms": {
                           "terms": {
-                              "field": "organism.name.#text.keyword",
-                              "size": 100
-                          }}}}
+                              "field": "organism.name.type.keyword"
+                          },
+                          "aggs": {
+                              "name": {
+                                  "terms": {
+                                      "field": "organism.name.#text.keyword",
+                                      "size": limit
+                                  }}}}}}
             hits, n, aggs = self.esquery(
                 self.dbc.es, self.index, qc, self.doctype)
-            r = (b['key'] for b in aggs['organisms']['buckets'])
+            r = (b for b in aggs['organisms']['buckets'])
+            rr = {}
+            for i in r:
+                nametype = i['key']
+                rr[nametype] = [(j['key'], j['doc_count'])
+                                for j in i['name']['buckets']]
         else:
-            if qc is None:
-                qc = {"dbReference.id": ecn}
-            key = 'organism.name.#text'
-            r = self.dbc.mdbi[self.doctype].distinct(key, filter=qc,
-                                                     limit=limit)
-        return r
+            aggq = [
+                {"$match": qc},
+                {"$project": {'organism.name': 1}},
+                {"$unwind": "$organism.name"},
+                {"$group": {
+                    "_id": {
+                        "type": "$organism.name.type",
+                        "name": "$organism.name.#text"
+                    },
+                    "total": {
+                        "$sum": 1
+                    }
+                }},
+                {"$sort": {"total": -1}},
+                {"$limit": limit}
+            ]
+            r = self.aggregate_query(aggq)
+            rr = {}
+            for i in r:
+                nametype = i['_id']['type']
+                if nametype not in rr:
+                    rr[nametype] = []
+                rr[nametype].append((i['_id']['name'], i['total']))
+        return rr
 
     # Get lowest common ancestor for entries selected by the query clause qc
     def get_lca(self, qc):
