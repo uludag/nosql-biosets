@@ -64,7 +64,6 @@ class TestQueryUniProt(unittest.TestCase):
         ]
         hits = qryuniprot.aggregate_query(aggqc)
         r = [c for c in hits]
-        print(r)
         assert 7 == len(r)
         for i in r:
             assert ecodes[int(i['_id'][8:])] == i['sum']
@@ -92,10 +91,8 @@ class TestQueryUniProt(unittest.TestCase):
             assert accs.issubset(qryuniprot.getaccs(ecn))
             assert pathway in qryuniprot.getpathways(ecn)
             assert reaction in qryuniprot.getcatalyticactivity(ecn)
-            r = qryuniprot_es.getorganisms(ecn, limit=20)
-            assert (org, n) in [i for i in r[nametype]]
-            r = qryuniprot.getorganisms(ecn, limit=20)
-            assert (org, n) in [i for i in r[nametype]]
+            assert n == qryuniprot_es.getorganisms(ecn, limit=20)[nametype][org]
+            assert n == qryuniprot.getorganisms(ecn, limit=20)[nametype][org]
 
 
 if __name__ == '__main__':

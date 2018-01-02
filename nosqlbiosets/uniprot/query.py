@@ -1,8 +1,9 @@
 #!/usr/bin/env python
-""" Queries UniProt data indexed with MongoDB or Elasticsearch """
-# Server connection details are read from conf/dbserver.json file
+""" Query UniProt data indexed with MongoDB or Elasticsearch """
+# Server connection details are read from conf/dbservers.json file
 
 from nosqlbiosets.dbutils import DBconnection
+from collections import OrderedDict
 
 
 class QueryUniProt:
@@ -98,12 +99,12 @@ class QueryUniProt:
                                   }}}}}}
             hits, n, aggs = self.esquery(
                 self.dbc.es, self.index, qc, self.doctype)
-            r = (b for b in aggs['organisms']['buckets'])
-            rr = {}
-            for i in r:
+            rr = dict()
+            for i in aggs['organisms']['buckets']:
                 nametype = i['key']
-                rr[nametype] = [(j['key'], j['doc_count'])
-                                for j in i['name']['buckets']]
+                rr[nametype] = OrderedDict()
+                for j in i['name']['buckets']:
+                    rr[nametype][j['key']] = j['doc_count']
         else:
             aggq = [
                 {"$match": qc},
@@ -122,12 +123,12 @@ class QueryUniProt:
                 {"$limit": limit}
             ]
             r = self.aggregate_query(aggq)
-            rr = {}
+            rr = dict()
             for i in r:
                 nametype = i['_id']['type']
                 if nametype not in rr:
-                    rr[nametype] = []
-                rr[nametype].append((i['_id']['name'], i['total']))
+                    rr[nametype] = OrderedDict()
+                rr[nametype][i['_id']['name']] = i['total']
         return rr
 
     # Get lowest common ancestor for entries selected by the query clause qc
