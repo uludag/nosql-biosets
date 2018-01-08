@@ -29,28 +29,58 @@ class QueryUniProt:
         r = self.dbc.mdbi[self.doctype].distinct(key, filter=qc)
         return r
 
-    # Get names of the genes for given enzyme
-    def getgenes(self, ecn, reftype="EC", limit=100):
+    # Get names and observation numbers of the genes for given enzyme
+    # or for entries selected by the query clause qc
+    def getgenes(self, ecn, qc=None, limit=100):
+        if qc is None:
+            qc = {"dbReference.id": ecn}
         if self.dbc.db == 'Elasticsearch':
             qc = {
-                "query": {
-                    "bool": {
-                        "must": [{"match": {"dbReference.id": ecn}},
-                                 {"match": {"dbReference.type": reftype}}]}},
+                "query": {"match": qc},
                 "aggs": {
                     "genes": {
                         "terms": {
-                            "field": "gene.name.#text.keyword",
-                            "size": limit
-                        }}}}
+                            "field": "gene.name.type.keyword",
+                        },
+                        "aggs": {
+                            "name": {
+                                "terms": {
+                                    "field": "gene.name.#text.keyword",
+                                    "size": limit
+                                }}}}}}
             hits, n, aggs = self.esquery(
                 self.dbc.es, self.index, qc, self.doctype)
-            r = (b['key'] for b in aggs['genes']['buckets'])
+            r = dict()
+            for i in aggs['genes']['buckets']:
+                nametype = i['key']
+                r[nametype] = OrderedDict()
+                for j in i['name']['buckets']:
+                    r[nametype][j['key']] = j['doc_count']
         else:
-            qc = {"dbReference.id": ecn}
-            key = 'gene.name.#text'
-            r = self.dbc.mdbi[self.doctype].distinct(key, filter=qc,
-                                                     limit=limit)
+            aggq = [
+                {"$match": qc},
+                {"$project": {'gene.name': 1}},
+                {"$unwind": "$gene"},
+                {"$unwind": "$gene.name"},
+                {"$group": {
+                    "_id": {
+                        "type": "$gene.name.type",
+                        "name": "$gene.name.#text"
+                    },
+                    "total": {
+                        "$sum": 1
+                    }
+                }},
+                {"$sort": {"total": -1}},
+                {"$limit": limit}
+            ]
+            cr = self.aggregate_query(aggq)
+            r = dict()
+            for i in cr:
+                nametype = i['_id']['type']
+                if nametype not in r:
+                    r[nametype] = OrderedDict()
+                r[nametype][i['_id']['name']] = i['total']
         return r
 
     # Find related genes for given KEGG reaction
@@ -79,8 +109,8 @@ class QueryUniProt:
                  for doc in docs}
             return r
 
-    # Get names of the organisms for given enzyme or for entries selected
-    # by the query clause qc
+    # Get names and observation numbers of the organisms for given enzyme
+    # or for entries selected by the query clause qc
     def getorganisms(self, ecn, qc=None, limit=100):
         if qc is None:
             qc = {"dbReference.id": ecn}
