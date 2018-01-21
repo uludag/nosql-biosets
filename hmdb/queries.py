@@ -6,7 +6,7 @@ import networkx as nx
 from nosqlbiosets.dbutils import DBconnection
 from nosqlbiosets.graphutils import *
 
-DOCTYPE = 'drug'  # MongoDB collection name, Elasticsearch type name
+DOCTYPE = 'drug'  # MongoDB collection name
 
 
 class QueryDrugBank:

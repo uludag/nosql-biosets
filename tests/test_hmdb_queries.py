@@ -1,16 +1,9 @@
 #!/usr/bin/env python
-""" Test queries with HMDB metabolites, proteins data"""
-import logging
+""" Test queries with HMDB metabolites and proteins """
 import unittest
 
+from hmdb.index import DOCTYPE_METABOLITE, DOCTYPE_PROTEIN
 from nosqlbiosets.dbutils import DBconnection
-
-logger = logging.getLogger(__name__)
-ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
-logger.addHandler(ch)
-DOCTYPE_METABOLITE = 'hmdbmetabolite'
-DOCTYPE_PROTEIN = 'hmdbprotein'
 
 
 class QueryHMDB(unittest.TestCase):

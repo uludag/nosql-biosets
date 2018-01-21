@@ -17,7 +17,7 @@ from nosqlbiosets.objutils import unifylistattributes
 
 SOURCE_URL = "https://www.drugbank.ca/releases/latest"
 DOCTYPE = 'drug'  # MongoDB collection name
-# List attributes, is processed by function unifylistattributes()
+# List attributes, processed by function unifylistattributes()
 LIST_ATTRS = ["transporters", "drug-interactions", "food-interactions",
               "atc-codes", "affected-organisms", "targets", "enzymes",
               "carriers", "groups", "salts", "products"]
@@ -67,7 +67,7 @@ class Indexer(DBconnection):
         self.doctype = doctype
         self.index = index
         super(Indexer, self).__init__(db, index, host, port)
-        if db != "Elasticsearch":
+        if db == "MongoDB":
             self.mcl = self.mdbi[doctype]
 
     # Index DrugBank entry with MongoDB
@@ -148,14 +148,15 @@ def mongodb_indices(mdb):
     indx = [(field, pymongo.TEXT) for field in TEXT_FIELDS]
     mdb.create_indexes([IndexModel(indx,
                                    name="text-index-for-selected-fields")])
-    mdb.create_index("drugbank-id")
+    mdb.create_index("name")
+    mdb.create_index("products.name")
 
 
 def main(infile, db, index, doctype=DOCTYPE, host=None, port=None):
     indxr = Indexer(db, index, host, port, doctype)
     if db == 'MongoDB':
         parse_drugbank_xmlfile(infile, indxr.mongodb_index_entry)
-        mongodb_indices(indxr.mdbi[DOCTYPE])
+        mongodb_indices(indxr.mdbi[doctype])
     elif db == 'Elasticsearch':
         parse_drugbank_xmlfile(infile, indxr.es_index_entry)
         indxr.es.indices.refresh(index=index)
@@ -187,7 +188,12 @@ if __name__ == '__main__':
                         help="MongoDB or Elasticsearch server port number")
     parser.add_argument('--db', default='Elasticsearch',
                         help="Database: 'MongoDB' or 'Elasticsearch',"
-                             "or 'NetworkX' for saving drug-drug interaction"
-                             "network as graph file")
+                             " if not set drug-drug interaction"
+                             " network is saved to a graph file specified with"
+                             " the '--graphfile' option")
+    parser.add_argument('--graphfile', default='Elasticsearch',
+                        help="Database: 'MongoDB' or 'Elasticsearch',"
+                             "or if 'graphfile' drug-drug interaction"
+                             "network saved as graph file")
     args = parser.parse_args()
     main(args.infile, args.db, args.index, args.doctype, args.host, args.port)

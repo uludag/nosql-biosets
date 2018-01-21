@@ -13,30 +13,30 @@ class TestQueryDrugBank(unittest.TestCase):
         key = "classification.class"
         names = self.qry.distinctquery(key)
         self.assertIn("Carboxylic Acids and Derivatives", names)
-        assert len(names) == 242
+        assert 292 == len(names)
 
     def test_distinct_pfam_classes(self):
         key = "transporters.polypeptide.pfams.pfam.name"
         names = self.qry.distinctquery(key)
         self.assertIn("Alpha_kinase", names)
-        assert len(names) == 86
+        assert 90 == len(names)
 
     def test_distinct_go_classes(self):
         key = "transporters.polypeptide.go-classifiers." \
               "go-classifier.description"
         names = self.qry.distinctquery(key)
         self.assertIn("lipid transport", names)
-        assert len(names) == 1114
+        assert 1148 == len(names)
 
     def test_distinct_drug_targets(self):
         key = "targets.name"
         names = self.qry.distinctquery(key)
         self.assertIn("Isoleucine--tRNA ligase", names)
-        assert len(names) == 3985
+        assert 4022 == len(names)
         key = "targets.polypeptide.gene-name"
         names = self.qry.distinctquery(key)
         self.assertIn("RNASE4", names)
-        assert len(names) == 3720
+        assert 3757 == len(names)
         key = "targets.polypeptide.source"
         names = self.qry.distinctquery(key)
         self.assertIn("Swiss-Prot", names)
@@ -51,20 +51,67 @@ class TestQueryDrugBank(unittest.TestCase):
         key = "atc-codes.level.#text"
         atc_codes = self.qry.distinctquery(key)
         self.assertIn("Direct thrombin inhibitors", atc_codes)
-        assert len(atc_codes) == 940
+        assert 939 == len(atc_codes)
         key = "atc-codes.code"
         atc_codes = self.qry.distinctquery(key)
         self.assertIn("A10AC04", atc_codes)
-        assert len(atc_codes) == 3470
+        assert 3496 == len(atc_codes)
 
-    def test_query_approved(self):
+    def test_query_products(self):
+        key = "products.name"
+        names = self.qry.distinctquery(key)
+        self.assertIn("Refludan", names)
+        assert 68282 == len(names)
         project = {"_id": 1}
+        # Drugs with at least one approved product
         qc = {"products.approved": True}
         r = list(self.qry.query(qc, projection=project))
-        assert len(r) == 2677
+        assert 2695 == len(r)
+        names = self.qry.distinctquery(key, qc={"products.approved": True})
+        assert 68181 == len(names)
+        self.assertIn("Refludan", names)
+        agpl = [
+            {'$unwind': '$products'},
+            {'$match': qc},
+            {'$group': {
+                '_id': '$products.name',
+                "count": {"$sum": 1}}},
+            {"$sort": {"count": -1}},
+            {'$limit': 1}
+        ]
+        r = list(self.qry.aggregate_query(agpl))
+        assert {'_id': 'Ibuprofen', 'count': 708} == r[0]
+        agpl = [
+            {'$project': {
+                'products': 1,
+                'numberOfProducts': {'$size': "$products"}
+             }},
+            {'$match': qc},
+            {'$group': {
+                '_id': None,
+                "avg": {"$avg": '$numberOfProducts'},
+                "max": {"$max": '$numberOfProducts'},
+            }
+            },
+        ]
+        r = list(self.qry.aggregate_query(agpl))
+        assert 10755 == r[0]['max']
+        agpl = [
+            {'$project': {
+                'name': 1,
+                'products': 1,
+                'numberOfProducts': {'$size': "$products"}
+            }},
+            {'$match': qc},
+            {'$sort': {'numberOfProducts': -1}},
+            {'$limit': 1},
+            {'$project': {'name': 1, 'numberOfProducts': 1}}
+        ]
+        r = list(self.qry.aggregate_query(agpl))
+        assert 'Octinoxate' == r[0]['name']
         qc = {"products.approved": False}
         r = list(self.qry.query(qc, projection=project))
-        assert len(r) == 473
+        assert 708 == len(r)
 
     def test_query_atc_codes(self):
         project = {"atc-codes": 1}
@@ -90,8 +137,8 @@ class TestQueryDrugBank(unittest.TestCase):
         qc = {"affected-organisms": {
             "$in": ["Hepatitis B virus"]}}
         g = self.qry.get_connections_graph(qc, "drug-interactions")
-        assert g.number_of_edges() == 274
-        assert g.number_of_nodes() == 266
+        assert 435 == g.number_of_edges()
+        assert 428 == g.number_of_nodes()
         assert g.number_of_selfloops() == 0
 
     def test_drug_targets_graph(self):
@@ -122,31 +169,31 @@ class TestQueryDrugBank(unittest.TestCase):
         import networkx as nx
         qc = {'$text': {'$search': 'lipid'}}
         g1 = self.qry.get_connections_graph(qc, "targets")
-        assert g1.number_of_edges() == 2832
-        assert g1.number_of_nodes() == 2006
+        assert 2914 == g1.number_of_edges()
+        assert 2061 == g1.number_of_nodes()
         g2 = self.qry.get_connections_graph(qc, "enzymes")
-        assert g2.number_of_edges() == 591
-        assert g2.number_of_nodes() == 257
+        assert 594 == g2.number_of_edges()
+        assert 260 == g2.number_of_nodes()
         g3 = self.qry.get_connections_graph(qc, "transporters")
-        assert g3.number_of_edges() == 458
-        assert g3.number_of_nodes() == 210
+        assert 464 == g3.number_of_edges()
+        assert 213 == g3.number_of_nodes()
         g4 = self.qry.get_connections_graph(qc, "carriers")
-        assert g4.number_of_edges() == 98
-        assert g4.number_of_nodes() == 89
+        assert 101 == g4.number_of_edges()
+        assert 93 == g4.number_of_nodes()
         g = nx.compose_all([g1, g2, g3, g4], "lipid network")
-        assert g.number_of_edges() == 3956
-        assert g.number_of_nodes() == 2163
+        assert 4050 == g.number_of_edges()
+        assert 2220 == g.number_of_nodes()
 
     def test_get_allnetworks(self):
         tests = [
-            ({}, 22648, 11298),
+            ({}, 22927, 11376),
             ({"name": "Acetaminophen"}, 26, 27),
-            ({'$text': {'$search': 'lipid'}}, 3883, 2163)
+            ({'$text': {'$search': 'lipid'}}, 3977, 2220)
             ]
         for qc, nedges, nnodes in tests:
             g = self.qry.get_allnetworks(qc)
-            assert g.number_of_edges() == nedges
-            assert g.number_of_nodes() == nnodes
+            assert nedges == g.number_of_edges()
+            assert nnodes == g.number_of_nodes()
 
     def test_drug_enzymes_graph(self):
         qc = {"affected-organisms": {
@@ -172,7 +219,7 @@ class TestQueryDrugBank(unittest.TestCase):
 
     def test_connected_drugs(self):
         tests = [
-            ([(0, 6), (1, 9)],
+            ([(0, 6), (1, 11)],
              {'$match': {"name": "Ribavirin"}})
         ]
         for test, qc in tests:
@@ -202,7 +249,7 @@ class TestQueryDrugBank(unittest.TestCase):
                 ]
                 r = self.qry.aggregate_query(agpl)
                 r = [c for c in r]
-                assert len(r) == nr
+                assert nr == len(r)
 
 
 if __name__ == '__main__':
