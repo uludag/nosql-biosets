@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """ Index DrugBank xml dataset with MongoDB or Elasticsearch,
- also can save drug interactions graph as graph file (experimental) """
-# TODO: Improve Elasticsearch mappings, default mappings not good enough
+    can also save drug interactions as graph files (experimental) """
+
 from __future__ import print_function
 
 import argparse
@@ -10,6 +10,7 @@ from zipfile import ZipFile
 
 import networkx as nx
 import xmltodict
+from pprint import pprint
 
 from nosqlbiosets.dbutils import DBconnection
 from nosqlbiosets.objutils import checkbooleanattributes
@@ -20,11 +21,14 @@ DOCTYPE = 'drug'  # MongoDB collection name
 # List attributes, processed by function unifylistattributes()
 LIST_ATTRS = ["transporters", "drug-interactions", "food-interactions",
               "atc-codes", "affected-organisms", "targets", "enzymes",
-              "carriers", "groups", "salts", "products"]
+              "carriers", "groups", "salts", "products", 'categories',
+              'pathways', 'go-classifiers', 'external-links']
 
 
 def checkattributetypes(e):
     unifylistattributes(e, LIST_ATTRS)
+    if 'pathways' in e:
+        unifylistattributes(e['pathways'], ['drugs'])
     if "products" in e:
         for product in e["products"]:
             checkbooleanattributes(product,
@@ -80,7 +84,7 @@ class Indexer(DBconnection):
             self.reportprogress()
             r = True
         except Exception as e:
-            print(e)
+            pprint(e)
             r = False
         return r
 
