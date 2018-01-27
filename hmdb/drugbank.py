@@ -13,20 +13,21 @@ import xmltodict
 from pprint import pprint
 
 from nosqlbiosets.dbutils import DBconnection
-from nosqlbiosets.objutils import checkbooleanattributes
-from nosqlbiosets.objutils import unifylistattributes
+from nosqlbiosets.objutils import *
 
 SOURCE_URL = "https://www.drugbank.ca/releases/latest"
 DOCTYPE = 'drug'  # MongoDB collection name
 # List attributes, processed by function unifylistattributes()
 LIST_ATTRS = ["transporters", "drug-interactions", "food-interactions",
               "atc-codes", "affected-organisms", "targets", "enzymes",
-              "carriers", "groups", "salts", "products", 'categories',
+              "carriers", "groups", "salts", "products",
               'pathways', 'go-classifiers', 'external-links']
 
 
-def checkattributetypes(e):
+# Update DrugBank entry for better database representation
+def update_entry_forindexing(e):
     unifylistattributes(e, LIST_ATTRS)
+    unifylistattribute(e, 'categories', 'category')
     if 'pathways' in e:
         unifylistattributes(e['pathways'], ['drugs'])
     if "products" in e:
@@ -40,6 +41,16 @@ def checkattributetypes(e):
             for i in e[att]:
                 if 'position' in i:
                     i['position'] = int(i['position'])
+                if 'polypeptide' in i:
+                    # Delete sequence attributes
+                    if not (isinstance(i['polypeptide'], list)):
+                        del i['polypeptide']['amino-acid-sequence']
+                        del i['polypeptide']['gene-sequence']
+                    else:
+                        for j in i['polypeptide']:
+                            del j['amino-acid-sequence']
+                            del j['gene-sequence']
+
     atts = ["average-mass", "monoisotopic-mass"]
     for att in atts:
         if att in e:
@@ -77,7 +88,7 @@ class Indexer(DBconnection):
     # Index DrugBank entry with MongoDB
     def mongodb_index_entry(self, _, entry):
         try:
-            checkattributetypes(entry)
+            update_entry_forindexing(entry)
             docid = self.getdrugid(entry)
             spec = {"_id": docid}
             self.mcl.update(spec, entry, upsert=True)
@@ -91,7 +102,7 @@ class Indexer(DBconnection):
     # Index DrugBank entry with Elasticsearch
     def es_index_entry(self, _, entry):
         try:
-            checkattributetypes(entry)
+            update_entry_forindexing(entry)
             docid = self.getdrugid(entry)
             entry['drugbank-id'] = docid  # TODO: keep all ids
             self.es.index(index=self.index, doc_type=self.doctype,
@@ -159,6 +170,7 @@ def mongodb_indices(mdb):
 def main(infile, db, index, doctype=DOCTYPE, host=None, port=None):
     indxr = Indexer(db, index, host, port, doctype)
     if db == 'MongoDB':
+        indxr.mdbi.drop_collection(doctype)
         parse_drugbank_xmlfile(infile, indxr.mongodb_index_entry)
         mongodb_indices(indxr.mdbi[doctype])
     elif db == 'Elasticsearch':

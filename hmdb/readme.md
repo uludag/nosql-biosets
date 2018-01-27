@@ -53,7 +53,7 @@ requires registration. Save `drugbank_all_full_database.xml.zip` file to the
 `data` folder
 
 ```bash
-# Index with MongoDB,  takes ~10-16m
+# Index with MongoDB,  takes ~10-16m, with MongoDB Atlas ~35m
 ./hmdb/drugbank.py --infile ./data/drugbank_all_full_database.xml.zip --db MongoDB
 
 # Index with Elasticsearch,  takes ~16-22m
@@ -70,6 +70,7 @@ requires registration. Save `drugbank_all_full_database.xml.zip` file to the
 Example command line to generate and save graphs from subsets of DrugBank data
 
 ```bash
+./hmdb/queries.py --qc='{}' --graphfile targets.xml
 ./hmdb/queries.py --qc='{"carriers.name": "Serum albumin"}' --graphfile targets-sa.gml
 ```
 
