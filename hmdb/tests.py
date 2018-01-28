@@ -2,8 +2,8 @@
 """ Test queries with DrugBank data indexed with MongoDB """
 import unittest
 
-from .queries import QueryDrugBank
 from .queries import DOCTYPE
+from .queries import QueryDrugBank
 
 
 class TestQueryDrugBank(unittest.TestCase):
@@ -59,9 +59,14 @@ class TestQueryDrugBank(unittest.TestCase):
 
     def test_query_products(self):
         key = "products.name"
-        names = self.qry.distinctquery(key)
-        self.assertIn("Refludan", names)
-        assert 68282 == len(names)
+        names = self.qry.aggregate_query([
+            {'$unwind': '$products'},
+            {"$group": {
+                "_id": '$products.name'
+            }},
+            {'$group': {'_id': 1, 'count': {'$sum': 1}}}
+        ])
+        assert 68282 == list(names)[0]['count']
         project = {"_id": 1}
         # Drugs with at least one approved product
         qc = {"products.approved": True}
@@ -85,7 +90,7 @@ class TestQueryDrugBank(unittest.TestCase):
             {'$project': {
                 'products': 1,
                 'numberOfProducts': {'$size': "$products"}
-             }},
+            }},
             {'$match': qc},
             {'$group': {
                 '_id': None,
@@ -132,6 +137,25 @@ class TestQueryDrugBank(unittest.TestCase):
         interactions = r[0]["drug-interactions"]
         assert interactions[1]["drugbank-id"] == 'DB00346'
         assert interactions[1]["name"] == 'Alfuzosin'
+        key = "drug-interactions.name"
+        names = self.qry.distinctquery(key)
+        self.assertIn("Calcium Acetate", names)
+        assert 3138 == len(names)
+
+        key = "drug-interactions.drugbank-id"
+        idids = self.qry.distinctquery(key)
+        self.assertIn("DB00048", idids)
+        assert 3138 == len(idids)
+        '''
+distinct list of interacted drugs to see how many of them have approved products
+and how many of them doesn't have any approved products. 
+        '''
+        dids = self.qry.distinctquery('_id',
+                                      qc={"products.approved": True,
+                                          "drug-interactions":
+                                              {"$not": {"$size": 0}}})
+        self.assertIn("DB00048", dids)
+        assert 2695 == len(dids)
 
     def test_drug_interactions_graph(self):
         qc = {"affected-organisms": {
@@ -169,27 +193,27 @@ class TestQueryDrugBank(unittest.TestCase):
         import networkx as nx
         qc = {'$text': {'$search': 'lipid'}}
         g1 = self.qry.get_connections_graph(qc, "targets")
-        assert 2914 == g1.number_of_edges()
+        assert 2842 == g1.number_of_edges()
         assert 2061 == g1.number_of_nodes()
         g2 = self.qry.get_connections_graph(qc, "enzymes")
         assert 594 == g2.number_of_edges()
         assert 260 == g2.number_of_nodes()
         g3 = self.qry.get_connections_graph(qc, "transporters")
-        assert 464 == g3.number_of_edges()
+        assert 463 == g3.number_of_edges()
         assert 213 == g3.number_of_nodes()
         g4 = self.qry.get_connections_graph(qc, "carriers")
         assert 101 == g4.number_of_edges()
         assert 93 == g4.number_of_nodes()
-        g = nx.compose_all([g1, g2, g3, g4], "lipid network")
-        assert 4050 == g.number_of_edges()
+        g = nx.compose_all([g1, g2, g3, g4])
+        assert 3977 == g.number_of_edges()
         assert 2220 == g.number_of_nodes()
 
     def test_get_allnetworks(self):
         tests = [
-            ({}, 22927, 11376),
+            # ({}, 22927, 11376),
             ({"name": "Acetaminophen"}, 26, 27),
             ({'$text': {'$search': 'lipid'}}, 3977, 2220)
-            ]
+        ]
         for qc, nedges, nnodes in tests:
             g = self.qry.get_allnetworks(qc)
             assert nedges == g.number_of_edges()
@@ -217,15 +241,19 @@ class TestQueryDrugBank(unittest.TestCase):
         assert len(genes) == 43
         self.assertIn('PRSS3', genes)
 
-    def test_connected_drugs(self):
+    def test_number_of_interacted_drugs(self):
         tests = [
-            ([(0, 6), (1, 11)],
-             {'$match': {"name": "Ribavirin"}})
+            ([(0, 124), (1, 882)],
+             {'$text': {'$search': "tuberculosis"}}),
+            ([(0, 38), (1, 108), (2, 690)],
+             {'$text': {'$search': "antitubercular"}}),
+            ([(0, 6), (1, 11), (2, 93)],
+             {"name": "Ribavirin"})
         ]
         for test, qc in tests:
             for maxdepth, nr in test:
                 agpl = [
-                    qc,
+                    {'$match': qc},
                     {"$graphLookup": {
                         "from": DOCTYPE,
                         "startWith": "$name",

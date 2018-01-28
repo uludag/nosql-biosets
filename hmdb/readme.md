@@ -67,21 +67,15 @@ requires registration. Save `drugbank_all_full_database.xml.zip` file to the
 
 #### DrugBank graphs
 
-Example command line to generate and save graphs from subsets of DrugBank data
+Example command lines to generate and save graphs from subsets of DrugBank data
 
 ```bash
 ./hmdb/queries.py --qc='{}' --graphfile targets.xml
-./hmdb/queries.py --qc='{"carriers.name": "Serum albumin"}' --graphfile targets-sa.gml
+./hmdb/queries.py --qc='{}' --graphfile enzymes.xml --connections=enzymes
+./hmdb/queries.py --qc='{"carriers.name": "Serum albumin"}' --graphfile targets-sa.xml
 ```
 
 ## Related work
 
 * https://github.com/egonw/create-bridgedb-hmdb, http://www.bridgedb.org/
   BridgeDB identity mapping files from HMDB, ChEBI, and Wikidata 
-
-* https://github.com/ashrafsarhan/drugbank-relational-database
-  Project home page includes graph of the DrugBank schema which could be useful
-  in understanding the structure of DrugBank data.
-  _The schema graph is for version 4.3 of the database_
-
-* smpdb.ca indexer???

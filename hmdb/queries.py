@@ -42,15 +42,22 @@ class QueryDrugBank:
 
     # Gets and saves networks from subsets of DrugBank records
     # filtered by query clause, qc. Graph file format is selected
-    #  based on file extension used, as detailed in the readme.md file
+    # based on file extension used, detailed in the readme.md file
     def get_connections_graph(self, qc, connections, outfile=None):
         interactions = self.get_connections(qc, connections)
-        graph = nx.MultiDiGraph(list(interactions), name=connections)
+        graph = nx.DiGraph(name=connections, query=json.dumps(qc))
+
+        for u, v in interactions:
+            graph.add_node(u, type='drug', viz_color='green')
+            graph.add_node(v, type='target', viz_color='orange')
+            graph.add_edge(u, v)
+
         if outfile is not None:
             save_graph(graph, outfile)
         return graph
 
     def get_allnetworks(self, qc):
+        # TODO: type and color data as in get_connections_graph
         connections = ["targets", "enzymes", "transporters", "carriers"]
         interactions = set()
         for connection in connections:
@@ -68,13 +75,19 @@ if __name__ == '__main__':
     parser.add_argument('-qc', '--qc',
                         default='{"carriers.name": "Serum albumin"}',
                         help='MongoDB query clause to select subsets'
-                             ' of DrugBank entries')
+                             ' of DrugBank entries,'
+                             ' ex: \'{"carriers.name": "Serum albumin"}\'')
     parser.add_argument('-graphfile', '--graphfile',
+                        default='test.xml',
                         help='File name for saving the output graph'
                              ' in GraphML, GML, Cytoscape.js or d3js formats,'
                              ' see readme.md for details')
+    parser.add_argument('--connections',
+                        default='targets',
+                        help='"targets", "enzymes", "transporters" or'
+                             ' "carriers"')
     args = parser.parse_args()
     qry = QueryDrugBank()
     qc_ = json.loads(args.qc)
-    g = qry.get_connections_graph(qc_, "targets", args.graphfile)
+    g = qry.get_connections_graph(qc_, args.connections, args.graphfile)
     print(nx.info(g))
