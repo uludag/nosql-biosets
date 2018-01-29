@@ -10,7 +10,13 @@ without extracting them to temporary files
 * [index_metabolic_networks.py](index_metabolic_networks.py): Index metabolic
   network files, current version was tested with BiGG SBML files and
   PSAMM yaml files
- 
+
+    For indexing PSAMM collection we need to install psamm library,
+    (requires recent versions of setuptools library) 
+    ```bash
+    pip install psamm --user
+    ```
+
 - https://github.com/SBRG/bigg_models_data
 - https://github.com/zhanglab/psamm-model-collection
 
@@ -19,7 +25,7 @@ represent the metabolic network objects in databases (Elasticsearch and MongoDB)
 One difference we have that the list of reaction metabolites and stoichiometry
 values are stored in a list rather than in a dictionary of metabolites
 
-Example metabolites lists, in COBRApy json
+Example metabolites list, in COBRApy json
  and in nosqlbiosets data representation: 
 ```
 "metabolites": {

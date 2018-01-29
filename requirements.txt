@@ -4,7 +4,6 @@ xmljson
 pymongo
 xmltodict
 neo4j-driver
-psamm
 cobra
 six
 SQLAlchemy
