@@ -21,7 +21,8 @@ DOCTYPE = 'drug'  # MongoDB collection name
 LIST_ATTRS = ["transporters", "drug-interactions", "food-interactions",
               "atc-codes", "affected-organisms", "targets", "enzymes",
               "carriers", "groups", "salts", "products",
-              'pathways', 'go-classifiers', 'external-links']
+              'pathways', 'go-classifiers', 'external-links',
+              'external-identifiers']
 
 
 # Update DrugBank entry for better database representation

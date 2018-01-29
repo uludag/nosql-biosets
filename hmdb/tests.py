@@ -5,9 +5,26 @@ import unittest
 from .queries import DOCTYPE
 from .queries import QueryDrugBank
 
+# Selected list of antituberculosis drugs, collected from a recent publication
+ATdrugs = ['Isoniazid', 'Rifampicin', 'Ethambutol', 'Ethionamide',
+           'Pyrazinamide', 'Streptomycin', 'Amikacin', 'Kanamycin',
+           'Capreomycin', 'Ciprofloxacin', 'Moxifloxacin', 'Ofloxacin',
+           'Cycloserine', 'Aminosalicylic Acid']
+
 
 class TestQueryDrugBank(unittest.TestCase):
     qry = QueryDrugBank()
+
+    def test_target_genes_interacted_drugs(self):
+        genes = ['gyrA', 'katG', 'inhA', 'rpoC', 'rpsL']
+        idrugs = ["Chlorzoxazone", "Propyphenazone", "Methylprednisolone",
+                  "Esomeprazole", "Propicillin"]
+        qc = {'name': {'$in': ATdrugs}}
+        r = self.qry.get_target_genes_interacted_drugs(qc, 8000)
+        rgenes = {i for _, i, _, _ in r}
+        assert all([g in rgenes for g in genes])
+        ridrugs = {i for _, _, _, i in r}
+        assert all([idr in ridrugs for idr in idrugs])
 
     def test_distinct_classes(self):
         key = "classification.class"
@@ -58,23 +75,23 @@ class TestQueryDrugBank(unittest.TestCase):
         assert 3496 == len(atc_codes)
 
     def test_query_products(self):
-        key = "products.name"
         names = self.qry.aggregate_query([
             {'$unwind': '$products'},
             {"$group": {
-                "_id": '$products.name'
+                "_id": {'name': '$products.name',
+                        'approved': '$products.approved'},
             }},
-            {'$group': {'_id': 1, 'count': {'$sum': 1}}}
+            {'$group': {'_id': '$_id.approved', 'count': {'$sum': 1}}},
+            {"$sort": {"count": -1}},
         ])
-        assert 68282 == list(names)[0]['count']
+        names = list(names)
+        assert 65054 == names[0]['count']
+        assert 3843 == names[1]['count']
         project = {"_id": 1}
         # Drugs with at least one approved product
         qc = {"products.approved": True}
         r = list(self.qry.query(qc, projection=project))
         assert 2695 == len(r)
-        names = self.qry.distinctquery(key, qc={"products.approved": True})
-        assert 68181 == len(names)
-        self.assertIn("Refludan", names)
         agpl = [
             {'$unwind': '$products'},
             {'$match': qc},
@@ -96,8 +113,7 @@ class TestQueryDrugBank(unittest.TestCase):
                 '_id': None,
                 "avg": {"$avg": '$numberOfProducts'},
                 "max": {"$max": '$numberOfProducts'},
-            }
-            },
+            }},
         ]
         r = list(self.qry.aggregate_query(agpl))
         assert 10755 == r[0]['max']
@@ -146,10 +162,7 @@ class TestQueryDrugBank(unittest.TestCase):
         idids = self.qry.distinctquery(key)
         self.assertIn("DB00048", idids)
         assert 3138 == len(idids)
-        '''
-distinct list of interacted drugs to see how many of them have approved products
-and how many of them doesn't have any approved products. 
-        '''
+        # list of approved drugs that interacts with at least one other drug
         dids = self.qry.distinctquery('_id',
                                       qc={"products.approved": True,
                                           "drug-interactions":
@@ -243,8 +256,6 @@ and how many of them doesn't have any approved products.
 
     def test_number_of_interacted_drugs(self):
         tests = [
-            ([(0, 124), (1, 882)],
-             {'$text': {'$search': "tuberculosis"}}),
             ([(0, 38), (1, 108), (2, 690)],
              {'$text': {'$search': "antitubercular"}}),
             ([(0, 6), (1, 11), (2, 93)],

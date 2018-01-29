@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 """ Queries with DrugBank data indexed with MongoDB """
 
+import argparse
+
 import networkx as nx
 
 from nosqlbiosets.dbutils import DBconnection
@@ -20,12 +22,38 @@ class QueryDrugBank:
         c = self.mdb[DOCTYPE].find(qc, projection=projection, limit=limit)
         return c
 
-    def aggregate_query(self, agpl):
-        r = self.mdb[DOCTYPE].aggregate(agpl)
+    def aggregate_query(self, agpl, **kwargs):
+        r = self.mdb[DOCTYPE].aggregate(agpl, **kwargs)
         return r
 
     def distinctquery(self, key, qc=None, sort=None):
         r = self.dbc.mdbi[DOCTYPE].distinct(key, filter=qc, sort=sort)
+        return r
+
+    # Target genes and interacted drugs
+    def get_target_genes_interacted_drugs(self, qc, limit=1600):
+        aggqc = [
+            {"$match": qc},
+            {'$unwind': "$drug-interactions"},
+            {'$unwind': "$targets"},
+            {'$unwind': "$targets.polypeptide"},
+            {'$group': {
+                '_id': {
+                    "drug": "$name",
+                    'targetid': '$targets.polypeptide.gene-name',
+                    'target': '$targets.polypeptide.name',
+                    "idrug": "$drug-interactions.name"
+                }}},
+            {"$limit": limit}
+        ]
+        cr = self.mdb[DOCTYPE].aggregate(aggqc, allowDiskUse=True)
+        r = []
+        for i in cr:
+            assert 'targetid' in i['_id']
+            gid = i['_id']
+            row = (gid['drug'], gid['targetid'], gid['target'],
+                   gid['idrug'])
+            r.append(row)
         return r
 
     def get_connections(self, qc, connections):
@@ -68,17 +96,14 @@ class QueryDrugBank:
 
 
 if __name__ == '__main__':
-    import argparse
-    import json
     parser = argparse.ArgumentParser(
         description='Save DrugBank interactions as NetworkX graph files')
     parser.add_argument('-qc', '--qc',
-                        default='{"carriers.name": "Serum albumin"}',
+                        default='{}',
                         help='MongoDB query clause to select subsets'
                              ' of DrugBank entries,'
                              ' ex: \'{"carriers.name": "Serum albumin"}\'')
     parser.add_argument('-graphfile', '--graphfile',
-                        default='test.xml',
                         help='File name for saving the output graph'
                              ' in GraphML, GML, Cytoscape.js or d3js formats,'
                              ' see readme.md for details')
