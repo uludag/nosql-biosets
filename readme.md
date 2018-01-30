@@ -1,10 +1,10 @@
 # Project aim and summary
 
-NoSQL-biosets project includes scripts for NoSQL indexing and querying of
+NoSQL-biosets project includes scripts for indexing and querying
 selected free bioinformatics datasets. In adition to datasets, project aims
 to include index/query scripts for commonly used bioinformatics data types
 and formats, such as SBML and GFF.
-   
+
 In the early stages of the project only indexing with Elasticsearch was supported.
 Later MongoDB support was implemented for most of the datasets already included
 in the project.
@@ -14,27 +14,27 @@ was added as the 3rd database option.
 ## Datasets supported
 
 * UniProtKB [datasets](
-ftp://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/knowledgebase/complete
-) in XML format:
+  ftp://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/knowledgebase/complete
+  ) in XML format:
   [`./nosqlbiosets/uniprot`](nosqlbiosets/uniprot)
 
 * IntEnz [dataset](ftp://ftp.ebi.ac.uk/pub/databases/intenz/xml) in XML format:
   [`./nosqlbiosets/intenz`](nosqlbiosets/intenz)
 
 * ModelSEEDDatabase [compounds and reactions data files](
-https://github.com/ModelSEED/ModelSEEDDatabase/tree/master/Biochemistry)
-in tsv format:
+  https://github.com/ModelSEED/ModelSEEDDatabase/tree/master/Biochemistry)
+  in tsv format:
   [`./nosqlbiosets/kbase/index_modelseed.py`](nosqlbiosets/kbase/index_modelseed.py)
 
-* MetaNetX [compounds, reactions, and compartments data](
-http://www.metanetx.org/mnxdoc/mnxref.html
-): [`./nosqlbiosets/metanetx`](./nosqlbiosets/metanetx)
+* MetaNetX [compounds and reactions](
+  http://www.metanetx.org/mnxdoc/mnxref.html
+  ): [`./nosqlbiosets/metanetx`](./nosqlbiosets/metanetx)
 
 * HMDB [proteins, metabolites datasets](http://www.hmdb.ca/downloads):
-  [`./hmdb`](hmdb/)
+  [`./hmdb`](./hmdb/readme.md)
 
 * DrugBank [drugs and drug targets dataset](https://www.drugbank.ca/releases/latest):
-  [`./hmdb`](hmdb/drugbank.py)
+  [`./hmdb`](./hmdb/drugbank.py)
 
 * HGNC, [genenames.org](http://www.genenames.org/cgi-bin/statistics),
  [data files in json format](
@@ -188,15 +188,16 @@ example queries with Elasticsearch and MongoDB.
   (e.g., genes, transcripts, and exons) than is possible with plain-text methods
   alone"
   
-  _We are inspired by the gffutils project but needless to say that nosql-biosets
-   project doesn't yet have a level of maturity comparable to the gffutils library_.
+    _We are inspired by the gffutils project. Needless to say, nosql-biosets
+    project doesn't yet have a level of maturity comparable to the gffutils library_.
   
 * https://github.com/quinlan-lab/vcf2db (SQLite, MySQL, PostgreSQL)
 
 ## Copyright
 
 NoSQL-biosets project has been developed
-at King Abdullah University of Science and Technology, http://www.kaust.edu.sa
+at King Abdullah University of Science and Technology,
+[http://www.kaust.edu.sa](http://www.kaust.edu.sa)
 
 NoSQL-biosets project is licensed with MIT license.
 If you would like to support the project
@@ -204,6 +205,10 @@ with selecting a different license please let us know by creating an issue
 on github project page.
 We will help you with contacting the relavant bodies of KAUST.
 
-## Acknowledgement
+## Acknowledgements
 
-Computers and file systems used in developing this work has been maintained by John Hanks
+- Computers and file systems used in developing this work has been maintained
+  by John Hanks
+- At early stages of the project we tried few xml libraries then settled with
+  [xmltodict](https://github.com/martinblech/xmltodict) library
+  which helped us in parsing xml files without worry
