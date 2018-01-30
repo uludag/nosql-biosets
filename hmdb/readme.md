@@ -2,8 +2,8 @@
 ## Index/query scripts for HMDB and DrugBank xml datasets
 
 * [index.py](index.py) Index HMDB protein and metabolite datasets.
-  Tests made with HMDB version 4.0; metabolites Dec 2017 update,
-  proteins Jan 2018 update
+  Tests made with HMDB version 4.0; _metabolites_ Dec 2017 update,
+  _proteins_ Jan 2018 update
 
 * [../tests/test_hmdb_queries.py](../tests/test_hmdb_queries.py)
   Includes example queries
@@ -16,19 +16,21 @@
   _at its early stages_
   
   When executed from command line can save DrugBank
-   interaction networks as graph files in GML format, _an example command line
-    is presented later on this page_ 
+  interaction networks as graph files in four different formats,
+  _example command lines are presented later on this page_ 
    * `--qc`: MongoDB query clause to select subsets of DrugBank entries
-   *  `--graphfile`: File name for saving the output graph;
+   * `--connections`: Connection type: "targets", "enzymes", "transporters" or
+    "carriers"
+   * `--graphfile`: File name for saving the output graph;
     If the file name ends with .xml extension [GraphML](
     https://en.wikipedia.org/wiki/GraphML) format is selected,
     if the file name ends with .d3.json extension graph is saved in
     a form easier to read with [D3js](://d3js.org),
     if the file name ends with .json extension graph is saved in
-    [Cytoscape.js](://js.cytoscape.org) graph format,     
+    [Cytoscape.js](://js.cytoscape.org) graph format,
     otherwise it is saved in GML format
 
-### Usage HMDB
+### Index HMDB
 
 ```bash
 # Download metabolites and proteins data
@@ -46,7 +48,7 @@ wget -P ./data http://www.hmdb.ca/system/downloads/current/hmdb_proteins.zip
 ```
 
 
-### Usage DrugBank
+### Index DrugBank
 
 Download DrugBank xml dataset from http://www.drugbank.ca/releases/latest,
 requires registration. Save `drugbank_all_full_database.xml.zip` file to the
@@ -65,14 +67,22 @@ requires registration. Save `drugbank_all_full_database.xml.zip` file to the
 
 ```
 
-#### DrugBank graphs
+### DrugBank graph queries
 
-Example command lines to generate and save graphs from subsets of DrugBank data
+Example command lines to generate and save graphs for subsets of DrugBank data
+or for the complete set
 
 ```bash
+
+# Complete drug-targets graph 
 ./hmdb/queries.py --qc='{}' --graphfile targets.xml
+
+# Complete drug-enzymes graph
 ./hmdb/queries.py --qc='{}' --graphfile enzymes.xml --connections=enzymes
+
+# Drug-target graphs for drugs with "Serum albumin" carrier
 ./hmdb/queries.py --qc='{"carriers.name": "Serum albumin"}' --graphfile targets-sa.xml
+
 ```
 
 ## Related work
