@@ -8,7 +8,7 @@ from nosqlbiosets.metanetx.query import QueryMetaNetX
 from nosqlbiosets.uniprot.query import QueryUniProt
 
 qrymtntx = QueryMetaNetX()
-qryuniprot = QueryUniProt("MongoDB", "biosets", "protein")
+qryuniprot = QueryUniProt("MongoDB", "biosets", "uniprot")
 
 
 class TestQueryMetanetx(unittest.TestCase):
@@ -51,8 +51,8 @@ class TestQueryMetanetx(unittest.TestCase):
             for ecno in ecnos:
                 for ecn in ecno.split(';'):
                     assert ec == ecn
-                    r = qryuniprot.getgenes(ecn, db)
-                    self.assertSetEqual(genes, set(r))
+                    r = qryuniprot.getgenes(ecn)
+                    assert all([g in r['primary'] for g in genes])
 
     def test_keggrid2ecno2gene_mdb(self):
         db = 'MongoDB'

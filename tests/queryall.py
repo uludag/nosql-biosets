@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" Sample queries with multiple 'nosql-biosets' indexes """
+""" Test queries with multiple 'nosql-biosets' Elasticsearch indexes """
 
 import unittest
 
@@ -34,8 +34,8 @@ class QueryallTests(unittest.TestCase):
         """Makes a query with given query terms, grouping the results
         with document types, number of results are then compared by repeating
         the same query with specifying document type with each type"""
-        l = [["p53", "kinase"], ["xylose"], ["naringenin"], ["acetyl"]]
-        for qterms in l:
+        qtermsl = [["p53", "kinase"], ["xylose"], ["naringenin"], ["acetyl"]]
+        for qterms in qtermsl:
             self.querywithtypes(qterms)
 
 

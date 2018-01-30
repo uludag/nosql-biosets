@@ -53,7 +53,7 @@ class TestQueryUniProt(unittest.TestCase):
             r = qryuniprot.getgenes(None, qc={'_id': {"$in": ids}})
             assert genes == r['primary']
 
-    # Distribution of evidence codes in a test query result set
+    # Distribution of evidence codes in a text query result set
     def test_evidence_codes(self):
         qc = {'$text': {'$search': 'antimicrobial'}}
         ecodes = {  # http://www.uniprot.org/help/evidences
@@ -86,7 +86,7 @@ class TestQueryUniProt(unittest.TestCase):
                   ' + D-glyceraldehyde 3-phosphate.',
                   'Methanococcus jannaschii', 'common', 1),
                  ('2.5.1.-', {'Q3J5F9'}, ("primary", 'ctaB', 331),
-                  "Alkaloid biosynthesis.",
+                  "Cofactor biosynthesis; ubiquinone biosynthesis.",
                   '2,5-dichlorohydroquinone + 2 glutathione ='
                   ' chloride + chlorohydroquinone + glutathione disulfide.',
                   'Arabidopsis thaliana', 'scientific', 19),
@@ -98,12 +98,14 @@ class TestQueryUniProt(unittest.TestCase):
                  ]
         for ecn, accs, gene, pathway, reaction, org, nametype, n in enzys:
             r = qryuniprot_es.getgenes(ecn)
-            assert gene[2], r[gene[0]][gene[1]]
+            assert gene[2] == r[gene[0]][gene[1]]
             r = qryuniprot.getgenes(ecn)
-            assert gene[2], r[gene[0]][gene[1]]
+            assert gene[2] == r[gene[0]][gene[1]]
             assert accs.issubset(qryuniprot.getaccs(ecn))
-            assert pathway in qryuniprot.getpathways(ecn)
-            assert reaction in qryuniprot.getcatalyticactivity(ecn)
+            r = list(qryuniprot.getpathways(ecn))
+            assert pathway in [pw['_id'] for pw in r]
+            r = qryuniprot.getcatalyticactivity(ecn)
+            assert reaction in [rc['_id'] for rc in r]
             assert n == qryuniprot_es.getorganisms(ecn, limit=20)[nametype][org]
             assert n == qryuniprot.getorganisms(ecn, limit=20)[nametype][org]
 
