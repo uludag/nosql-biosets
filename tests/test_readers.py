@@ -3,17 +3,14 @@
 import unittest
 
 from geneinfo.ensembl_regbuild import connectgffdb
-from geneinfo.ensembl_regbuild import regregions
-from geneinfo.ensembl_regbuild import tfs
+from geneinfo.ensembl_regbuild import regregions_reader
+from geneinfo.ensembl_regbuild import tfs_reader
 from geneinfo.rnacentral_idmappings import mappingreader
 from hmdb.index import parse_hmdb_xmlfile
 from nosqlbiosets.kbase.index_modelseed import read_modelseed_datafile, \
     updatecompoundrecord, updatereactionrecord
 from nosqlbiosets.kegg.index import read_and_index_kegg_xmltarfile
 from nosqlbiosets.metanetx.index import *
-from nosqlbiosets.pathways.index_metabolic_networks \
-    import sbml_to_cobra_json, \
-    psamm_yaml_to_sbml
 from nosqlbiosets.pubtator.index import parse_pub2gene_lines
 
 
@@ -55,13 +52,13 @@ class TestDataReaders(unittest.TestCase):
     def test_ensembl_regbuild_regions_reader(self):
         infile = self.data + "hg38.ensrb_features.r88.first100.gff"
         db = connectgffdb(infile)
-        regions = [r for r in regregions(db)]
+        regions = [r for r in regregions_reader(db)]
         self.assertEqual(len(regions), 100)
 
     def test_ensembl_regbuild_motifs_reader(self):
         infile = self.data + "hg38.ensrb_motiffeatures.r88.first1000.gff"
         db = connectgffdb(infile)
-        tflist = [r for r in tfs(db)]
+        tflist = [r for r in tfs_reader(db)]
         self.assertEqual(len(tflist), 1000)
 
     def test_gene2pubtator_reader(self):
@@ -144,6 +141,9 @@ class TestDataReaders(unittest.TestCase):
     @unittest.skipUnless(os.path.exists(psammmodelfiles),
                          "Missing test files folder")
     def test_psamm_yamlfile_reader(self):
+        from nosqlbiosets.pathways.index_metabolic_networks \
+            import sbml_to_cobra_json, \
+            psamm_yaml_to_sbml
         for m in ["iIB711"]:
             yaml = self.psammmodelfiles + m + "/model.yaml"
             r = sbml_to_cobra_json(psamm_yaml_to_sbml(yaml))

@@ -32,7 +32,7 @@ PostgreSQL support is based on [SQLAlchemy](http://www.sqlalchemy.org) library
 
 ## RNAcentral id mappings
 
-Tested with RNAcentral Release 8, 5/12/2017
+Tested with RNAcentral Release 8, Dec 2017
 
 ```bash
 mkdir -p data
@@ -41,17 +41,35 @@ wget -P ./data http://ftp.ebi.ac.uk/pub/databases/RNAcentral/current_release/id_
 # Requires ~50m
 ./geneinfo/rnacentral_idmappings.py --infile ./data/id_mapping.tsv.gz --db Elasticsearch\
  --index rnacentral
-# Requires ~25m
+# Requires ~25m (~10m for inserts, ~15m for text/field indicies)
 ./geneinfo/rnacentral_idmappings.py --infile ./data/id_mapping.tsv.gz --db MongoDB\
  --index biosets
 ```
 
-MongoDB index time; ~12m for inserts, ~15m for text/field indicies
-
 
 ## Ensembl regulatory build
 
-In this folder we also have [indexer](ensembl_regbuild.py) for Ensembl
+In this folder we also have Elasticsearch [indexer](ensembl_regbuild.py) for Ensembl
 regulatory build GFF files which is at its early stages of development.
-GFF files are parsed by using the [gffutils](https://github.com/daler/gffutils)
+GFF files are parsed by the [gffutils](https://github.com/daler/gffutils)
 library.
+
+```
+./geneinfo/ensembl_regbuild.py --help
+usage: ensembl_regbuild.py [-h] [--infile INFILE] [--index INDEX]
+                           [--gfftype GFFTYPE] [--db DB] [--host HOST]
+                           [--port PORT]
+
+Index Ensembl regulatory build gff files using Elasticsearch
+
+optional arguments:
+  -h, --help         show this help message and exit
+  --infile INFILE    Transcription factors binding sites or Regulatory regions
+                     gff file
+  --index INDEX      Name of the Elasticsearch index
+  --gfftype GFFTYPE  Type of the gff file, should be "transcriptionfactor" or
+                     "regulatoryregion"
+  --db DB            Database: only 'Elasticsearch' is supported
+  --host HOST        Elasticsearch server hostname
+  --port PORT        Elasticsearch server port
+```
