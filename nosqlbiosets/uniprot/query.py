@@ -188,34 +188,37 @@ class QueryUniProt:
     # Get names of the metabolic pathway(s) associated with an enzyme,
     # or for entries selected by the query clause qc
     # http://www.uniprot.org/help/pathway
-    def getpathways(self, ecn, qc=None):
+    def getpathways(self, ecn, qc=None, limit=100):
         if qc is None:
             qc = {"dbReference.id": ecn}
         aggq = [
             {"$match": qc},
             {"$unwind": "$comment"},
             {"$match": {"comment.type": "pathway"}},
-            {"$group": {"_id": "$comment.text.#text"}}
+            {"$group": {"_id": "$comment.text.#text", "total": {"$sum": 1}}},
+            {"$sort": {"total": -1}},
+            {"$limit": limit}
         ]
         r = self.aggregate_query(aggq)
-        r = [pathway['_id'] for pathway in r]
         return r
 
     # Catalytic activities of an enzyme, or of entries selected
     # by the query clause qc
     # i.e. the chemical reactions catalyzed by enzyme(s)
     # http://www.uniprot.org/help/catalytic_activity
-    def getcatalyticactivity(self, ecn, qc=None):
+    def getcatalyticactivity(self, ecn, qc=None, limit=100):
         if qc is None:
             qc = {"dbReference.id": ecn}
         aggq = [
             {"$match": qc},
             {"$unwind": "$comment"},
             {"$match": {"comment.type": "catalytic activity"}},
-            {"$group": {"_id": "$comment.text.#text"}}
+            {"$group": {
+                "_id": "$comment.text.#text", "total": {"$sum": 1}}},
+            {"$sort": {"total": -1}},
+            {"$limit": limit}
         ]
         r = self.dbc.mdbi[self.doctype].aggregate(aggq)
-        r = [pathway['_id'] for pathway in r]
         return r
 
     # Get UniProt names(=ids) for given KEGG gene ids

@@ -27,7 +27,7 @@ class Indexer(DBconnection):
         self.doctype = doctype
         self.index = index
         self.db = db
-        indxcfg = {
+        indxcfg = {  # for Elasticsearch
             "index.number_of_replicas": 0,
             "index.number_of_shards": 10,
             "index.refresh_interval": "60s"}
@@ -146,6 +146,8 @@ class Indexer(DBconnection):
         s['version'] = int(s['version'])
 
     # Prepare UniProt entry for indexing
+    # organism.name should always be list?
+    # all has scientific name, half has common name, 1/10th has synonym(s?)
     def update_entry(self, entry):
         # Make sure type of 'gene' attr is list
         if 'gene' in entry:
@@ -183,7 +185,8 @@ def mongodb_indices(mdb):
         ("keyword.#text", "text")])
     mdb.create_indexes([index])
     indx_fields = ["accession", "dbReference.id", "feature.type",
-                   "gene.name.type", "organism.name.#text"]
+                   'comment.type', "gene.name.type",
+                   "gene.name.#text", "organism.name.#text"]
     for field in indx_fields:
         mdb.create_index(field)
 
@@ -204,9 +207,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Index UniProt xml files,'
                     ' with Elasticsearch or MongoDB')
-    parser.add_argument('-infile', '--infile',
-                        default=d+"/../../data/uniprot_sprot.xml.gz",
-                        help='Input file name')
+    parser.add_argument('infile',
+                        help='Input file name for UniProt Swiss-Prot compressed'
+                             'xml dataset')
     parser.add_argument('--index',
                         default="biosets",
                         help='Name of the Elasticsearch index'

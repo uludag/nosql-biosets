@@ -3,9 +3,31 @@
 
 * [index.py](index.py): Index UniProtKB xml files
   
-  _Tested with Swiss-Prot dataset only (release December 2017)_
+  _Tested with Swiss-Prot dataset only (January 2018 release)_
+  
+    ```
+    ./nosqlbiosets/uniprot/index.py --help
+    usage: index.py [-h] [--index INDEX] [--doctype DOCTYPE] [--host HOST]
+                    [--port PORT] [--db DB]
+                    infile
+    
+    Index UniProt xml files, with Elasticsearch or MongoDB
+    
+    positional arguments:
+      infile             Input file name for UniProt Swiss-Prot compressedxml
+                         dataset
+    
+    optional arguments:
+      -h, --help         show this help message and exit
+      --index INDEX      Name of the Elasticsearch index or MongoDB database
+      --doctype DOCTYPE  Document type name for Elasticsearch, collection name for
+                         MongoDB
+      --host HOST        Elasticsearch or MongoDB server hostname
+      --port PORT        Elasticsearch or MongoDB server port number
+      --db DB            Database: 'Elasticsearch' or 'MongoDB'
+    ```
 
-* [query.py](query.py): Experimental query API, at its early stages
+* [query.py](query.py): Query API, at its early stages of development
 
 * [../../tests/test_uniprot_queries.py](../../tests/test_uniprot_queries.py):
  Tests for the query API
@@ -19,7 +41,7 @@ Example command lines for downloading `uniprot_sprot.xml` file and for indexing:
 
 ```bash
 mkdir -p data
-# ~690M
+# ~700M
 wget -P ./data ftp://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/\
 knowledgebase/complete/uniprot_sprot.xml.gz
 ```

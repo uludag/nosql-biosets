@@ -146,8 +146,8 @@ we can go to the next step without waiting the termination of whole
 indexing process).
 
 ```bash
-$ ./nosqlbiosets/uniprot/index.py --infile ./uniprot_sprot.xml.gz\
- --host localhost --db Elasticsearch --index uniprot
+./nosqlbiosets/uniprot/index.py ./uniprot_sprot.xml.gz\
+   --host localhost --db Elasticsearch --index uniprot
 ```
 
 Query top mentioned gene names:
