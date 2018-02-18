@@ -1,8 +1,49 @@
+
+> PubChem consists of three inter-linked databases, Substance, Compound and BioAssay.
+The Substance database contains chemical information deposited by individual
+data contributors to PubChem,
+and the Compound database stores unique chemical structures
+extracted from the Substance database.
+Biological activity data of chemical substances tested in assay experiments
+are contained in the BioAssay database.
+[https://doi.org/10.1093/nar/gkv951]
+
 ### Index script for PubChem BioAssay data in json format 
 
 * [`./index_bioassays.py`](index_bioassays.py) reads and indexes
 compressed and archived PubChem BioAssay json files,
 without extracting them to temporary files
+
+    ```
+    $ ./nosqlbiosets/pubchem/index_bioassays.py --help
+    usage: index_bioassays.py [-h] [-infile INFILE] [--index INDEX] [--host HOST]
+                              [--port PORT] [-db DB]
+    
+    Index PubChem Bioassays json files with Elasticsearch or MongoDB
+    
+    optional arguments:
+      -h, --help            show this help message and exit
+      -infile INFILE, --infile INFILE
+                            Input file to index or name of folder with zipped
+                            bioassay json files
+      --index INDEX         Name of Elasticsearch index or MongoDB database
+      --host HOST           Elasticsearch/MongoDB server hostname
+      --port PORT           Elasticsearch/MongoDB server port
+      -db DB, --db DB       Database: 'Elasticsearch' or 'MongoDB'
+    
+    ```
+
+  ```bash
+
+  # Index with MongoDB
+  ./nosqlbiosets/pubchem/index_bioassays.py --db MongoDB\
+     ./data/pubchem/bioassays/1259001_1260000.zip
+
+  # Index with Elasticsearch
+  ./nosqlbiosets/pubchem/index_bioassays.py --db Elasticsearch\
+     ./data/pubchem/bioassays/1259001_1260000.zip
+ 
+  ```
 
 #### Elasticsearch server settings
 Since some of the PubChem BioAssay json files are large they require to change

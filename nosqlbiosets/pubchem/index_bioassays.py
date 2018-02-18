@@ -16,11 +16,13 @@ from nosqlbiosets.dbutils import DBconnection
 # Document type name for the Elascticsearch or Collection name for MongoDB
 DOCTYPE = "bioassay"
 INDEX = "pubchem"
+
 # Maximum size of uncompressed files that should be indexed
-MaxEntrySize = 256*1024
+MaxEntrySize = 256*1024*12
+
 # Maximum total size of uncompressed files indexed
 # before an Elasticsearch  _refresh call (~equivalent of database commits)
-MaxBulkSize = 512*1024
+MaxBulkSize = 512*1024*24
 
 
 def getuncompressedsize(filename):
@@ -82,11 +84,14 @@ def read_and_index_pubchem_bioassays_zipfile(zipfile, es, indexf):
 
 # Read given bioassay file, index using the index function specified
 def read_and_index_pubchem_bioassays_file(infile, es, indexfunc):
-    if infile.endswith(".gz"):
+    if infile.endswith(".json.gz"):
         print(getuncompressedsize(infile))
         f = gzip.open(infile, 'rt')
-    else:
+    elif infile.endswith(".json"):
         f = open(infile, 'r')
+    else:
+        print('Unsupported file extension; %s' % infile)
+        return
     aid = infile[infile.rfind('/') + 1:infile.find(".json")]
     # r = indexfunc(es, f, 0, aid)
     r = index_bioassay(es, f, 0, aid, indexfunc)
@@ -183,11 +188,13 @@ def main(db, infile, index=INDEX, host=None, port=None):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
-        description='Index PubChem Bioassays, with Elasticsearch or MongoDB')
+        description='Index PubChem Bioassays json files'
+                    ' with Elasticsearch or MongoDB')
     parser.add_argument('-infile', '--infile',
-                        default="./data/pubchem/bioassays/1259001_1260000.zip",
-                        help='input file to index')
+                        help='Input file to index or name of folder with '
+                             'zipped bioassay json files')
     parser.add_argument('--index',
+                        default=INDEX,
                         help='Name of Elasticsearch index or MongoDB database')
     parser.add_argument('--host',
                         help='Elasticsearch/MongoDB server hostname')
