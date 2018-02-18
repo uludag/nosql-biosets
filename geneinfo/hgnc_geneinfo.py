@@ -18,9 +18,11 @@ from sqlalchemy.types import ARRAY
 # Default index name with Elascticsearch,
 # database name with MongoDB and PostgreSQL
 INDEX = "geneinfo"
+
 # Default document type name for Elascticsearch index entries,
 # collection name with MongoDB, and table name with PostgreSQL
 DOCTYPE = 'hgncgeneinfo'
+
 CHUNKSIZE = 64
 SOURCEURL = "http://ftp.ebi.ac.uk/pub/databases/genenames/" \
             "new/json/hgnc_complete_set.json"
@@ -52,6 +54,8 @@ def read_genes(l):
             gene["iuphar"] = int(gene["iuphar"][9:])  # skip prefix "objectId:"
         del gene["uuid"], gene["_version_"]
         gene["_id"] = int(gene["hgnc_id"][5:])  # skip prefix "HGNC:"
+        if "entrez_id" in gene:
+            gene["entrez_id"] = int(gene["entrez_id"])
         yield gene
 
 
@@ -115,7 +119,7 @@ class GeneInfo(Base):
     cosmic = Column(Text)
     ena = Column(ARRAY(Text))
     ensembl_gene_id = Column(Text)
-    entrez_id = Column(Text)
+    entrez_id = Column(Integer)
     enzyme_id = Column(ARRAY(Text))
     gene_family_id = Column(Text)
     hgnc_id = Column(Text)

@@ -4,17 +4,20 @@
 [hgnc_geneinfo.py](hgnc_geneinfo.py); Index HGNC data using Elasticsearch,
  MongoDB or PostgreSQL
  
- Tested with Dec 2017 release
+ Tested with Feb 2018 release
 
 ```bash
 mkdir -p data
 # ~30M
 wget -P ./data http://ftp.ebi.ac.uk/pub/databases/genenames/new/json/hgnc_complete_set.json
+
 # Requires ~1m
 ./geneinfo/hgnc_geneinfo.py --infile ./data/hgnc_complete_set.json --db Elasticsearch
+
 # Requires ~10s
 ./geneinfo/hgnc_geneinfo.py --infile ./data/hgnc_complete_set.json --db MongoDB\
  --index biosets
+
 # Requires ~1m
 # Assume PostgreSQL database with name geneinfo has already been created
 # and the user `tests` have access to the database with password 'tests'
