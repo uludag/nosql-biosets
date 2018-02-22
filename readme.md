@@ -41,7 +41,7 @@ was added as the 3rd database option.
  http://ftp.ebi.ac.uk/pub/databases/genenames/new/json),
   from EMBL-EBI: [`./geneinfo/hgnc_geneinfo.py`](geneinfo/hgnc_geneinfo.py)
   (_tests made with [complete HGNC dataset](
-  ftp://ftp.ebi.ac.uk/pub/databases/genenames/new/json/hgnc_complete_set.json))
+  ftp://ftp.ebi.ac.uk/pub/databases/genenames/new/json/hgnc_complete_set.json)_)
 
 * Metabolic network files in [SBML](http://sbml.org) format or
  [PSAMM project](https://github.com/zhanglab/psamm-model-collection)'s
@@ -97,26 +97,26 @@ possible, this should help us to understand where we are in minimal time.
 
 In a separate [project](https://github.com/uludag/hspsdb-indexer)
 we have been developing index scripts for sequence
-similarity search results, either in NCBI-BLAST xml/json formats
-or in SAM/BAM formats
+similarity search results, either in NCBI-BLAST json format
+or in BLAST tabular format
 
 ## Installation
 
 Download nosqlbiosets project source code and install required libraries:
 ```bash
-$ git clone https://bitbucket.org/hspsdb/nosql-biosets.git
-$ cd nosql-biosets
-$ pip install -r requirements.txt --user
+git clone https://bitbucket.org/hspsdb/nosql-biosets.git
+cd nosql-biosets
+pip install -r requirements.txt --user
 ```
 
-Since we are yet in early stages you may need to check (and modify)
+Since we are yet in early stages you may need to check and modify
 source code of the scripts time to time, for this reason _light install_
 nosqlbiosets project to your local Python library/package folders
 using the `setup.py` `develop` and `--user` options
 that should allow you to run the index scripts from project
 source folders:
 ```bash
-$ python setup.py develop --user
+python setup.py develop --user
 ```
 
 Default values of the hostname and port numbers of Elasticsearch and MongoDB servers
@@ -140,17 +140,19 @@ After extracting the tar file just `cd` to your Elasticsearch folder
 and run `./bin/elasticsearch` command.
 
 Now we can index downloaded UniProt xml file by running the following command
-from nosqlbiosets project root folder (typically requires 7 to 8 hours
-with Elasticsearch, and between 4 and 5 hours with MongoDB) 
-we can go to the next step without waiting the termination of whole
-indexing process).
+from nosqlbiosets project root folder,
+typically requires 7 to 8 hours with Elasticsearch,
+and between 4 and 5 hours with MongoDB
 
 ```bash
 ./nosqlbiosets/uniprot/index.py ./uniprot_sprot.xml.gz\
    --host localhost --db Elasticsearch --index uniprot
 ```
 
-Query top mentioned gene names:
+We can query indexed portion of the dataset without waiting the termination
+of whole indexing process.
+
+Query most mentioned gene names:
 
 ```bash
 curl -XGET "http://localhost:9200/uniprot/_search?pretty=true"\
