@@ -145,25 +145,22 @@ class TestQueryDrugBank(unittest.TestCase):
         expected = "C10BX04"
         assert r[0]["atc-codes"][0]["code"] == expected
 
-    def test_query_kegg_drug_ids(self):
+    def test_kegg_drug_id_to_drugbank_id(self):
         kegg_drugbank_pairs = [("D02361", "DB00777"), ("D00448", "DB00795")]
         for kegg, drugbank in kegg_drugbank_pairs:
-            project = {"external-identifiers": 1}
-            qc = {"external-identifiers.identifier": kegg}
-            r = list(self.qry.query(qc, projection=project))
-            assert drugbank == r[0]["_id"]
+            assert drugbank == self.qry.kegg_drug_id_to_drugbank_id(kegg)
 
-    def test_query_kegg_targets(self):
-        from nosqlbiosets.uniprot.query import QueryUniProt
-        qryuniprot = QueryUniProt("MongoDB", "biosets", "uniprot")
-        kegg_target_pairs = [("hsa:10056", "SYFB_HUMAN", "BE0000692")]
-        for kegg, uniprot, target in kegg_target_pairs:
-            g = qryuniprot.getnamesforkegg_geneids([kegg])
-            project = {"targets": 1}
-            qc = {"targets.polypeptide.external-identifiers."
-                  "external-identifier.identifier": g[0]}
-            r = list(self.qry.query(qc, projection=project))
-            assert target == r[0]["targets"][0]["id"]
+    def test_kegg_target_id_to_drugbank_entity_id(self):
+        kegg_target_pairs = [
+            ("hsa:10", "ARY2_HUMAN", "BE0003607", 'enzymes'),
+            ("hsa:100", "ADA_HUMAN", "BE0002214", 'targets'),
+            ("hsa:10056", "SYFB_HUMAN", "BE0000561", 'targets')
+        ]
+        for kegg, uniprotid, entityid, etype in kegg_target_pairs:
+            u, r = self.qry.kegg_target_id_to_drugbank_entity_id(kegg,
+                                                                 etype=etype)
+            assert uniprotid == u
+            assert entityid == r
 
     def test_query_drug_interactions(self):
         project = {"drug-interactions": 1}

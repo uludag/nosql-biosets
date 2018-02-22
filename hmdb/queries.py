@@ -7,6 +7,7 @@ import networkx as nx
 
 from nosqlbiosets.dbutils import DBconnection
 from nosqlbiosets.graphutils import *
+from nosqlbiosets.uniprot.query import QueryUniProt
 
 DOCTYPE = 'drug'  # MongoDB collection name
 
@@ -55,6 +56,46 @@ class QueryDrugBank:
                    gid['idrug'])
             r.append(row)
         return r
+
+    def kegg_target_id_to_drugbank_entity_id(self, keggtid, etype='targets'):
+        """
+        Get drugbank target ids for given KEGG target ids
+        The two databases are connected by first making a UniProt query
+        :param keggtid: KEGG target id
+        :param etype: Drugbank entity type, 'targets' or 'enzymes'
+        :return: Drugbank target id
+        """
+        qryuniprot = QueryUniProt("MongoDB", "biosets", "uniprot")
+        qc = {"dbReference.id": keggtid}
+        key = 'name'
+        uniprotid = qryuniprot.dbc.mdbi['uniprot'].distinct(key, filter=qc)
+        assert 1 == len(uniprotid)
+        qc = {etype+".polypeptide.external-identifiers."
+              "external-identifier.identifier": uniprotid[0]}
+
+        aggq = [
+            {"$match": qc},
+            {'$unwind': "$"+etype},
+            {'$unwind': "$"+etype+".polypeptide"},
+            {"$match": qc},
+            {"$limit": 1},
+            {"$project": {etype+".id": 1}}
+        ]
+        r = list(self.aggregate_query(aggq))
+        assert 1 == len(r)
+        return uniprotid[0], r[0][etype]["id"]
+
+    def kegg_drug_id_to_drugbank_id(self, keggdid):
+        """
+        Given KEGG drug id return Drugbank drug id
+        :param keggdid: KEGG drug id
+        :return: Drugbank drug id
+        """
+        project = {"external-identifiers": 1}
+        qc = {"external-identifiers.identifier": keggdid}
+        r = list(self.query(qc, projection=project))
+        assert 1 == len(r)
+        return r[0]["_id"]
 
     def get_connections(self, qc, connections):
         project = {"name": 1, connections + ".name": 1}
