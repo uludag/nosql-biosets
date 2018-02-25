@@ -8,40 +8,44 @@ Biological activity data of chemical substances tested in assay experiments
 are contained in the BioAssay database.
 [https://doi.org/10.1093/nar/gkv951]
 
-### Index script for PubChem BioAssay data in json format 
+### Index script for PubChem BioAssays json files 
 
 * [`./index_bioassays.py`](index_bioassays.py) reads and indexes
 compressed and archived PubChem BioAssay json files,
 without extracting them to temporary files
 
-    ```
-    $ ./nosqlbiosets/pubchem/index_bioassays.py --help
-    usage: index_bioassays.py [-h] [-infile INFILE] [--index INDEX] [--host HOST]
+  ```
+  ./nosqlbiosets/pubchem/index_bioassays.py --help
+  usage: index_bioassays.py [-h] [--infile INFILE] [--index INDEX] [--host HOST]
                               [--port PORT] [-db DB]
     
-    Index PubChem Bioassays json files with Elasticsearch or MongoDB
+  Index PubChem Bioassays json files with Elasticsearch or MongoDB
     
-    optional arguments:
+  optional arguments:
       -h, --help            show this help message and exit
-      -infile INFILE, --infile INFILE
-                            Input file to index or name of folder with zipped
+      --infile INFILE, --infolder INFILE
+                            Input file to index, or input folder with zipped
                             bioassay json files
       --index INDEX         Name of Elasticsearch index or MongoDB database
       --host HOST           Elasticsearch/MongoDB server hostname
       --port PORT           Elasticsearch/MongoDB server port
       -db DB, --db DB       Database: 'Elasticsearch' or 'MongoDB'
-    
-    ```
+  ```
 
   ```bash
 
   # Index with MongoDB
+  # Zip file of json files
   ./nosqlbiosets/pubchem/index_bioassays.py --db MongoDB\
-     ./data/pubchem/bioassays/1259001_1260000.zip
+     --infile ./data/pubchem/bioassays/1259001_1260000.zip
+  # Folder of zip files of json files
+  ./nosqlbiosets/pubchem/index_bioassays.py --db MongoDB\
+     --infolder ./data/pubchem/bioassays
 
   # Index with Elasticsearch
+  # Zip file of json files
   ./nosqlbiosets/pubchem/index_bioassays.py --db Elasticsearch\
-     ./data/pubchem/bioassays/1259001_1260000.zip
+     --infile ./data/pubchem/bioassays/1259001_1260000.zip
  
   ```
 
@@ -65,6 +69,5 @@ https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-configurat
 
 
 #### TODO:
-* Support for large entries, such as larger than 800M
-* Use bulk index API
-* Index other PubChem data types
+* Support for large bioassay json files,
+  see `MaxEntrySize` in [index_bioassays.py](index_bioassays.py)

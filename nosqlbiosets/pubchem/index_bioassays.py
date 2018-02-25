@@ -18,11 +18,11 @@ DOCTYPE = "bioassay"
 INDEX = "pubchem"
 
 # Maximum size of uncompressed files that should be indexed
-MaxEntrySize = 256*1024*12
+MaxEntrySize = 256*1024*1024
 
 # Maximum total size of uncompressed files indexed
 # before an Elasticsearch  _refresh call (~equivalent of database commits)
-MaxBulkSize = 512*1024*24
+MaxBulkSize = 4*MaxEntrySize
 
 
 def getuncompressedsize(filename):
@@ -62,28 +62,23 @@ def read_and_index_pubchem_bioassays(infile, es, indexfunc):
 
 
 # Read given bioassays zip file, index using the index function specified
-def read_and_index_pubchem_bioassays_zipfile(zipfile, es, indexf):
+def read_and_index_pubchem_bioassays_zipfile(zipfile, dbc, indexf):
     print("\nProcessing %s " % zipfile)
     i = 0
     r = 0
     with ZipFile(zipfile) as myzip:
         for fname in myzip.namelist():
             aid = fname[fname.find('/')+1:fname.find(".json")]
-            # check whether the entry is already indexed
-            # if not es.exists(index=args.index, doc_type=doctype, id=aid):
             with myzip.open(fname) as jfile:
-                # TODO: get uncompressed file size (how?) and return early
                 # TODO: gzip.open() doesn't work with python2
-                f = gzip.open(jfile, 'rt')
-                r = index_bioassay(es, f, r, aid, indexf)
+                f = gzip.open(jfile, 'rt')  # read as text, input to json.load
+                r = index_bioassay(dbc, f, r, aid, indexf)
                 i += 1
-            # else:
-            #     print("-", end='', flush=True)
     return i
 
 
 # Read given bioassay file, index using the index function specified
-def read_and_index_pubchem_bioassays_file(infile, es, indexfunc):
+def read_and_index_pubchem_bioassays_file(infile, dbc, indexfunc):
     if infile.endswith(".json.gz"):
         print(getuncompressedsize(infile))
         f = gzip.open(infile, 'rt')
@@ -93,8 +88,7 @@ def read_and_index_pubchem_bioassays_file(infile, es, indexfunc):
         print('Unsupported file extension; %s' % infile)
         return
     aid = infile[infile.rfind('/') + 1:infile.find(".json")]
-    # r = indexfunc(es, f, 0, aid)
-    r = index_bioassay(es, f, 0, aid, indexfunc)
+    r = index_bioassay(dbc, f, 0, aid, indexfunc)
     return r
 
 
@@ -124,7 +118,7 @@ def index_bioassay(es, f, r, aid_, indexf):
         update_dates(doc)
         aid = doc['PC_AssaySubmit']['assay']['descr']['aid']['id']
         if str(aid) != aid_:
-            print("File name and Assay ids not same, please check '%s' vs '%s'"
+            print("File name and assay ids not same, please check '%s' vs '%s'"
                   % (aid, aid_))
             return r
         r = indexf(es, f, r, aid_, doc)
@@ -145,10 +139,9 @@ def es_index_bioassay(dbc, f, r, aid, doc):
             r = 0
         print(".", end='', file=sys.stdout)
         sys.stdout.flush()
-        docx = {"assay": doc['PC_AssaySubmit']['assay'],
-                "data": doc['PC_AssaySubmit']['data']}
+        docx = doc['PC_AssaySubmit']
         dbc.es.index(index=dbc.index, doc_type=DOCTYPE,
-                     id=aid, body=json.dumps(docx))
+                     id=aid, body=docx)
         r += f.tell()
     except Exception as e:
         print(e)
@@ -163,8 +156,7 @@ def mongodb_index_bioassay(dbc, f, r, aid, doc):
             r = 0
         print(".", end='', file=sys.stdout)
         sys.stdout.flush()
-        docx = {"assay": doc['PC_AssaySubmit']['assay'],
-                "data": doc['PC_AssaySubmit']['data']}
+        docx = doc['PC_AssaySubmit']
         dbc.mdbi[DOCTYPE].update({"_id": aid}, docx, upsert=True)
         r += f.tell()
     except Exception as e:
@@ -190,8 +182,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Index PubChem Bioassays json files'
                     ' with Elasticsearch or MongoDB')
-    parser.add_argument('-infile', '--infile',
-                        help='Input file to index or name of folder with '
+    parser.add_argument('--infile', '--infolder',
+                        help='Input file to index, or input folder with '
                              'zipped bioassay json files')
     parser.add_argument('--index',
                         default=INDEX,
