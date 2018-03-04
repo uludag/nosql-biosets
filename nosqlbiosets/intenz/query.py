@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """ Queries with IntEnz data indexed with MongoDB or Neo4j"""
-# TODO: Reads server connection details from  conf/dbservers.json file
+# Server connection details are read from  conf/dbservers.json file
 
 from ..dbutils import DBconnection
 

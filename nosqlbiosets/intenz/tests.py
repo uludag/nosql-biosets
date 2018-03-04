@@ -107,7 +107,7 @@ class TestQueryIntEnz(unittest.TestCase):
     def test_neo4j_getreactions(self):
         nqry = QueryIntEnz("Neo4j")
         r = list(nqry.getreactions())
-        assert len(r) == 6197
+        self.assertAlmostEqual(6250, len(r), delta=200)
 
     def test_mdb_getreactions(self):
         qc = {'$text': {'$search': 'semialdehyde'}}

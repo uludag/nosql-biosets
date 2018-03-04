@@ -98,7 +98,8 @@ class Indexer(DBconnection):
                 c = "CREATE (a:Product {id:{id}})"
                 tx.run(c, {"id": r})
         with self.neo4jc.begin_transaction() as tx:
-            for r in self.reactions.values():
+            for r in self.reactions:
+                r = self.reactions[r]
                 if 'id' in r:
                     rid = r['id']
                     tx.run("CREATE (a:Reaction {id:{rid}, name:{name}})",
@@ -163,7 +164,7 @@ def mongodb_textindex(mdb):
     mdb.create_index(index, name="text")
 
 
-def main(infile, index, doctype, db, host, port):
+def main(infile, index, doctype, db, host=None, port=None):
     indxr = Indexer(db, index, host, port, doctype)
     indxr.parse_intenz_xmlfiles(infile)
     if db == 'Elasticsearch':
@@ -190,7 +191,7 @@ if __name__ == '__main__':
                         help='Elasticsearch, MongoDB or Neo4j server hostname')
     parser.add_argument('--port', type=int,
                         help="Elasticsearch, MongoDB or Neo4j server port")
-    parser.add_argument('--db', default='Elasticsearch',
+    parser.add_argument('--db', default='MongoDB',
                         help="Database: 'Elasticsearch', 'MongoDB' or 'Neo4j'")
     args = parser.parse_args()
     main(args.infile, args.index, args.doctype, args.db, args.host, args.port)
