@@ -17,7 +17,7 @@ from pymongo import IndexModel
 
 from nosqlbiosets.dbutils import DBconnection
 
-pool = ThreadPool(10)
+pool = ThreadPool(4)  # threads for index calls, parsing is in the main thread
 DOCTYPE = 'uniprot'
 
 
@@ -153,7 +153,7 @@ class Indexer(DBconnection):
         if 'gene' in entry:
             if not isinstance(entry['gene'], list):
                 entry['gene'] = [entry['gene']]
-            # Make sure type of 'gene.name' attrs are list
+            # Make sure type of 'gene.name' attribute is list
             for gene in entry['gene']:
                 if not isinstance(gene['name'], list):
                     gene['name'] = [gene['name']]
@@ -184,7 +184,9 @@ def mongodb_indices(mdb):
         ("feature.description", "text"),
         ("keyword.#text", "text")])
     mdb.create_indexes([index])
-    indx_fields = ["accession", "dbReference.id", "feature.type",
+    indx_fields = ["accession",
+                   "dbReference.id", "dbReference.type", "dbReference.property",
+                   "feature.type",
                    'comment.type', "gene.name.type",
                    "gene.name.#text", "organism.name.#text"]
     for field in indx_fields:

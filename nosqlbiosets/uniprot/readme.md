@@ -3,7 +3,7 @@
 
 * [index.py](index.py): Index UniProtKB xml files
   
-  _Tested with Swiss-Prot dataset only (January 2018 release)_
+  _Tested with Swiss-Prot dataset only (February 2018 release)_
   
     ```
     ./nosqlbiosets/uniprot/index.py --help
@@ -56,17 +56,18 @@ _Server default connection settings are read from [../../conf/dbservers.json](
 
 ```bash
 # Index with Elasticsearch,  typically requires 7 to 8 hours
-./nosqlbiosets/uniprot/index.py --infile ./data/uniprot_sprot.xml.gz\
+./nosqlbiosets/uniprot/index.py ./data/uniprot_sprot.xml.gz\
  --host localhost --db Elasticsearch  --index uniprot
 
 # Index with MongoDB, typically requires 4 to 5 hours
-./nosqlbiosets/uniprot/index.py --infile ./data/uniprot_sprot.xml.gz\
+./nosqlbiosets/uniprot/index.py ./data/uniprot_sprot.xml.gz\
  --host localhost --db MongoDB --index biosets
 ```
 
 ## PSI MI-TAB support
 
-This folder also includes support for PSI-MI TAB interaction data files
+This folder also includes an index script for PSI-MI TAB protein interactions
+data files
 
 * [index_mitab.py](index_mitab.py) Index PSI-MI TAB data files
  with Elasticsearch or MongoDB
