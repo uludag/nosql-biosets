@@ -41,13 +41,15 @@ class TestDataReaders(unittest.TestCase):
         self.assertEqual(r['_id'], 'rxn00001')
 
     def test_rnacentral_idmapping_reader(self):
-        infile = self.data + "rnacentral-v7-id_mapping-first100.tsv"
+        infile = self.data + "rnacentral-id-mappings-first100.tsv"
         idlist = [r for r in mappingreader(infile)]
-        self.assertEqual(len(idlist), 30)
+        assert 30 == len(idlist)
         r = idlist[0]
         self.assertEqual(r['_id'], 'URS0000000001')
         self.assertEqual(len(r['mappings']), 11)
         assert r['mappings'][0]['type'] == 'rRNA'
+        r = idlist[-1]
+        assert r['mappings'][-1]['gene'] == 'trnL'
 
     def test_ensembl_regbuild_regions_reader(self):
         infile = self.data + "hg38.ensrb_features.r88.first100.gff"

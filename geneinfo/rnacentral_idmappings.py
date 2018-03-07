@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Index RNAcentral id mappings with Elasticsearch and MongoDB"""
+"""Index RNAcentral id mappings with Elasticsearch or MongoDB"""
 import argparse
 import csv
 import gzip
@@ -14,7 +14,7 @@ from pymongo.errors import BulkWriteError
 from nosqlbiosets.dbutils import DBconnection
 
 DOCTYPE = "rnacentral"
-INDEX = "geneinfo"  # default name for Elasticsearch-index or MongoDB-database
+INDEX = "biosets"  # default name for Elasticsearch-index or MongoDB-database
 CHUNKSIZE = 2048
 SOURCEURL = 'http://ftp.ebi.ac.uk/pub/databases/RNAcentral/' \
             'current_release/id_mapping/id_mapping.tsv.gz'
@@ -36,13 +36,13 @@ def mappingreader(infile):
         rid = row[0]
         org = int(row[3])
         rtype = row[4]
-        if i != 0:
-            if previd != rid:
-                r = {'_id': previd, 'mappings': mappings}
-                yield r
-                mappings = []
+        gene = row[5]
+        if previd != rid and previd is not None:
+            r = {'_id': previd, 'mappings': mappings}
+            yield r
+            mappings = []
         mappings.append({'db': row[1], 'id': row[2],
-                         'org': org, 'type': rtype})
+                         'org': org, 'type': rtype, 'gene': gene})
         i += 1
         previd = rid
     yield {'_id': previd, 'mappings': mappings}
@@ -54,9 +54,9 @@ def mappingreader(infile):
 
 # Index RNAcentral id mappings csvfile with Elasticsearch
 # TODO: mappings; types of the db and the type fields should be 'keyword'
-def es_index_idmappings(es, csvfile, reader):
+def es_index_idmappings(es, csvfile):
     for ok, result in streaming_bulk(
-            es, reader(csvfile),
+            es, mappingreader(csvfile),
             index=args.index, doc_type=DOCTYPE, chunk_size=CHUNKSIZE
     ):
         if not ok:
@@ -66,11 +66,11 @@ def es_index_idmappings(es, csvfile, reader):
     return
 
 
-def mongodb_index_idmappings(mdbi, csvfile, reader):
+def mongodb_index_idmappings(mdbi, csvfile):
     entries = list()
     mdbi[DOCTYPE].delete_many({})
     try:
-        for entry in reader(csvfile):
+        for entry in mappingreader(csvfile):
             entries.append(entry)
             if len(entries) == CHUNKSIZE:
                 mdbi[DOCTYPE].insert_many(entries)
@@ -94,10 +94,10 @@ def main(dbc, infile, index):
     if dbc.db == "Elasticsearch":
         dbc.es.delete_by_query(index=index, doc_type=DOCTYPE, timeout="2m",
                                body={"query": {"match_all": {}}})
-        es_index_idmappings(dbc.es, infile, mappingreader)
+        es_index_idmappings(dbc.es, infile)
         dbc.es.indices.refresh(index=index)
     else:  # "MongoDB"
-        mongodb_index_idmappings(dbc.mdbi, infile, mappingreader)
+        mongodb_index_idmappings(dbc.mdbi, infile)
         mongodb_indices(dbc.mdbi[DOCTYPE])
 
 
