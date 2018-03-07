@@ -15,18 +15,30 @@ class TestQueryMetanetx(unittest.TestCase):
     d = os.path.dirname(os.path.abspath(__file__))
     index = "biosets"
 
-    def test_compound_desc(self, db="MongoDB"):
+    def test_compoundnames(self, db="MongoDB"):
         dbc = DBconnection(db, self.index)
-        mids = ['MNXM39', 'MNXM89612']
-        descs = qrymtntx.query_metanetxids(dbc, mids)
-        self.assertEqual(set(descs), {'formate', 'glycerol'})
+        mids = ['MNXM39', 'MNXM89612', 'MNXM2000']
+        descs = ['formate', 'glycerol', 'alpha-carotene']
+        for mid in mids:
+            desc = descs.pop(0)
+            assert desc == qrymtntx.getcompoundname(dbc, mid)
 
     def id_queries(self, db):
+        keggcids = ['C00116', 'C05433']
+        mids = ['MNXM89612', 'MNXM2000']
+        chebiids = ['17754', '28425']
         dbc = DBconnection(db, self.index)
-        mids = qrymtntx.keggcompoundids2metanetxids(dbc, ['C00116', 'C05433'])
-        self.assertEqual(mids, ['MNXM2000', 'MNXM89612'])
-        descs = qrymtntx.query_metanetxids(dbc, mids)
-        self.assertEqual(set(descs), {'glycerol', 'alpha-carotene'})
+        self.assertEqual(mids,
+                         qrymtntx.keggcompoundids2otherids(dbc, keggcids))
+        self.assertEqual(chebiids,
+                         qrymtntx.keggcompoundids2otherids(dbc, keggcids,
+                                                           'chebi'))
+
+    def test_id_queries_es(self):
+        self.id_queries("Elasticsearch")
+
+    def test_id_queries_mdb(self):
+        self.id_queries("MongoDB")
 
     # First queries metanetx_reactions for given KEGG ids
     # Then links metanetx_reaction.ecno to uniprot.dbReference.id
@@ -57,12 +69,6 @@ class TestQueryMetanetx(unittest.TestCase):
     def test_keggrid2ecno2gene_mdb(self):
         db = 'MongoDB'
         self.test_keggrid2ecno2gene(db)
-
-    def test_id_queries_es(self):
-        self.id_queries("Elasticsearch")
-
-    def test_id_queries_mdb(self):
-        self.id_queries("MongoDB")
 
     def test_query_reactions(self):
         rids = ["MNXR94726", "MNXR113731"]

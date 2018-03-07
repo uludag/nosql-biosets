@@ -18,32 +18,47 @@ class QueryMetaNetX:
         self.index = "biosets"
         self.dbc = DBconnection("MongoDB", self.index)
 
-    # Query MetaNetX compounds with their ids return descs
-    def query_metanetxids(self, dbc, mids, limit=0):
+    # Given MetaNetX compound id return its name
+    def getcompoundname(self, dbc, mid, limit=0):
         if dbc.db == 'Elasticsearch':
             index, doctype = "metanetx", DOCTYPE
-            qc = {"ids": {"values": mids}}
-            hits, n = self.esquery(dbc.es, index, qc, doctype, len(mids))
-            descs = [c['_source']['desc'] for c in hits]
+            qc = {"match": {"_id": mid}}
+            hits, n = self.esquery(dbc.es, index, qc, doctype)
         else:  # MongoDB
             doctype = DOCTYPE
-            qc = {"_id": {"$in": mids}}
-            hits = dbc.mdbi[doctype].find(qc, limit=limit)
-            descs = [c['desc'] for c in hits]
-        return descs
+            qc = {"_id": mid}
+            hits = list(dbc.mdbi[doctype].find(qc, limit=limit))
+            n = len(hits)
+        assert 1 == n
+        c = hits[0]
+        desc = c['desc'] if 'desc' in c else c['_source']['desc']
+        return desc
 
-    # Given KEGG compound ids find MetaNetX ids
-    def keggcompoundids2metanetxids(self, dbc, cids, limit=0):
+    # Given KEGG compound ids find ids for other libraries
+    def keggcompoundids2otherids(self, dbc, cids, lib='MetanetX'):
         if dbc.db == 'Elasticsearch':
             index, doctype = "metanetx", DOCTYPE
             qc = {"match": {"xrefs.id": ' '.join(cids)}}
             hits, n = self.esquery(dbc.es, index, qc, doctype, len(cids))
-            mids = [xref['_id'] for xref in hits]
         else:  # MongoDB
             doctype = DOCTYPE
             qc = {'xrefs.id': {'$in': cids}}
-            hits = dbc.mdbi[doctype].find(qc, limit=limit)
-            mids = [c['_id'] for c in hits]
+            hits = list(dbc.mdbi[doctype].find(qc))
+            n = len(hits)
+        assert len(cids) == n
+        mids = [None] * n
+        for c in hits:
+            i, id_ = None, None
+            for xref in (c['xrefs'] if 'xrefs' in c else c['_source']['xrefs']):
+                if i is None and xref['lib'] == 'kegg' and xref['id'][0] == 'C':
+                    i = cids.index(xref['id'])
+                    if id_ is not None:
+                        break
+                if id_ is None and xref['lib'] == lib:
+                    id_ = xref['id']
+                    if i is not None:
+                        break
+            mids[i] = id_
         return mids
 
     @staticmethod
