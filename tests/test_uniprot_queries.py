@@ -83,23 +83,24 @@ class TestQueryUniProt(unittest.TestCase):
                                    delta=40)
 
     def test_getenzymedata(self):
-        enzys = [('2.2.1.11', {'Q58980'}, ("ordered locus", 'MJ1585', 1),
-                  "Aromatic compound metabolism.",
-                  'D-fructose 1,6-bisphosphate = glycerone phosphate'
-                  ' + D-glyceraldehyde 3-phosphate.',
-                  'Methanococcus jannaschii', 'common', 1),
-                 ('2.5.1.-', {'Q3J5F9'}, ("primary", 'ctaB', 331),
-                  "Cofactor biosynthesis; ubiquinone biosynthesis.",
-                  '2,5-dichlorohydroquinone + 2 glutathione ='
-                  ' chloride + chlorohydroquinone + glutathione disulfide.',
-                  'Arabidopsis thaliana', 'scientific', 19),
-                 ('5.4.2.2', {'P93804'}, ("primary", 'PGM1', 10),
-                  "Glycolipid metabolism;"
-                  " diglucosyl-diacylglycerol biosynthesis.",
-                  'Alpha-D-ribose 1-phosphate = D-ribose 5-phosphate.',
-                  'Baker\'s yeast', 'common', 2)
-                 ]
-        for ecn, accs, gene, pathway, reaction, org, nametype, n in enzys:
+        enzys = [
+            ('2.2.1.11', {'Q58980'}, ("ordered locus", 'MJ1585', 1),
+             "Aromatic compound metabolism.",
+             'D-fructose 1,6-bisphosphate = glycerone phosphate'
+             ' + D-glyceraldehyde 3-phosphate.',
+             'Methanococcus jannaschii', 'common', 1, 1),
+            ('2.5.1.-', {'Q3J5F9'}, ("primary", 'ctaB', 331),
+             "Cofactor biosynthesis; ubiquinone biosynthesis.",
+             '2,5-dichlorohydroquinone + 2 glutathione ='
+             ' chloride + chlorohydroquinone + glutathione disulfide.',
+             'Arabidopsis thaliana', 'scientific', 19, 715),
+            ('5.4.2.2', {'P93804'}, ("primary", 'PGM1', 10),
+             "Glycolipid metabolism;"
+             " diglucosyl-diacylglycerol biosynthesis.",
+             'Alpha-D-ribose 1-phosphate = D-ribose 5-phosphate.',
+             'Baker\'s yeast', 'common', 2, 25)
+        ]
+        for ecn, accs, gene, pathway, reaction, org, nametype, n, orgs in enzys:
             r = qryuniprot_es.getgenes(ecn)
             assert gene[2] == r[gene[0]][gene[1]]
             r = qryuniprot.getgenes(ecn)
@@ -109,8 +110,10 @@ class TestQueryUniProt(unittest.TestCase):
             assert pathway in [pw['_id'] for pw in r]
             r = qryuniprot.getcatalyticactivity(ecn)
             assert reaction in [rc['_id'] for rc in r]
-            assert n == qryuniprot_es.getorganisms(ecn, limit=20)[nametype][org]
-            assert n == qryuniprot.getorganisms(ecn, limit=20)[nametype][org]
+            for organisms in [qryuniprot_es.getorganisms(ecn, limit=8000),
+                              qryuniprot.getorganisms(ecn, limit=8000)]:
+                assert n == organisms[nametype][org]
+                self.assertAlmostEqual(orgs, len(organisms[nametype]), delta=5)
 
 
 if __name__ == '__main__':

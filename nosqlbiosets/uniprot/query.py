@@ -83,7 +83,7 @@ class QueryUniProt:
                 r[nametype][i['_id']['name']] = i['total']
         return r
 
-    # Find related genes for given KEGG reaction
+    # Find related genes for given KEGG reaction id
     # Finds UniProt ids by querying the IntEnz dataset with given KEGG ids
     def genes_linkedto_keggreaction(self, keggrid):
         doctype = "intenz"
@@ -113,28 +113,32 @@ class QueryUniProt:
     # or for entries selected by the query clause qc
     def getorganisms(self, ecn, qc=None, limit=100):
         if qc is None:
+            assert ecn is not None
             qc = {"dbReference.id": ecn}
         if self.dbc.db == 'Elasticsearch':
             qc = {"query": {"match": qc},
-                  "aggs": {
-                      "organisms": {
-                          "terms": {
-                              "field": "organism.name.type.keyword"
-                          },
-                          "aggs": {
-                              "name": {
-                                  "terms": {
-                                      "field": "organism.name.#text.keyword",
-                                      "size": limit
-                                  }}}}}}
-            hits, n, aggs = self.esquery(
-                self.dbc.es, self.index, qc, self.doctype)
+                  "_source": "organism.name"
+                  }
+            hits, n, _ = self.esquery(
+                self.dbc.es, self.index, qc, self.doctype, size=limit)
             rr = dict()
-            for i in aggs['organisms']['buckets']:
-                nametype = i['key']
-                rr[nametype] = OrderedDict()
-                for j in i['name']['buckets']:
-                    rr[nametype][j['key']] = j['doc_count']
+
+            def digestnames(name):
+                nametype_ = name['type']
+                organism = name['#text']
+                if nametype_ not in rr:
+                    rr[nametype_] = OrderedDict()
+                if organism in rr[nametype_]:
+                    rr[nametype_][organism] += 1
+                else:
+                    rr[nametype_][organism] = 1
+
+            for names in [hit['_source']['organism']['name'] for hit in hits]:
+                if isinstance(names, list):
+                    for name_ in names:
+                        digestnames(name_)
+                else:
+                    digestnames(names)
         else:
             aggq = [
                 {"$match": qc},
@@ -237,7 +241,7 @@ class QueryUniProt:
         return r
 
     @staticmethod
-    def esquery(es, index, qc, doc_type=None, size=0):
+    def esquery(es, index, qc, doc_type=None, size=10):
         import json
         print("Querying '%s'  %s" % (doc_type, json.dumps(qc, indent=4)))
         r = es.search(index=index, doc_type=doc_type, body=qc, size=size)
