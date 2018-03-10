@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" Test queries with IntEnz data indexed with MongoDB """
+""" Test queries with IntEnz data indexed with MongoDB and Neo4j"""
 
 import unittest
 from nosqlbiosets.dbutils import DBconnection
@@ -17,15 +17,36 @@ class TestQueryIntEnz(unittest.TestCase):
         print("#Chemicals both in reactants and products = %d" % len(i))
         assert "cytidine" in i
 
-    def test_query_reactants(self):
-        rnames = {
-            "glycerol": ["D/L-glyceraldehyde reductase"],
-            "D-threo-isocitrate": ["Isocitrate--homoisocitrate dehydrogenase"]
-        }
-        for name in rnames:
-            enzymes = qryintenz.getenzymeswithreactants([name])
-            assert rnames[name][0] in [
-                e[1] for e in enzymes]
+    def test_enzymeswithreactant(self):
+        tests = [
+            # reactant, name of one expected enzyme, # of expected enzymes
+            ("3-oxopropanoate", "Malonate-semialdehyde dehydrogenase", 5),
+            ("glycerol", "D/L-glyceraldehyde reductase", 8),
+            ("D-threo-isocitrate", "Isocitrate--homoisocitrate dehydrogenase",
+             3)
+        ]
+        for r, e, n in tests:
+            enzymes = qryintenz.getenzymeswithreactant(r)
+            assert e in [e[1] for e in enzymes]
+            assert n == len(enzymes)
+
+    def test_enzymeswithreactant_chebiid(self):
+        tests = [
+            (32682, "3.5.3.6", "Arginine deiminase", 22)
+        ]
+        for chebiid, ecn, ename, n in tests:
+            enzymes = qryintenz.getenzymeswithreactant_chebiid(chebiid)
+            assert (ecn, ename) in enzymes
+            assert n == len(enzymes)
+
+    def test_enzymeswithproduct_chebiid(self):
+        tests = [
+            (32682, "3.6.3.21", "Polar-amino-acid-transporting ATPase", 5)
+        ]
+        for chebiid, ecn, ename, n in tests:
+            enzymes = qryintenz.getenzymeswithproduct_chebiid(chebiid)
+            assert (ecn, ename) in enzymes
+            assert n == len(enzymes)
 
     def test_query_products(self):
         rnames = {
@@ -65,7 +86,7 @@ class TestQueryIntEnz(unittest.TestCase):
             assert len(r) >= 1
             assert enz in r
 
-    def test_lookup_with_connected_metabolites(self):
+    def test_lookup_connected_metabolites(self):
         source, target, e1, e2 = "2-oxoglutarate", "glyoxylate",\
                                 "LL-diaminopimelate aminotransferase",\
                                 "Glycine oxidase"  # EC 2.6.1.83 -> 1.4.3.19
@@ -73,7 +94,7 @@ class TestQueryIntEnz(unittest.TestCase):
         assert e1 in [e["_id"] for e in r]
         assert e2 in {e["_id"]: e["enzyme2"] for e in r}[e1]
 
-    def test_graphlookup_with_two_connected_metabolites(self):
+    def test_graphlookup_two_connected_metabolites(self):
         source, target, e1, e2 = "2-oxoglutarate", "glyoxylate",\
                                 "LL-diaminopimelate aminotransferase",\
                                 "Glycine transaminase"  # EC 2.6.1.83 -> 2.6.1.4

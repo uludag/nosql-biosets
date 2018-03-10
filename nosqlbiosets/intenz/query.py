@@ -37,14 +37,31 @@ class QueryIntEnz:
                  not isinstance(c["accepted_name"], list)]
             return r
 
-    # Find enzymes where one of the given chemicals is a reactant
-    def getenzymeswithreactants(self, reactants):
-        if self.dbc.db == 'MongoDB':
-            qc = {
-                "reactions.reaction.reactantList.reactant.title": {
-                    '$in': reactants}}
-            r = self.getenzymenames(qc)
-            return r
+    # Find enzymes where given chemical is a reactant
+    def getenzymeswithreactant(self, reactant):
+        assert self.dbc.db == 'MongoDB'
+        qc = {
+            "reactions.reaction.reactantList.reactant.title": reactant}
+        r = self.getenzymenames(qc)
+        return r
+
+    # Find enzymes where given chemical is a reactant
+    def getenzymeswithreactant_chebiid(self, chebiid):
+        assert self.dbc.db == 'MongoDB'
+        qc = {
+            "reactions.reaction.reactantList."
+            "reactant.molecule.identifier.value": "CHEBI:%d" % chebiid}
+        r = self.getenzymenames(qc)
+        return r
+
+    # Find enzymes where given chemical is a product
+    def getenzymeswithproduct_chebiid(self, chebiid):
+        assert self.dbc.db == 'MongoDB'
+        qc = {
+            "reactions.reaction.productList."
+            "product.molecule.identifier.value": "CHEBI:%d" % chebiid}
+        r = self.getenzymenames(qc)
+        return r
 
     # Get names of the enzymes with given ids
     def getenzymeswithids(self, eids):

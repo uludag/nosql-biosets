@@ -1,10 +1,10 @@
 
-# Index script for IntEnz Enzyme dataset
+# Index/query scripts for IntEnz Enzyme dataset
 
 * [index.py](index.py): Index [IntEnz](http://www.ebi.ac.uk/intenz) xml files,
   tested with IntEnz release February 2018
 
-* [query.py](query.py): Query API, at its early stages,
+* [query.py](query.py): Query API at its early stages,
   more queries with MongoDB, few with Neo4j
 
 * [tests.py](tests.py): Tests for the query API
