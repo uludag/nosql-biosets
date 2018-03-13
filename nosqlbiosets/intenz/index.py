@@ -10,6 +10,7 @@ import xmltodict
 from six import string_types
 
 from nosqlbiosets.dbutils import DBconnection
+from nosqlbiosets.objutils import unifylistattributes
 
 DOCTYPE = 'intenz'     # Default document-type or collection name
 
@@ -26,11 +27,12 @@ class Indexer(DBconnection):
             "index.refresh_interval": "30s"}
         super(Indexer, self).__init__(db, index, host, port,
                                       es_indexsettings=indxcfg,
-                                      recreateindex=False)
+                                      recreateindex=True)
         if db == "MongoDB":
             self.mcl = self.mdbi[doctype]
+            self.mcl.drop()
 
-    # Parses IntEnz xml file, then calls index function
+    # Parse IntEnz xml file, call index function after each entry is parsed
     def parse_intenz_xmlfiles(self, infile):
         infile = str(infile)
         print("Reading/indexing %s " % infile)
@@ -56,9 +58,13 @@ class Indexer(DBconnection):
     def index_intenz_entry(self, _, entry):
         if not isinstance(entry, string_types):
             docid = entry['ec'][3:]
-            # TODO: remove extra layers, e.g. reactions.reaction -> reactions
-            # reactantList.reactant -> reactants
-            # productList.product -> products
+            list_attrs = ["reactions", "synonyms", "cofactors",
+                          "comments", "links"]
+            unifylistattributes(entry, list_attrs)
+            # TODO: remove extra layers:
+            #       reactantList.reactant -> reactants
+            #       productList.product -> products
+            # TODO: make accepted_name list
             try:
                 if self.db == "Elasticsearch":
                     self.es.index(index=self.index, doc_type=self.doctype,
@@ -135,7 +141,7 @@ class Indexer(DBconnection):
     def updatereactionsandelements_sets(self, e):
         if 'reactions' not in e:
             return
-        for r in e['reactions']['reaction']:
+        for r in e['reactions']:
             if 'id' in r:
                 rid = r['id']
                 if rid not in self.reactions:
@@ -160,8 +166,13 @@ class Indexer(DBconnection):
 
 def mongodb_textindex(mdb):
     index = [
-        ("comments.comment.#text", "text"), ("synonyms.synonym.#text", "text")]
-    mdb.create_index(index, name="text")
+        ("accepted_name.#text", "text"),
+        ("reactions.name", "text"),
+        ("reactions.reactantList.reactant.title", "text"),
+        ("reactions.productList.product.title", "text"),
+        ("comments.#text", "text"), ("synonyms.#text", "text")
+    ]
+    mdb.create_index(index, name="text fields")
 
 
 def main(infile, index, doctype, db, host=None, port=None):

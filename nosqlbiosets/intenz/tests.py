@@ -12,9 +12,11 @@ class TestQueryIntEnz(unittest.TestCase):
 
     def test_getreactant_product_names(self):
         re = qryintenz.getreactantnames()
+        assert 4142 == len(re), "Number of distinct reactant names"
         pr = qryintenz.getproductnames()
+        assert 4751 == len(pr), "Number of distinct product names"
         i = set(re).intersection(pr)
-        print("#Chemicals both in reactants and products = %d" % len(i))
+        assert 2011 == len(i), "Chemicals both in reactants and products"
         assert "cytidine" in i
 
     def test_enzymeswithreactant(self):
@@ -86,6 +88,32 @@ class TestQueryIntEnz(unittest.TestCase):
             assert len(r) >= 1
             assert enz in r
 
+    def test_getconnections(self):
+        tests = [
+            # Isocitrate lyase
+            ("isocitrate", "glyoxylate",
+             # "isocitrate <?> glyoxylate + succinate",
+             "4.1.3.1"),
+            # "Isocitrate--homoisocitrate dehydrogenase"
+            ("D-threo-isocitrate", "2-oxoglutarate",
+             # "D-threo-isocitrate + NAD(+) <?> 2-oxoglutarate + CO2 + NADH",
+             "1.1.1.286")
+        ]
+        limit = 37234
+        r = qryintenz.get_connections({})
+        assert limit == len(r)
+        r = {(e['reactant'], e['product'], e['enzyme'])
+             for e in r}
+        for c in tests:
+            assert c in r
+
+    def test_getconnections_graph(self):
+        limit = 48138
+        qc = {'reactions.label.value': "Chemically balanced"}
+        g = qryintenz.get_connections_graph(qc, limit)
+        assert 27975 == g.number_of_edges()  # 30314
+        assert 12202 == g.number_of_nodes()  # 13130
+
     def test_lookup_connected_metabolites(self):
         source, target, e1, e2 = "2-oxoglutarate", "glyoxylate",\
                                 "LL-diaminopimelate aminotransferase",\
@@ -131,9 +159,15 @@ class TestQueryIntEnz(unittest.TestCase):
         self.assertAlmostEqual(6250, len(r), delta=200)
 
     def test_mdb_getreactions(self):
+        qc = {'$text': {'$search': '"oxopropanoate" "malonyl"'}}
+        r = list(qryintenz.getreactions(qc))
+        assert 4 == len(r)
+        qc = {'$text': {'$search': 'oxopropanoate malonyl'}}
+        r = list(qryintenz.getreactions(qc))
+        assert 98 == len(r)
         qc = {'$text': {'$search': 'semialdehyde'}}
         r = list(qryintenz.getreactions(qc))
-        assert len(r) == 64
+        assert 96 == len(r)
 
 
 if __name__ == '__main__':

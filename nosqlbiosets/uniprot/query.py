@@ -89,12 +89,12 @@ class QueryUniProt:
         doctype = "intenz"
         if self.dbc.db == 'MongoDB':
             agpl = [
-                {"$match": {"reactions.reaction.map.link.title": keggrid}},
-                {"$unwind": "$links.link"},
-                {"$match": {"links.link.db": "UniProt"}},
+                {"$match": {"reactions.map.link.title": keggrid}},
+                {"$unwind": "$links"},
+                {"$match": {"links.db": "UniProt"}},
                 {"$lookup": {
                     "from": self.doctype,
-                    "localField": "links.link.accession_number",
+                    "localField": "links.accession_number",
                     "foreignField": "accession",
                     "as": "uniprot"
                 }},

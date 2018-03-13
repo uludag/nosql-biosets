@@ -2,7 +2,14 @@
 """ Queries with IntEnz data indexed with MongoDB or Neo4j"""
 # Server connection details are read from  conf/dbservers.json file
 
-from ..dbutils import DBconnection
+import argparse
+
+from nosqlbiosets.dbutils import DBconnection
+from nosqlbiosets.graphutils import *
+import json
+import networkx as nx
+
+COLLECTION = "intenz"
 
 
 class QueryIntEnz:
@@ -12,27 +19,25 @@ class QueryIntEnz:
         self.dbc = DBconnection(db, index)
 
     def getreactantnames(self, filterc=None):
-        if self.dbc.db == 'MongoDB':
-            key = "reactions.reaction.reactantList.reactant.title"
-            r = self.dbc.mdbi[self.doctype].distinct(key, filter=filterc)
-            print("#reactants = %d" % len(r))
-            return r
+        assert self.dbc.db == 'MongoDB'
+        key = "reactions.reactantList.reactant.title"
+        r = self.dbc.mdbi[self.doctype].distinct(key, filter=filterc)
+        return r
 
     def getproductnames(self, filterc=None):
-        if self.dbc.db == 'MongoDB':
-            key = "reactions.reaction.productList.product.title"
-            r = self.dbc.mdbi[self.doctype].distinct(key, filter=filterc)
-            print("#products = %d" % len(r))
-            return r
+        assert self.dbc.db == 'MongoDB'
+        key = "reactions.productList.product.title"
+        r = self.dbc.mdbi[self.doctype].distinct(key, filter=filterc)
+        return r
 
     # Find enzyme names for given query
     def getenzymenames(self, qc):
         if self.dbc.db == 'MongoDB':
-            r = ["_id", "accepted_name.#text"]
-            hits = self.dbc.mdbi[self.doctype].find(qc, projection=r)
+            pr = ["_id", "accepted_name.#text"]
+            hits = self.dbc.mdbi[self.doctype].find(qc, projection=pr)
             hits = [c for c in hits]
             # TODO: accepted_name is list
-            r = [(c[r[0]], c["accepted_name"]["#text"])
+            r = [(c['_id'], c["accepted_name"]["#text"])
                  for c in hits if "accepted_name" in c and
                  not isinstance(c["accepted_name"], list)]
             return r
@@ -41,7 +46,7 @@ class QueryIntEnz:
     def getenzymeswithreactant(self, reactant):
         assert self.dbc.db == 'MongoDB'
         qc = {
-            "reactions.reaction.reactantList.reactant.title": reactant}
+            "reactions.reactantList.reactant.title": reactant}
         r = self.getenzymenames(qc)
         return r
 
@@ -49,7 +54,7 @@ class QueryIntEnz:
     def getenzymeswithreactant_chebiid(self, chebiid):
         assert self.dbc.db == 'MongoDB'
         qc = {
-            "reactions.reaction.reactantList."
+            "reactions.reactantList."
             "reactant.molecule.identifier.value": "CHEBI:%d" % chebiid}
         r = self.getenzymenames(qc)
         return r
@@ -58,7 +63,7 @@ class QueryIntEnz:
     def getenzymeswithproduct_chebiid(self, chebiid):
         assert self.dbc.db == 'MongoDB'
         qc = {
-            "reactions.reaction.productList."
+            "reactions.productList."
             "product.molecule.identifier.value": "CHEBI:%d" % chebiid}
         r = self.getenzymenames(qc)
         return r
@@ -73,14 +78,13 @@ class QueryIntEnz:
     def getenzymebyid(self, eid=None):
         if self.dbc.db == 'MongoDB':
             r = self.dbc.mdbi[self.doctype].find_one(filter=eid)
-            print("#enzyme name = %s" % r["accepted_name"]["#text"])
             return r
 
     # Find all enzymes where given chemical is a product
     def query_products(self, rnames):
         if self.dbc.db == 'MongoDB':
             qc = {
-                "reactions.reaction.productList.product.title": {
+                "reactions.productList.product.title": {
                     '$in': rnames}}
             r = ["_id", "accepted_name.#text"]
             hits = self.dbc.mdbi[self.doctype].find(qc, projection=r, limit=100)
@@ -99,17 +103,17 @@ class QueryIntEnz:
         if self.dbc.db == 'MongoDB':
             # TODO: reaction directions
             qc = {
-                "reactions.reaction.convention": "rhea:direction.UN",
+                "reactions.convention": "rhea:direction.UN",
                 "$or": [
                     {
-                        "reactions.reaction.reactantList.reactant.title": {
+                        "reactions.reactantList.reactant.title": {
                             '$in': [reactant]},
-                        "reactions.reaction.productList.product.title": {
+                        "reactions.productList.product.title": {
                             '$in': [product]}},
                     {
-                        "reactions.reaction.reactantList.reactant.title": {
+                        "reactions.reactantList.reactant.title": {
                             '$in': [product]},
-                        "reactions.reaction.productList.product.title": {
+                        "reactions.productList.product.title": {
                             '$in': [reactant]}}
                 ]}
             hits = self.dbc.mdbi[self.doctype].find(qc)
@@ -124,28 +128,25 @@ class QueryIntEnz:
     def lookup_connected_metabolites(self, source, target):
         agpl = [
             {"$match": {
-                "reactions.reaction.reactantList.reactant":
+                "reactions.reactantList.reactant":
                     {'$elemMatch': {"title": source}}}},
             {"$project": {
-                "reactions.reaction.map": 0,
-                "links": 0,
-                "references": 0
+                "reactions": 1, "accepted_name": 1
             }},
-            {"$unwind": {"path": "$reactions.reaction",
-                         "includeArrayIndex": "rindex"}},
+            {"$unwind": "$reactions"},
             {"$match": {
-                "reactions.reaction.productList": {"$exists": True}}},
+                "reactions.productList": {"$exists": True}}},
             {"$lookup": {
                 "from": "intenz",
                 "localField":
-                    "reactions.reaction.productList.product.title",
+                    "reactions.productList.product.title",
                 "foreignField":
-                    "reactions.reaction.reactantList.reactant.title",
+                    "reactions.reactantList.reactant.title",
                 "as": "enzyme2"
             }},
             {"$unwind": "$enzyme2"},
             {"$match": {
-                "enzyme2.reactions.reaction.productList.product":
+                "enzyme2.reactions.productList.product":
                     {'$elemMatch': {"title": target}}}},
             {"$group": {"_id": "$accepted_name.#text",
                         "enzyme2": {"$push": "$enzyme2.accepted_name.#text"}}}
@@ -161,23 +162,22 @@ class QueryIntEnz:
             graphfilter = {}
         agpl = [
             {"$match": {
-                "reactions.reaction.reactantList.reactant":
+                "reactions.reactantList.reactant":
                     {'$elemMatch': {"title": source}}}},
             {"$project": {
-                "reactions.reaction.map": 0,
+                "reactions.map": 0,
                 "links": 0, "references": 0, "comments": 0
             }},
-            {"$unwind": {"path": "$reactions.reaction",
-                         "includeArrayIndex": "rindex"}},
+            {"$unwind": "$reactions"},
             {"$match": {
-                "reactions.reaction.productList": {"$exists": True}}},
+                "reactions.productList": {"$exists": True}}},
             {"$graphLookup": {
                 "from": "intenz",
                 "startWith": source,
                 "connectToField":
-                    "reactions.reaction.reactantList.reactant.title",
+                    "reactions.reactantList.reactant.title",
                 "connectFromField":
-                    "reactions.reaction.productList.product.title",
+                    "reactions.productList.product.title",
                 "as": "enzymes",
                 "maxDepth": depth,
                 "depthField": "depth",
@@ -186,7 +186,7 @@ class QueryIntEnz:
             {"$unwind": "$enzymes"},
             {"$match": {
                 "$or": [{"depth": {"$lt": depth}},
-                        {"enzymes.reactions.reaction.productList.product": {
+                        {"enzymes.reactions.productList.product": {
                             '$elemMatch': {"title": target}}}]}},
             {"$group": {"_id": "$accepted_name.#text",
                         "enzymes": {"$push": "$enzymes.accepted_name.#text"}}}
@@ -199,8 +199,8 @@ class QueryIntEnz:
                                                        k=5):
         q = 'MATCH (source_:Substrate{id:{source}}),' \
             ' (target_:Product{id:{target}}),' \
-            '  path=allShortestPaths((source_)-[*..' + str(k) + ']->(target_))'\
-                                                                ' RETURN path'
+            '  path=allShortestPaths((source_)-[*..' + str(k)\
+            + ']->(target_)) RETURN path'
         r = self.dbc.neo4jc.run(q, source=source, target=target)
         return r
 
@@ -213,18 +213,74 @@ class QueryIntEnz:
             agpl = [
                 {"$match": filterc},
                 {"$project": {
-                    "reactions.reaction.map": 0,
-                    "links": 0,
-                    "references": 0
-                }},
-                {"$unwind": {"path": "$reactions.reaction",
-                             "includeArrayIndex": "rindex"}},
-                {"$project": {
                     "reactions": 1
                 }},
-                {"$group": {"_id": "$reactions.reaction.id",
-                            "reaction": {"$addToSet": "$reactions.reaction"}}}
+                {"$unwind": {"path": "$reactions"}},
+                {"$group": {"_id": "$reactions.id",
+                            "reaction": {"$addToSet": "$reactions"}}}
             ]
             hits = self.dbc.mdbi[self.doctype].aggregate(agpl)
             r = [i for i in hits]
             return r
+
+    # connections are either from reactants to reactions
+    # or from reactions to products
+    def get_connections(self, filterc, limit=40000):
+        assert self.dbc.db == 'MongoDB'
+        agpl = [
+            {"$match": filterc},
+            {"$project": {
+                "reactions": 1
+            }},
+            {"$unwind": "$reactions"},
+            {"$unwind": "$reactions.reactantList.reactant"},
+            {"$unwind": "$reactions.productList.product"},
+            {"$group": {
+                "_id": {
+                    "enzyme": "$_id",
+                    "reactant":
+                        "$reactions.reactantList.reactant.title",
+                    "product": "$reactions.productList.product.title"
+                },
+            }},
+            {"$limit": limit}
+        ]
+        r = self.dbc.mdbi[self.doctype].aggregate(agpl)
+        connections = list()
+        for i in r:
+            connections.append(i['_id'])
+        return connections
+
+    def get_connections_graph(self, qc, limit=800):
+        connections = self.get_connections(qc, limit)
+        graph = nx.DiGraph(name="IntEnz query %s" % json.dumps(qc))
+        for c in connections:
+            graph.add_node(c['reactant'], type='reactant', viz_color='green')
+            graph.add_node(c['product'], type='product', viz_color='orange')
+            graph.add_node(c['enzyme'], type='enzyme', viz_color='brown')
+            graph.add_edge(c['reactant'], c['enzyme'])
+            graph.add_edge(c['enzyme'], c['product'])
+        return graph
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+        description='Save IntEnz reaction connections as graph files')
+    parser.add_argument('qc',
+                        help='MongoDB query clause to select subsets'
+                             ' of IntEnz entries,'
+                             ' ex: \'{"reactions.label.value": '
+                             '"Chemically balanced"}\'')
+    parser.add_argument('outfile',
+                        help='File name for saving the output graph'
+                             ' in GraphML, GML, Cytoscape.js or d3js formats,'
+                             ' see readme.md for details')
+    parser.add_argument('--limit',
+                        default=100, type=int,
+                        help='Maximum number of reactant-product connections')
+    args = parser.parse_args()
+    qry = QueryIntEnz()
+    qc_ = json.loads(args.qc)
+    cgraph = qry.get_connections_graph(qc_, args.limit)
+    print(nx.info(cgraph))
+    save_graph(cgraph, args.outfile)
