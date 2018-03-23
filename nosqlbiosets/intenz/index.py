@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Index IntEnz xml files, with Elasticsearch, MongoDB, and Neo4j"""
+""" Index IntEnz xml files, with Elasticsearch, MongoDB, or Neo4j """
 from __future__ import print_function
 
 import argparse
@@ -31,6 +31,11 @@ class Indexer(DBconnection):
         if db == "MongoDB":
             self.mcl = self.mdbi[doctype]
             self.mcl.drop()
+        elif db == "Neo4j":
+            self.reactions = dict()
+            self.reactants = set()
+            self.products = set()
+            self.edges = set()
 
     # Parse IntEnz xml file, call index function after each entry is parsed
     def parse_intenz_xmlfiles(self, infile):
@@ -52,8 +57,6 @@ class Indexer(DBconnection):
         print("\nCompleted")
         if self.db == "Neo4j":
             self.indexwithneo4j()
-        # TODO: option to save graph, using graphutils.save_graph()
-        # graph = nx.MultiDiGraph(list(self.edges))
 
     def index_intenz_entry(self, _, entry):
         if not isinstance(entry, string_types):
@@ -83,11 +86,6 @@ class Indexer(DBconnection):
             self.reportprogress(40)
         return True
 
-    reactions = dict()
-    reactants = set()
-    products = set()
-    edges = set()
-
     def indexwithneo4j(self):
         print("Indexing collected data with Neo4j")
         with self.neo4jc.begin_transaction() as tx:
@@ -107,7 +105,7 @@ class Indexer(DBconnection):
             for r in self.reactions:
                 r = self.reactions[r]
                 if 'id' in r:
-                    rid = r['id']
+                    rid = r['id']  # Rhea reaction id
                     tx.run("CREATE (a:Reaction {id:{rid}, name:{name}})",
                            rid=rid, name=r['name'])
                     for re in r['reactantList']['reactant']:
@@ -116,8 +114,8 @@ class Indexer(DBconnection):
                         else:
                             substrate = re
                         if (substrate, rid) in self.edges:
-                            c = "MATCH (r:Reaction), (s:Substrate) " \
-                                " WHERE  r.id = {rid} " \
+                            c = "MATCH (r:Reaction), (s:Substrate)" \
+                                " WHERE r.id = {rid}" \
                                 " AND s.id = {substrate} " \
                                 "CREATE (s)-[:Reactant_in {r:{rid}}]->(r)"
                             tx.run(c, rid=rid,
