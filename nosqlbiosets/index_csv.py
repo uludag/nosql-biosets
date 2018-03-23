@@ -83,23 +83,24 @@ def main(db, infile, index, collection, delimiter=',',
         dbc.es.indices.refresh(index=index)
     elif dbc.db == "MongoDB":
         mongodb_index_csv(dbc.mdbi, infile, collection, delimiter)
-    else:  # Assume PostgresSQL
+    else:  # Assume PostgreSQL
         pgsql_index(dbc.sqlc, infile, collection, delimiter)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Index CSV files with Elasticsearch, '
-                    'MongoDB or PostgresSQL')
+                    'MongoDB or PostgreSQL')
     parser.add_argument('--infile',
                         required=True,
                         help='Input CSV file to index, headers required')
     parser.add_argument('--index',
                         help='Index name for Elasticsearch, '
-                             'database name for MongoDB and PostgresSQL')
+                             'database name for MongoDB and PostgreSQL')
     parser.add_argument('--collection',
-                        help='Document collection name for MongoDB'
-                             'and Elasticsearch')
+                        help='Collection name for MongoDB,'
+                             ' document type name with Elasticsearch,'
+                             ' table name with PostgreSQL')
     parser.add_argument('--delimiter', default=',',
                         help="Columns delimiter for input CSV file, "
                              "for tsv files enter --delimiter $'\t'")
@@ -109,13 +110,13 @@ if __name__ == '__main__':
                         help="Port number of the database server")
     parser.add_argument('--db', default='MongoDB',
                         help="Database: 'Elasticsearch', 'MongoDB',"
-                             " or 'PostgresSQL'")
+                             " or 'PostgreSQL'")
     parser.add_argument('--user',
                         help="Database user name, "
-                             "supported with PostgresSQL option only")
+                             "supported with PostgreSQL option only")
     parser.add_argument('--password',
                         help="Password for the database user, "
-                             " supported with PostgresSQL option only")
+                             "supported with PostgreSQL option only")
     args = parser.parse_args()
     main(args.db, args.infile, args.index, args.collection, args.delimiter,
          args.user, args.password, args.host, args.port)
