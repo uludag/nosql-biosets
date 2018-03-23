@@ -5,7 +5,7 @@ import networkx
 
 
 # Return input NetworkX graph in Cytoscape.js JSON format
-def networkx2cytoscape_json(networkxgraph):  #, name):
+def networkx2cytoscape_json(networkxgraph):
     nodes = []
     edges = []
     for node in networkxgraph.nodes():
@@ -41,8 +41,9 @@ def networkx2cytoscape_json(networkxgraph):  #, name):
                 }}
         ],
         'layout': {
-            'name': 'grid',
-            'rows': 1
+            'name': 'cose',
+            'directed': True,
+            'nodeDimensionsIncludeLabels': True
         }
     }
     return cygraph
@@ -53,15 +54,9 @@ def networkx2d3_json(networkxgraph):
     d3["nodes"] = []
     d3["links"] = []
     for node in networkxgraph.nodes():
-        nx = dict()
-        nx["id"] = node
-        nx["label"] = node
-        d3["nodes"].append(nx.copy())
+        d3["nodes"].append({"id": node, "label": node})
     for edge in networkxgraph.edges():
-        nx = dict()
-        nx["source"] = edge[0]
-        nx["target"] = edge[1]
-        d3["links"].append(nx)
+        d3["links"].append({"source": edge[0], "target": edge[1]})
     return d3
 
 
@@ -74,14 +69,14 @@ def networkx2d3_json(networkxgraph):
 # If the file name ends with .json extension graph is saved in
 # [Cytoscape.js](js.cytoscape.org) graph format,
 # Otherwise it is saved in GML format
-def save_graph(graph, outfile):  #, name):
+def save_graph(graph, outfile):
     if outfile.endswith(".xml"):
         networkx.write_graphml(graph, outfile)
     elif outfile.endswith(".d3js.json"):
         cygraph = networkx2d3_json(graph)
         json.dump(cygraph, open(outfile, "w"), indent=4)
     elif outfile.endswith(".json"):
-        cygraph = networkx2cytoscape_json(graph)  #, name)
+        cygraph = networkx2cytoscape_json(graph)
         json.dump(cygraph, open(outfile, "w"), indent=4)
     else:  # Assume GML format
         networkx.write_gml(graph, outfile)
