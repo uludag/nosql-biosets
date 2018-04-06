@@ -165,8 +165,8 @@ class QueryIntEnz:
                 "reactions.reactantList.reactant":
                     {'$elemMatch': {"title": source}}}},
             {"$project": {
-                "reactions.map": 0,
-                "links": 0, "references": 0, "comments": 0
+                "reactions.productList": 1,
+                "reactions.reactantList": 1, "accepted_name": 1
             }},
             {"$unwind": "$reactions"},
             {"$match": {
@@ -182,6 +182,12 @@ class QueryIntEnz:
                 "maxDepth": depth,
                 "depthField": "depth",
                 "restrictSearchWithMatch": graphfilter
+            }},
+            {"$project": {
+                "accepted_name": 1,
+                "depth": 1,
+                "enzymes.accepted_name": 1,
+                "enzymes.reactions.productList": 1
             }},
             {"$unwind": "$enzymes"},
             {"$match": {

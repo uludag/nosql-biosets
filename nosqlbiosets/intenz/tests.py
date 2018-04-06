@@ -12,16 +12,21 @@ class TestQueryIntEnz(unittest.TestCase):
 
     def test_getreactant_product_names(self):
         re = qryintenz.getreactantnames()
-        assert 4142 == len(re), "Number of distinct reactant names"
+        self.assertAlmostEqual(4200, len(re), delta=100,
+                               msg="Number of reactant names")
         pr = qryintenz.getproductnames()
-        assert 4751 == len(pr), "Number of distinct product names"
+        self.assertAlmostEqual(4800, len(pr), delta=100,
+                               msg="Number of product names")
         i = set(re).intersection(pr)
-        assert 2011 == len(i), "Chemicals both in reactants and products"
+        self.assertAlmostEqual(2030, len(i), delta=40,
+                               msg="Chemicals both in reactants and products")
         assert "cytidine" in i
 
     def test_enzymeswithreactant(self):
         tests = [
             # reactant, name of one expected enzyme, # of expected enzymes
+            ("2-oxoglutarate", "Thymine dioxygenase", 130),
+            ("L-glutamate", "Glutamate--tRNA(Gln) ligase", 37),
             ("3-oxopropanoate", "Malonate-semialdehyde dehydrogenase", 5),
             ("glycerol", "D/L-glyceraldehyde reductase", 8),
             ("D-threo-isocitrate", "Isocitrate--homoisocitrate dehydrogenase",
@@ -30,7 +35,7 @@ class TestQueryIntEnz(unittest.TestCase):
         for r, e, n in tests:
             enzymes = qryintenz.getenzymeswithreactant(r)
             assert e in [e[1] for e in enzymes]
-            assert n == len(enzymes)
+            self.assertAlmostEqual(n, len(enzymes), delta=3)
 
     def test_enzymeswithreactant_chebiid(self):
         tests = [
@@ -99,20 +104,17 @@ class TestQueryIntEnz(unittest.TestCase):
              # "D-threo-isocitrate + NAD(+) <?> 2-oxoglutarate + CO2 + NADH",
              "1.1.1.286")
         ]
-        limit = 37234
         r = qryintenz.get_connections({})
-        assert limit == len(r)
-        r = {(e['reactant'], e['product'], e['enzyme'])
-             for e in r}
+        self.assertAlmostEqual(37600, len(r), delta=100)
+        r = {(e['reactant'], e['product'], e['enzyme']) for e in r}
         for c in tests:
             assert c in r
 
     def test_getconnections_graph(self):
-        limit = 48138
         qc = {'reactions.label.value': "Chemically balanced"}
-        g = qryintenz.get_connections_graph(qc, limit)
-        assert 27975 == g.number_of_edges()  # 30314
-        assert 12202 == g.number_of_nodes()  # 13130
+        g = qryintenz.get_connections_graph(qc, limit=40000)
+        self.assertAlmostEqual(28200, g.number_of_edges(), delta=100)
+        self.assertAlmostEqual(12300, g.number_of_nodes(), delta=100)
 
     def test_lookup_connected_metabolites(self):
         source, target, e1, e2 = "2-oxoglutarate", "glyoxylate",\
@@ -122,7 +124,7 @@ class TestQueryIntEnz(unittest.TestCase):
         assert e1 in [e["_id"] for e in r]
         assert e2 in {e["_id"]: e["enzyme2"] for e in r}[e1]
 
-    def test_graphlookup_two_connected_metabolites(self):
+    def test_graphlookup_connected_metabolites(self):
         source, target, e1, e2 = "2-oxoglutarate", "glyoxylate",\
                                 "LL-diaminopimelate aminotransferase",\
                                 "Glycine transaminase"  # EC 2.6.1.83 -> 2.6.1.4
@@ -145,11 +147,15 @@ class TestQueryIntEnz(unittest.TestCase):
         source, target = "2-oxoglutarate", "glyoxylate"
         r = list(nqry.neo4j_shortestpathsearch_connected_metabolites(source,
                                                                      target))
-        assert len(r) > 0
+        assert 1 == len(r)
         path = r[0]['path']
         assert path.start.properties == {"id": "2-oxoglutarate"}
         assert path.end.properties == {"id": "glyoxylate"}
-        assert path.relationships[0].type == "Reactant_in"
+        assert 2 == len(path.relationships)
+        assert "Reactant_in" == path.relationships[0].type
+        assert "14089" == path.relationships[0].properties['r']
+        assert "Produces" == path.relationships[1].type
+        assert "14089" == path.relationships[1].properties['r']
         assert len(path.nodes) == 3
         assert len(path.relationships) == 2
 
@@ -159,6 +165,9 @@ class TestQueryIntEnz(unittest.TestCase):
         self.assertAlmostEqual(6250, len(r), delta=200)
 
     def test_mdb_getreactions(self):
+        qc = {'$text': {'$search': '"poly(A)"'}}
+        r = list(qryintenz.getreactions(qc))
+        assert 3 == len(r)
         qc = {'$text': {'$search': '"oxopropanoate" "malonyl"'}}
         r = list(qryintenz.getreactions(qc))
         assert 4 == len(r)
