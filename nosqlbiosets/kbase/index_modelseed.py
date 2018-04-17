@@ -1,12 +1,11 @@
 #!/usr/bin/env python
-""" Index ModelSEED compounds/reactions data with Elasticsearch or MongoDB"""
+""" Index ModelSEEDDatabase compounds/reactions with Elasticsearch or MongoDB"""
 # https://github.com/ModelSEED/ModelSEEDDatabase/blob/master/Biochemistry
 # TODO: move to .json files, we currently index the .csv files
 from __future__ import print_function
 
 import argparse
 import csv
-import os
 import time
 
 from elasticsearch.helpers import streaming_bulk
@@ -118,18 +117,14 @@ def main(infile, index, doctype, db, host=None, port=None):
 
 
 if __name__ == '__main__':
-    d = os.path.dirname(os.path.abspath(__file__))
-    biochemfolder = d + "/../../data/modelseeddb/Biochemistry/"
     parser = argparse.ArgumentParser(
-        description='Index ModelSEED compounds/reactions files with'
+        description='Index ModelSEEDDatabase compounds/reactions files with'
                     ' MongoDB/Elasticsearch')
     parser.add_argument('--compoundsfile',
-                        default=biochemfolder + "compounds.tsv",
-                        help='ModelSEED compounds tsv file')
+                        help='ModelSEEDDatabase compounds tsv file')
     parser.add_argument('--reactionsfile',
-                        default=biochemfolder + "reactions.tsv",
-                        help='ModelSEED reactions csv file')
-    parser.add_argument('--index', default="ModelSEED",
+                        help='ModelSEEDDatabase reactions tsv file')
+    parser.add_argument('--index', default="modelseeddb",
                         help='Name of the Elasticsearch index or '
                              'MongoDB database')
     parser.add_argument('--host',
@@ -140,7 +135,9 @@ if __name__ == '__main__':
                         help="Database: 'Elasticsearch' or 'MongoDB'")
     args = parser.parse_args()
 
-    main(args.compoundsfile, args.index, TYPE_COMPOUND,
-         args.db, args.host, args.port)
-    main(args.reactionsfile, args.index, TYPE_REACTION,
-         args.db, args.host, args.port)
+    if args.compoundsfile is not None:
+        main(args.compoundsfile, args.index, TYPE_COMPOUND,
+             args.db, args.host, args.port)
+    if args.reactionsfile is not None:
+        main(args.reactionsfile, args.index, TYPE_REACTION,
+             args.db, args.host, args.port)

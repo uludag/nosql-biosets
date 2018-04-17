@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" Test queries with ModelSEEDDatabase reactions """
+""" Test queries with ModelSEEDDatabase reactions data """
 import unittest
 
 from nosqlbiosets.dbutils import DBconnection
@@ -9,7 +9,7 @@ dbc = DBconnection("MongoDB", "biosets")
 
 class TestQueryModelSEEDDatabase(unittest.TestCase):
 
-    # Find different ModelSEEDdb 'status' values for KEGG reactions
+    # Finds ModelSEEDdb 'status' values for KEGG reactions
     # https://github.com/ModelSEED/ModelSEEDDatabase/tree/master/Biochemistry#reaction-status-values
     def test_kegg_reactions_in_modelseeddb(self):
         rstatus = {"OK": 6766, "CI:1": 23, "CI:2": 178,  "CI:4": 19,
@@ -29,13 +29,12 @@ class TestQueryModelSEEDDatabase(unittest.TestCase):
                 "_id": "$status",
                 "kegg_ids": {"$addToSet": "$abbreviation"}
             }}
-
         ]
         r = dbc.mdbi["modelseed_reaction"].aggregate(aggpl)
         for i in r:
             # 769 different status values, check only frequent values
             if len(i['kegg_ids']) > 15:
-                assert len(i['kegg_ids']) == rstatus[i['_id']]
+                assert rstatus[i['_id']] == len(i['kegg_ids'])
 
     def test_comparewithMetaNetX(self):
         aggpl = [
@@ -45,7 +44,7 @@ class TestQueryModelSEEDDatabase(unittest.TestCase):
         ]
         r = dbc.mdbi["modelseed_reaction"].aggregate(aggpl)
         inmodelseeddb = {i['abbreviation'] for i in r}
-        assert len(inmodelseeddb) == 6766
+        assert 6766 == len(inmodelseeddb)
         aggpl = [
             {"$match": {"balance": "true"}},
             {"$project": {"xrefs": 1}},
@@ -54,10 +53,10 @@ class TestQueryModelSEEDDatabase(unittest.TestCase):
         ]
         r = dbc.mdbi["metanetx_reaction"].aggregate(aggpl)
         inmetanetx = {i['xrefs']['id'] for i in r}
-        assert len(inmetanetx) == 7950
-        assert len(inmodelseeddb - inmetanetx) == 501
-        assert len(inmodelseeddb.union(inmetanetx)) == 8451
-        assert len(inmodelseeddb.intersection(inmetanetx)) == 6265
+        assert 7950 == len(inmetanetx)
+        assert 501 == len(inmodelseeddb - inmetanetx)
+        assert 8451 == len(inmodelseeddb.union(inmetanetx))
+        assert 6265 == len(inmodelseeddb.intersection(inmetanetx))
 
 
 if __name__ == '__main__':
