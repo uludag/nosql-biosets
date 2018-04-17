@@ -229,10 +229,10 @@ class QueryUniProt:
     def getnamesforkegg_geneids(self, kgids, db="MongoDB"):
         if db == 'Elasticsearch':
             esc = DBconnection(db, self.index)
-            qc = {"match": {
-                "dbReference.id": "(%s)" % ' OR '.join(kgids)}}
-            hits, n, _ = self.esquery(esc.es, self.index, {"query": qc},
-                                      self.doctype, len(kgids))
+            qc = {"terms": {
+                "dbReference.id.keyword": kgids}}
+            hits, _, _ = self.esquery(esc.es, self.index, {"query": qc},
+                                      self.doctype)
             r = [xref['_id'] for xref in hits]
         else:
             qc = {"dbReference.id": {'$in': kgids}}

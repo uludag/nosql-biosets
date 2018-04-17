@@ -3,7 +3,7 @@
 
 * [index.py](index.py): Index UniProtKB xml files
   
-  _Tested with Swiss-Prot dataset only (February 2018 release)_
+  _Tested with Swiss-Prot dataset only (March 2018 release)_
   
     ```
     ./nosqlbiosets/uniprot/index.py --help
@@ -83,7 +83,7 @@ data files
  - https://wiki.reactome.org/index.php/PSI-MITAB_interactions
  
 ```bash
-mkdir -p data
+
 wget -P ./data http://cbdm-01.zdv.uni-mainz.de/~mschaefer/hippie/HIPPIE-current.mitab.txt
 
 # Index with Elasticsearch

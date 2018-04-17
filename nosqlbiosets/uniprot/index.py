@@ -30,7 +30,7 @@ class Indexer(DBconnection):
         indxcfg = {  # for Elasticsearch
             "index.number_of_replicas": 0,
             "index.number_of_shards": 10,
-            "index.refresh_interval": "60s"}
+            "index.refresh_interval": "60m"}
         super(Indexer, self).__init__(db, index, host, port,
                                       es_indexsettings=indxcfg,
                                       recreateindex=False)

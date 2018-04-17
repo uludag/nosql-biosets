@@ -13,9 +13,9 @@ class TestQueryUniProt(unittest.TestCase):
 
     def test_kegg_geneid_queries_es(self):
         db = "Elasticsearch"
-        mids = qryuniprot_es.getnamesforkegg_geneids(
+        ids = qryuniprot_es.getnamesforkegg_geneids(
             ['hsa:7157', 'hsa:121504'], db)
-        self.assertSetEqual(set(mids), {'P53_HUMAN', 'H4_HUMAN'})
+        self.assertSetEqual({'P53_HUMAN', 'H4_HUMAN'}, set(ids))
 
     def test_kegg_geneid_queries_mdb(self):
         db = "MongoDB"
@@ -110,8 +110,8 @@ class TestQueryUniProt(unittest.TestCase):
             assert pathway in [pw['_id'] for pw in r]
             r = qryuniprot.getcatalyticactivity(ecn)
             assert reaction in [rc['_id'] for rc in r]
-            for organisms in [qryuniprot_es.getorganisms(ecn, limit=8000),
-                              qryuniprot.getorganisms(ecn, limit=8000)]:
+            for organisms in [qryuniprot_es.getorganisms(ecn, limit=2000),
+                              qryuniprot.getorganisms(ecn, limit=2000)]:
                 assert n == organisms[nametype][org]
                 self.assertAlmostEqual(orgs, len(organisms[nametype]), delta=5)
 
