@@ -17,16 +17,16 @@ class TestQueryMetanetx(unittest.TestCase):
 
     def test_compoundnames(self, db="MongoDB"):
         dbc = DBconnection(db, self.index)
-        mids = ['MNXM39', 'MNXM89612', 'MNXM2000']
-        descs = ['formate', 'glycerol', 'alpha-carotene']
+        mids = ['MNXM244', 'MNXM39', 'MNXM89612', 'MNXM2000']
+        descs = ['3-oxopropanoate', 'formate', 'glycerol', 'alpha-carotene']
         for mid in mids:
             desc = descs.pop(0)
             assert desc == qrymtntx.getcompoundname(dbc, mid)
 
-    def id_queries(self, db):
-        keggcids = ['C00116', 'C05433']
-        mids = ['MNXM89612', 'MNXM2000']
-        chebiids = ['17754', '28425']
+    def test_id_queries(self, db="MongoDB"):
+        keggcids = ['C00222', 'C00116', 'C05433']
+        mids = ['MNXM244', 'MNXM89612', 'MNXM2000']
+        chebiids = ['17960', '17754', '28425']
         dbc = DBconnection(db, self.index)
         self.assertEqual(mids,
                          qrymtntx.keggcompoundids2otherids(dbc, keggcids))
@@ -35,10 +35,7 @@ class TestQueryMetanetx(unittest.TestCase):
                                                            'chebi'))
 
     def test_id_queries_es(self):
-        self.id_queries("Elasticsearch")
-
-    def test_id_queries_mdb(self):
-        self.id_queries("MongoDB")
+        self.test_id_queries("Elasticsearch")
 
     # First queries metanetx_reactions for given KEGG ids
     # Then links metanetx_reaction.ecno to uniprot.dbReference.id
@@ -75,6 +72,9 @@ class TestQueryMetanetx(unittest.TestCase):
         qc = {"_id": {"$in": rids}}
         reacts = qrymtntx.query_reactions(qc)
         assert len(reacts) == len(rids)
+        qc = {"xrefs.lib": "kegg"}
+        reacts = qrymtntx.query_reactions(qc, projection=['ecno'])
+        assert 10262 == len(reacts)
 
     def test_query_metabolites(self):
         mids = ['MNXM39', 'MNXM89612']
@@ -98,20 +98,14 @@ class TestQueryMetanetx(unittest.TestCase):
         eids = ["1.1.4.13", "2.3.1"]
         qc = {"ecno": {"$in": eids}}
         m = qrymtntx.universal_model(qc)
-        assert len(m.reactions) >= len(eids)
-        assert len(m.metabolites) >= len(eids)
-        import cobra
-        tempjson = "metanetx_2enzymes_umodel.json"
-        cobra.io.save_json_model(m, tempjson, pretty=True)
+        assert 285 == len(m.reactions)
+        assert 557 == len(m.metabolites)
 
-    def test_universal_model_for_reactome(self):  # execution time ~6s
+    def test_universal_model_for_reactome(self):
         qc = {"source.lib": "reactome", "balance": "true"}
         m = qrymtntx.universal_model(qc)
-        assert len(m.reactions) == 336
-        assert len(m.metabolites) == 458
-        import cobra
-        tempjson = "metanetx_reactome_umodel.json"
-        cobra.io.save_json_model(m, tempjson, pretty=True)
+        assert 336 == len(m.reactions)
+        assert 458 == len(m.metabolites)
 
     # Find different 'balance' values for reactions referring to KEGG
     def test_kegg_reaction_balances(self):

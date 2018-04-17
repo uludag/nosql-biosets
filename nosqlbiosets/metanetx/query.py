@@ -70,16 +70,18 @@ class QueryMetaNetX:
         return r['hits']['hits'], nhits
 
     # Query metabolites with given query clause
-    def query_metabolites(self, qc):
+    def query_metabolites(self, qc, **kwargs):
+        assert "MongoDB" == self.dbc.db
         if qc is None:
             qc = {}
         doctype = DOCTYPE
-        hits = self.dbc.mdbi[doctype].find(qc)
+        hits = self.dbc.mdbi[doctype].find(qc, **kwargs)
         r = [c for c in hits]
         return r
 
     # Query compartments with given query clause
     def query_compartments(self, qc=None):
+        assert "MongoDB" == self.dbc.db
         if qc is None:
             qc = {}
         doctype = "metanetx_compartment"
@@ -88,9 +90,10 @@ class QueryMetaNetX:
         return r
 
     # Query reactions with given query clause
-    def query_reactions(self, qc, limit=0):
+    def query_reactions(self, qc, **kwargs):
+        assert "MongoDB" == self.dbc.db
         doctype = "metanetx_reaction"
-        hits = self.dbc.mdbi[doctype].find(qc, limit=limit)
+        hits = self.dbc.mdbi[doctype].find(qc, **kwargs)
         r = [c for c in hits]
         return r
 
