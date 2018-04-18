@@ -2,8 +2,8 @@
 ## Index/query scripts for HMDB and DrugBank xml datasets
 
 * [index.py](index.py) Index HMDB protein and metabolite datasets.
-  Tests made with HMDB version 4.0; _metabolites_ Dec 2017 update,
-  _proteins_ Jan 2018 update
+  Tests made with HMDB version 4.0; _metabolites_ April 2018 update,
+  _proteins_ April 2018 update
 
 * [../tests/test_hmdb_queries.py](../tests/test_hmdb_queries.py)
   Includes example queries
@@ -38,11 +38,11 @@ mkdir -p data
 wget -P ./data http://www.hmdb.ca/system/downloads/current/hmdb_metabolites.zip
 wget -P ./data http://www.hmdb.ca/system/downloads/current/hmdb_proteins.zip
 
-# Index with Elasticsearch, time for proteins is ~10m, for metabolites ~60m
-./hmdb/index.py --infile ./data/hmdb_metabolites.zip --db Elasticsearch --index hmdb_metabolites
-./hmdb/index.py --infile ./data/hmdb_proteins.zip --db Elasticsearch --index hmdb_proteins
+# Index with Elasticsearch, time for proteins is ~10m, for metabolites ~160m
+./hmdb/index.py --infile ./data/hmdb_metabolites.zip --db Elasticsearch --index hmdb_metabolite
+./hmdb/index.py --infile ./data/hmdb_proteins.zip --db Elasticsearch --index hmdb_protein
 
-# Index with MongoDB, time for proteins is ~8m, for metabolites ~40m
+# Index with MongoDB, time for proteins is ~8m, for metabolites ~80m
 ./hmdb/index.py --infile ./data/hmdb_metabolites.zip --db MongoDB --index biosets
 ./hmdb/index.py --infile ./data/hmdb_proteins.zip --db MongoDB --index biosets
 ```
@@ -80,12 +80,14 @@ or for the complete set
 # Complete drug-enzymes graph
 ./hmdb/queries.py --qc='{}' --graphfile enzymes.xml --connections=enzymes
 
-# Drug-target graphs for drugs with "Serum albumin" carrier
-./hmdb/queries.py --qc='{"carriers.name": "Serum albumin"}' --graphfile targets-sa.xml
+# Drug-carriers graph for drugs with "Serum albumin" carrier
+./hmdb/queries.py --qc='{"carriers.name": "Serum albumin"}'\
+ --graphfile carriers-sa.xml --connections carriers
 
 ```
 
 ## Related work
 
-* https://github.com/egonw/create-bridgedb-hmdb, http://www.bridgedb.org/
+* [https://github.com/egonw/create-bridgedb-hmdb](),
+  [http://www.bridgedb.org/]()
   BridgeDB identity mapping files from HMDB, ChEBI, and Wikidata 

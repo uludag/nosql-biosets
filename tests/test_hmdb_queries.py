@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" Test queries with HMDB metabolites and proteins """
+""" Test queries with HMDB metabolites and proteins, indexed with MongoDB """
 import unittest
 
 from hmdb.index import DOCTYPE_METABOLITE, DOCTYPE_PROTEIN
@@ -45,13 +45,11 @@ class QueryHMDB(unittest.TestCase):
         mids = [c['_id'] for c in hits]
         self.assertIn('Organoheterocyclic compounds', mids)
 
-    @unittest.skipIf(db == "Elasticsearch", "Elasticsearch support not yet"
-                                            " implemented")
-    def test_ex_lookup_with_metabolite_ids(self):
+    def test_lookup_with_metabolite_ids(self):
         agpl = [
             {'$match': {'$text': {'$search': 'antibiotic'}}},
             {'$match': {
-                "ontology.cellular_locations.cellular_location": "Cytoplasm"}},
+                "taxonomy.super_class": "Phenylpropanoids and polyketides"}},
             {'$lookup': {
                 'from': DOCTYPE_PROTEIN,
                 'localField': 'accession',
@@ -59,13 +57,15 @@ class QueryHMDB(unittest.TestCase):
                 'as': 'protein_docs'
             }},
             {"$match": {
-                "protein_docs.10": {"$exists": True}}}
+                "protein_docs.4": {"$exists": True}}}
         ]
-        hits = list(self.mdb[DOCTYPE_METABOLITE].aggregate(agpl))
-        assert len(hits) > 0
-        assert len(hits[0]['protein_docs']) >= 10
+        r = list(self.mdb[DOCTYPE_METABOLITE].aggregate(agpl))
+        assert 2 == len(r)
+        genes = [{pr['gene_name'] for pr in metabolite['protein_docs']}
+                 for metabolite in r]
+        assert {'CYP3A4'} == genes[0].intersection(genes[1])
 
-    def test_ex_lookup_with_gene_names(self):
+    def test_lookup_with_gene_names(self):
         agpl = [
             {'$match': {"name": "Succinic acid semialdehyde"}},
             {'$unwind':

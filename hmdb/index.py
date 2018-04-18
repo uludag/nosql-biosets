@@ -13,6 +13,7 @@ import xmltodict
 from pymongo import IndexModel
 
 from nosqlbiosets.dbutils import DBconnection
+from nosqlbiosets.objutils import unifylistattributes
 
 DOCTYPE_METABOLITE = 'hmdbmetabolite'
 DOCTYPE_PROTEIN = 'hmdbprotein'
@@ -42,13 +43,12 @@ class Indexer(DBconnection):
     def __init__(self, db, index, host, port, doctype):
         self.doctype = doctype
         self.index = index
-        super(Indexer, self).__init__(db, index, host, port)
+        super(Indexer, self).__init__(db, index, host, port, recreateindex=True)
         if db != "Elasticsearch":
             self.mcl = self.mdbi[doctype]
 
     # Tune entries for better data representation
     def tune(self, entry):
-        from nosqlbiosets.objutils import unifylistattributes
         list_attrs = ["synonyms", "pathways"]
         unifylistattributes(entry, list_attrs)
         list_attrs = ["alternative_parents", "substituents"]
@@ -104,8 +104,6 @@ def main(infile, index, doctype, db, host=None, port=None):
             doctype = DOCTYPE_METABOLITE
     indxr = Indexer(db, index, host, port, doctype)
     if db == 'Elasticsearch':
-        indxr.es.delete_by_query(index=index, doc_type=doctype,
-                                 body={"query": {"match_all": {}}})
         parse_hmdb_xmlfile(infile, indxr.es_index_hmdb_entry)
         indxr.es.indices.refresh(index=index)
     else:
@@ -125,7 +123,7 @@ if __name__ == '__main__':
                         default="hmdb",
                         help='Name of the Elasticsearch index or MongoDB db')
     parser.add_argument('--doctype',
-                        help='Document type (protein or metabolite)')
+                        help='Document type (hmdbprotein or hmdbmetabolite)')
     parser.add_argument('--host',
                         help='Elasticsearch or MongoDB server hostname')
     parser.add_argument('--port',

@@ -11,6 +11,8 @@
 
 # Make sure type of given list attribute is list
 def unifylistattribute(e, listname, objname):
+    if e is None:
+        return
     if listname in e:
         if e[listname] is None:
             del e[listname]
@@ -32,6 +34,8 @@ def unifylistattributes(e, list_attrs):
 
 # Make sure type of boolean attributes are boolean
 def checkbooleanattributes(e, attrs):
+    if e is None:
+        return
     for attr in attrs:
         if attr in e:
             if not isinstance(e[attr], bool):
