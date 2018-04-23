@@ -14,8 +14,8 @@ COLLECTION = "intenz"
 
 class QueryIntEnz:
 
-    def __init__(self, db="MongoDB", index="biosets"):
-        self.doctype = "intenz"
+    def __init__(self, db="MongoDB", index="biosets", doctype="intenz"):
+        self.doctype = doctype
         self.dbc = DBconnection(db, index)
 
     def getreactantnames(self, filterc=None):
@@ -121,21 +121,26 @@ class QueryIntEnz:
             eids = [c['accepted_name']['#text'] for c in hits]
             return eids
 
-    # For metabolite paths with 2 enzymes
+    # For paths with 2 enzymes
     # Find 2 enzymes that the first enzyme catalyses a reaction
     # with given reactant(source)
-    # and the second enzyme for the given product(target)
+    # AND the second enzyme for the given product(target)
+    # AND both enzymes are connected with e1.product == e2.reactant
     def lookup_connected_metabolites(self, source, target):
         agpl = [
             {"$match": {
-                "reactions.reactantList.reactant":
-                    {'$elemMatch': {"title": source}}}},
+                "reactions.reactantList.reactant.title": source}},
             {"$project": {
                 "reactions": 1, "accepted_name": 1
             }},
             {"$unwind": "$reactions"},
             {"$match": {
                 "reactions.productList": {"$exists": True}}},
+            {"$project": {
+                "reactions.productList.product.title": 1,
+                "reactions.reactantList.reactant.title": 1,
+                "accepted_name.#text": 1
+            }},
             {"$lookup": {
                 "from": "intenz",
                 "localField":
@@ -148,32 +153,43 @@ class QueryIntEnz:
             {"$match": {
                 "enzyme2.reactions.productList.product":
                     {'$elemMatch': {"title": target}}}},
-            {"$group": {"_id": "$accepted_name.#text",
-                        "enzyme2": {"$push": "$enzyme2.accepted_name.#text"}}}
+            {"$project": {
+                "accepted_name.#text": 1,
+                "reactions.productList.product.title": 1,
+                "reactions.reactantList.reactant.title": 1,
+                "enzyme2.depth": 1,
+                "enzyme2._id": 1,
+                "enzyme2.accepted_name.#text": 1,
+                "enzyme2.reactions.productList.product.title": 1,
+                "enzyme2.reactions.reactantList.reactant.title": 1
+            }}
         ]
         hits = self.dbc.mdbi[self.doctype].aggregate(agpl)
         r = [i for i in hits]
         return r
 
-    # For paths with 2 or more enzymes. Not fully implemented yet
+    # For paths with 2 or more enzymes
+    # Easily hits MongoDB maximum memory limit
     def graphlookup_connected_metabolites(self, source, target, depth=0,
                                           graphfilter=None):
         if graphfilter is None:
             graphfilter = {}
         agpl = [
             {"$match": {
-                "reactions.reactantList.reactant":
-                    {'$elemMatch': {"title": source}}}},
-            {"$project": {
-                "reactions.productList": 1,
-                "reactions.reactantList": 1, "accepted_name": 1
-            }},
+                "reactions.reactantList.reactant.title": source}},
             {"$unwind": "$reactions"},
             {"$match": {
-                "reactions.productList": {"$exists": True}}},
+                "reactions.reactantList.reactant.title": {"$exists": True}}},
+            {"$match": {
+                "reactions.productList.product.title": {"$exists": True}}},
+            {"$project": {
+                "reactions.productList.product.title": 1,
+                "reactions.reactantList.reactant.title": 1,
+                "accepted_name.#text": 1
+            }},
             {"$graphLookup": {
                 "from": "intenz",
-                "startWith": source,
+                "startWith": "$reactions.productList.product.title",
                 "connectToField":
                     "reactions.reactantList.reactant.title",
                 "connectFromField":
@@ -184,18 +200,27 @@ class QueryIntEnz:
                 "restrictSearchWithMatch": graphfilter
             }},
             {"$project": {
-                "accepted_name": 1,
-                "depth": 1,
-                "enzymes.accepted_name": 1,
-                "enzymes.reactions.productList": 1
+                "accepted_name.#text": 1,
+                "enzymes.depth": 1,
+                "reactions.productList.product.title": 1,
+                "reactions.reactantList.reactant.title": 1,
+                "enzymes._id": 1,
+                "enzymes.accepted_name.#text": 1,
+                "enzymes.reactions.productList.product.title": 1,
+                "enzymes.reactions.reactantList.reactant.title": 1
             }},
             {"$unwind": "$enzymes"},
+            {"$unwind": "$enzymes.reactions"},
+            {"$match": {
+                "enzymes.reactions.reactantList.reactant.title": {
+                    "$exists": True}}},
+            {"$match": {
+                "enzymes.reactions.productList.product.title": {
+                    "$exists": True}}},
             {"$match": {
                 "$or": [{"depth": {"$lt": depth}},
                         {"enzymes.reactions.productList.product": {
                             '$elemMatch': {"title": target}}}]}},
-            {"$group": {"_id": "$accepted_name.#text",
-                        "enzymes": {"$push": "$enzymes.accepted_name.#text"}}}
         ]
         hits = self.dbc.mdbi[self.doctype].aggregate(agpl)
         r = [i for i in hits]

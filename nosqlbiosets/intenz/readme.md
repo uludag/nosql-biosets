@@ -40,12 +40,14 @@
     
     optional arguments:
       -h, --help     show this help message and exit
-      --limit LIMIT  Maximum number of reactant-product connections
+      --limit LIMIT  Maximum number of reactant-product connections to return
   ```
 
   ```bash
   ./nosqlbiosets/intenz/query.py '{"reactions.label.value": "Chemically balanced"}'\
     docs/intenz-test.json --limit 80
+  
+  ./nosqlbiosets/intenz/query.py '{"$text": {"$search": "poly(A)"}}' test.json
   ```
 
 * [tests.py](tests.py): Tests with the query API

@@ -85,8 +85,11 @@ class TestQueryIntEnz(unittest.TestCase):
     def test_query_reactantandproduct(self):
         ste = [
             ("isocitrate", "glyoxylate", "Isocitrate lyase"),
+            ("pyruvate", "L-alanine", "Alanine dehydrogenase"),
             ("2-oxoglutarate", "D-threo-isocitrate",
-             "Isocitrate--homoisocitrate dehydrogenase")
+             "Isocitrate--homoisocitrate dehydrogenase"),
+            ("2-oxoglutarate", "glyoxylate",
+             "Glycine transaminase")
         ]
         for source, target, enz in ste:
             r = qryintenz.query_reactantandproduct(source, target)
@@ -105,7 +108,7 @@ class TestQueryIntEnz(unittest.TestCase):
              "1.1.1.286")
         ]
         r = qryintenz.get_connections({})
-        self.assertAlmostEqual(37600, len(r), delta=100)
+        self.assertAlmostEqual(37230, len(r), delta=100)
         r = {(e['reactant'], e['product'], e['enzyme']) for e in r}
         for c in tests:
             assert c in r
@@ -113,51 +116,71 @@ class TestQueryIntEnz(unittest.TestCase):
     def test_getconnections_graph(self):
         qc = {'reactions.label.value': "Chemically balanced"}
         g = qryintenz.get_connections_graph(qc, limit=40000)
-        self.assertAlmostEqual(28200, g.number_of_edges(), delta=100)
+        self.assertAlmostEqual(27980, g.number_of_edges(), delta=100)
         self.assertAlmostEqual(12300, g.number_of_nodes(), delta=100)
 
     def test_lookup_connected_metabolites(self):
-        source, target, e1, e2 = "2-oxoglutarate", "glyoxylate",\
-                                "LL-diaminopimelate aminotransferase",\
-                                "Glycine oxidase"  # EC 2.6.1.83 -> 1.4.3.19
-        r = qryintenz.lookup_connected_metabolites(source, target)
-        assert e1 in [e["_id"] for e in r]
-        assert e2 in {e["_id"]: e["enzyme2"] for e in r}[e1]
+        tests = [
+            ("2-dehydro-3-deoxy-D-glucarate", "2-methyl-3-oxopropanoate",
+             "2-dehydro-3-deoxyglucarate aldolase",
+             '4.1.2.20',
+             "(R)-3-amino-2-methylpropionate--pyruvate transaminase",
+             '2.6.1.40'),
+            ("pyruvate", "beta-alanine",
+             "(R)-3-amino-2-methylpropionate--pyruvate transaminase",
+             '2.6.1.40',
+             "Beta-alanine--pyruvate transaminase", '2.6.1.18'),
+            ("2-oxoglutarate", "glyoxylate",
+             "LL-diaminopimelate aminotransferase", "2.6.1.83",
+             "Glycine oxidase", "1.4.3.19"),
+            ("2-oxoglutarate", "glyoxylate",
+             "LL-diaminopimelate aminotransferase", "2.6.1.83",
+             "Glycine--oxaloacetate transaminase", "2.6.1.35")
+        ]
 
-    def test_graphlookup_connected_metabolites(self):
-        source, target, e1, e2 = "2-oxoglutarate", "glyoxylate",\
-                                "LL-diaminopimelate aminotransferase",\
-                                "Glycine transaminase"  # EC 2.6.1.83 -> 2.6.1.4
-        r = qryintenz.graphlookup_connected_metabolites(source, target, 0)
-        assert e1 in [e["_id"] for e in r]
-        assert e2 in {e["_id"]: e["enzymes"] for e in r}[e1]
+        def check(nextenz):
+            assert e1, ecn1 in [
+                (e["accepted_name"]["#text"], e["_id"]) for e in r]
+            assert ecn2 in [e[nextenz]["_id"] for e in r]
+            assert e2 in [e[nextenz]["accepted_name"]["#text"] for e in r]
 
-    def test_neo4j_graphsearch_with_two_connected_metabolites(self):
-        source, target = "2-oxoglutarate", "glyoxylate"
+        for source, target, e1, ecn1, e2, ecn2 in tests:
+            r = qryintenz.lookup_connected_metabolites(source, target)
+            check("enzyme2")
+            r = qryintenz.graphlookup_connected_metabolites(source, target, 0)
+            check("enzymes")
+            break  # let usual tests return faster
+
+    def test_neo4j_graphsearch_connected_metabolites(self):
+        tests = [("2-oxoglutarate", "glyoxylate", 1)]
         dbc = DBconnection("Neo4j", "")
         q = 'MATCH ({id:{source}})-[]->(r)-[]->({id:{target}})' \
             ' RETURN r.name'
-        r = list(dbc.neo4jc.run(q, source=source, target=target))
-        assert len(r) > 0
-        assert r[0]['r.name'] == '2-oxoglutarate + glycine <?>' \
-                                 ' L-glutamate + glyoxylate'
+        for source, target, n in tests:
+            r = list(dbc.neo4jc.run(q, source=source, target=target))
+            assert len(r) == n
+            assert r[0]['r.name'] == '2-oxoglutarate + glycine <?>' \
+                                     ' L-glutamate + glyoxylate'
 
-    def test_neo4j_shortestpathsearch_with_two_connected_metabolites(self):
+    def test_neo4j_shortestpathsearch_connected_metabolites(self):
         nqry = QueryIntEnz("Neo4j")
-        source, target = "2-oxoglutarate", "glyoxylate"
-        r = list(nqry.neo4j_shortestpathsearch_connected_metabolites(source,
-                                                                     target))
-        assert 1 == len(r)
-        path = r[0]['path']
-        assert path.start.properties == {"id": "2-oxoglutarate"}
-        assert path.end.properties == {"id": "glyoxylate"}
-        assert 2 == len(path.relationships)
-        assert "Reactant_in" == path.relationships[0].type
-        assert "14089" == path.relationships[0].properties['r']
-        assert "Produces" == path.relationships[1].type
-        assert "14089" == path.relationships[1].properties['r']
-        assert len(path.nodes) == 3
-        assert len(path.relationships) == 2
+        tests = [("2-oxoglutarate", "glyoxylate", 1),
+                 ("malonate", "malonyl-CoA", 2)
+                 ]
+        for source, target, n in tests:
+            r = nqry.neo4j_shortestpathsearch_connected_metabolites(source,
+                                                                    target)
+            r = list(r)
+            assert n == len(r)
+            for path in r:
+                path = path['path']
+                assert source == path.start.properties["id"]
+                assert target == path.end.properties["id"]
+                assert 2 == len(path.relationships)
+                assert "Reactant_in" == path.relationships[0].type
+                assert source == path.nodes[0].properties['id']
+                assert "Produces" == path.relationships[-1].type
+                assert target == path.nodes[-1].properties['id']
 
     def test_neo4j_getreactions(self):
         nqry = QueryIntEnz("Neo4j")
