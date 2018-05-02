@@ -51,8 +51,9 @@ class Indexer(DBconnection):
     def tune(self, entry):
         list_attrs = ["synonyms", "pathways"]
         unifylistattributes(entry, list_attrs)
-        list_attrs = ["alternative_parents", "substituents"]
         if "taxonomy" in entry:
+            list_attrs = ["alternative_parents", "substituents",
+                          "external_descriptors"]
             unifylistattributes(entry["taxonomy"], list_attrs)
 
     # Index HMDB Metabolites/Proteins entry with Elasticsearch
