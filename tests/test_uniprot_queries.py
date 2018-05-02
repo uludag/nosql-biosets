@@ -60,7 +60,7 @@ class TestQueryUniProt(unittest.TestCase):
             269: 4640,  # experimental evidence used in manual assertion
             305: 3740,  # curator inference used in manual assertion
             250: 2770,  # sequence similarity evidence used in manual assertion
-            303: 1210,  # non-traceable author statement, manual assertion
+            303: 1260,  # non-traceable author statement, manual assertion
             244: 650,   # combinatorial evidence used in manual assertion
             312: 630    # imported information used in manual assertion
         }
@@ -80,7 +80,7 @@ class TestQueryUniProt(unittest.TestCase):
         assert 7 == len(r)
         for i in r:
             self.assertAlmostEqual(ecodes[int(i['_id'][8:])], i['sum'],
-                                   delta=40)
+                                   delta=100)
 
     def test_getenzymedata(self):
         enzys = [
