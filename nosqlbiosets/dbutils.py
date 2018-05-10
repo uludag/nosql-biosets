@@ -17,20 +17,27 @@ logger.addHandler(ch)
 
 
 class DBconnection(object):
-    i = 0
+    i = 0  # counter for the number of objects indexed
 
     # TODO: rename es_indexsettings as es_settings
     def __init__(self, db, index, host=None, port=None,
                  user=None, password=None, recreateindex=False,
                  es_indexsettings=None, es_indexmappings=None):
         d = os.path.dirname(os.path.abspath(__file__))
+        assert index is not None
         self.index = index
         self.db = db
         if port is not None and not isinstance(port, int):
             port = int(port)
         try:
             # TODO: option to specify config file
-            with open(d + "/../conf/dbservers.json", "r") as conff:
+            confile = "./conf/dbservers.json"
+            if not os.path.exists(confile) \
+                    and os.path.exists("./dbservers.json"):
+                confile = "./dbservers.json"
+            else:
+                confile = d + "/../conf/dbservers.json"
+            with open(confile, "r") as conff:
                 conf = json.load(conff)
         except IOError:
             conf = {"es_host": "localhost", "es_port": 9200,
