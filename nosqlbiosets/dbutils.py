@@ -31,14 +31,14 @@ class DBconnection(object):
             port = int(port)
         try:
             # TODO: option to specify config file
-            confile = "./conf/dbservers.json"
-            if not os.path.exists(confile) \
-                    and os.path.exists("./dbservers.json"):
-                confile = "./dbservers.json"
-            else:
-                confile = d + "/../conf/dbservers.json"
-            with open(confile, "r") as conff:
-                conf = json.load(conff)
+            cfgfile = "./dbservers.json"
+            if not os.path.exists(cfgfile):
+                if os.path.exists("./conf/dbservers.json"):
+                    cfgfile = "./conf/dbservers.json"
+                else:
+                    cfgfile = "../conf/dbservers.json"
+            with open(cfgfile, "r") as cfgf:
+                conf = json.load(cfgf)
         except IOError:
             conf = {"es_host": "localhost", "es_port": 9200,
                     "mongodb_host": "localhost", "mongodb_port": 27017}
