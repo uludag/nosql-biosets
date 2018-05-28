@@ -211,7 +211,7 @@ if __name__ == '__main__':
                     ' with Elasticsearch or MongoDB')
     parser.add_argument('infile',
                         help='Input file name for UniProt Swiss-Prot compressed'
-                             'xml dataset')
+                             ' xml dataset')
     parser.add_argument('--index',
                         default="biosets",
                         help='Name of the Elasticsearch index'

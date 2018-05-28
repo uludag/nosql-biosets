@@ -3,7 +3,7 @@
 
 * [index.py](index.py): Index UniProtKB xml files
   
-  _Tested with Swiss-Prot dataset only (March 2018 release)_
+  _Tested with Swiss-Prot dataset only, (May 2018 release)_
   
     ```
     ./nosqlbiosets/uniprot/index.py --help
@@ -14,7 +14,7 @@
     Index UniProt xml files, with Elasticsearch or MongoDB
     
     positional arguments:
-      infile             Input file name for UniProt Swiss-Prot compressedxml
+      infile             Input file name for UniProt Swiss-Prot compressed xml
                          dataset
     
     optional arguments:
@@ -55,11 +55,11 @@ _Server default connection settings are read from [../../conf/dbservers.json](
 )_
 
 ```bash
-# Index with Elasticsearch,  typically requires 7 to 8 hours
+# Index with Elasticsearch,  typically requires 6 to 8 hours
 ./nosqlbiosets/uniprot/index.py ./data/uniprot_sprot.xml.gz\
  --host localhost --db Elasticsearch  --index uniprot
 
-# Index with MongoDB, typically requires 4 to 5 hours
+# Index with MongoDB, typically requires 4 to 6 hours
 ./nosqlbiosets/uniprot/index.py ./data/uniprot_sprot.xml.gz\
  --host localhost --db MongoDB --index biosets
 ```
