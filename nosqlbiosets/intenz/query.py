@@ -1,13 +1,14 @@
 #!/usr/bin/env python
-""" Queries with IntEnz data indexed with MongoDB or Neo4j"""
+""" Query IntEnz data indexed with MongoDB or Neo4j """
 # Server connection details are read from  conf/dbservers.json file
 
 import argparse
+import json
+
+import networkx as nx
 
 from nosqlbiosets.dbutils import DBconnection
-from nosqlbiosets.graphutils import *
-import json
-import networkx as nx
+from nosqlbiosets.graphutils import save_graph
 
 COLLECTION = "intenz"
 
@@ -130,9 +131,6 @@ class QueryIntEnz:
         agpl = [
             {"$match": {
                 "reactions.reactantList.reactant.title": source}},
-            {"$project": {
-                "reactions": 1, "accepted_name": 1
-            }},
             {"$unwind": "$reactions"},
             {"$match": {
                 "reactions.productList": {"$exists": True}}},
@@ -282,13 +280,13 @@ class QueryIntEnz:
             connections.append(i['_id'])
         return connections
 
-    def get_connections_graph(self, qc, limit=800):
+    def get_connections_graph(self, qc, limit):
         connections = self.get_connections(qc, limit)
-        graph = nx.DiGraph(name="IntEnz query %s" % json.dumps(qc))
+        graph = nx.MultiDiGraph(name="IntEnz query %s" % json.dumps(qc))
         for c in connections:
-            graph.add_node(c['reactant'], type='reactant', viz_color='green')
-            graph.add_node(c['product'], type='product', viz_color='orange')
-            graph.add_node(c['enzyme'], type='enzyme', viz_color='brown')
+            graph.add_node(c['reactant'], type='reactant', color='green')
+            graph.add_node(c['product'], type='product', color='orange')
+            graph.add_node(c['enzyme'], type='enzyme', color='brown')
             graph.add_edge(c['reactant'], c['enzyme'])
             graph.add_edge(c['enzyme'], c['product'])
         return graph
@@ -300,18 +298,21 @@ if __name__ == '__main__':
     parser.add_argument('qc',
                         help='MongoDB query clause to select subsets'
                              ' of IntEnz entries,'
-                             ' ex: \'{"reactions.label.value": '
+                             ' e.g.: \'{"reactions.label.value": '
                              '"Chemically balanced"}\'')
     parser.add_argument('outfile',
-                        help='File name for saving the output graph'
-                             ' in GraphML, GML, Cytoscape.js or d3js formats,'
-                             ' see readme.md for details')
+                        help='File name for saving the output graph. '
+                             'Format is selected based on the file extension'
+                             ' of the given output file;'
+                             ' .xml for GraphML, .gml for GML,'
+                             ' .js for Cytoscape.js,'
+                             ' or .d3js.json for d3js format')
     parser.add_argument('--limit',
-                        default=100, type=int,
-                        help='Maximum number of reactant-product connections')
+                        default=3000, type=int,
+                        help='Maximum number of enzyme-metabolite connections')
     args = parser.parse_args()
     qry = QueryIntEnz()
     qc_ = json.loads(args.qc)
-    cgraph = qry.get_connections_graph(qc_, args.limit)
+    cgraph = qry.get_connections_graph(qc_, args.limit/2)
     print(nx.info(cgraph))
     save_graph(cgraph, args.outfile)

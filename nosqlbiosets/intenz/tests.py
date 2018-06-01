@@ -2,6 +2,7 @@
 """ Test queries with IntEnz data indexed with MongoDB and Neo4j"""
 
 import unittest
+
 from nosqlbiosets.dbutils import DBconnection
 from .query import QueryIntEnz
 
@@ -108,7 +109,7 @@ class TestQueryIntEnz(unittest.TestCase):
              "1.1.1.286")
         ]
         r = qryintenz.get_connections({})
-        self.assertAlmostEqual(37230, len(r), delta=100)
+        self.assertAlmostEqual(38165, len(r), delta=100)
         r = {(e['reactant'], e['product'], e['enzyme']) for e in r}
         for c in tests:
             assert c in r
@@ -116,8 +117,8 @@ class TestQueryIntEnz(unittest.TestCase):
     def test_getconnections_graph(self):
         qc = {'reactions.label.value': "Chemically balanced"}
         g = qryintenz.get_connections_graph(qc, limit=40000)
-        self.assertAlmostEqual(27980, g.number_of_edges(), delta=100)
-        self.assertAlmostEqual(12300, g.number_of_nodes(), delta=100)
+        self.assertAlmostEqual(76170, g.number_of_edges(), delta=200)
+        self.assertAlmostEqual(12460, g.number_of_nodes(), delta=200)
 
     def test_lookup_connected_metabolites(self):
         tests = [
@@ -190,16 +191,16 @@ class TestQueryIntEnz(unittest.TestCase):
     def test_mdb_getreactions(self):
         qc = {'$text': {'$search': '"poly(A)"'}}
         r = list(qryintenz.getreactions(qc))
-        assert 3 == len(r)
+        assert 1 == len(r)
         qc = {'$text': {'$search': '"oxopropanoate" "malonyl"'}}
         r = list(qryintenz.getreactions(qc))
-        assert 4 == len(r)
+        assert 2 == len(r)
         qc = {'$text': {'$search': 'oxopropanoate malonyl'}}
         r = list(qryintenz.getreactions(qc))
-        assert 98 == len(r)
+        self.assertAlmostEqual(90, len(r), delta=20)
         qc = {'$text': {'$search': 'semialdehyde'}}
         r = list(qryintenz.getreactions(qc))
-        assert 96 == len(r)
+        self.assertAlmostEqual(70, len(r), delta=20)
 
 
 if __name__ == '__main__':

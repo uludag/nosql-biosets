@@ -33,14 +33,16 @@
     Save IntEnz reaction connections as graph files
     
     positional arguments:
-      qc             MongoDB query clause to select subsets of IntEnz entries, ex:
-                     '{"reactions.label.value": "Chemically balanced"}'
-      outfile        File name for saving the output graph in GraphML, GML,
-                     Cytoscape.js or d3js formats, see readme.md for details
+      qc             MongoDB query clause to select subsets of IntEnz entries,
+                     e.g.: '{"reactions.label.value": "Chemically balanced"}'
+      outfile        File name for saving the output graph. Format is selected
+                     based on the file extension of the given output file; .xml
+                     for GraphML, .gml for GML, .js for Cytoscape.js, or
+                     .d3js.json for d3js format
     
     optional arguments:
       -h, --help     show this help message and exit
-      --limit LIMIT  Maximum number of reactant-product connections to return
+      --limit LIMIT  Maximum number of enzyme-metabolite connections
   ```
 
   ```bash
@@ -69,7 +71,7 @@ wget -P ./data http://ftp.ebi.ac.uk/pub/databases/intenz/xml/ASCII/intenz.xml
 # Index with MongoDB, requires ~2m with local server, ~14m with MongoDB Atlas
 ./nosqlbiosets/intenz/index.py --db MongoDB --infile ./data/intenz.xml
 
-# Index with Neo4j (processing time ~ 12m)
+# Index with Neo4j (processing time ~ 15m)
 ./nosqlbiosets/intenz/index.py --db Neo4j --infile ./data/intenz.xml
 
 ```
