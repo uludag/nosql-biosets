@@ -11,18 +11,17 @@
 Command lines for indexing with Elasticsearch and MongoDB:
   
 ```bash
- ./metanetx/index.py --metanetxdatafolder ./metanetx/data\
-        --index metanetx --db Elasticsearch;
+ ./metanetx/index.py --metanetxdatafolder /local/data/metanetx --db Elasticsearch;
 
- ./metanetx/index.py --metanetxdatafolder ./metanetx/data\
-        --index metanetx --db MongoDB;
+ ./metanetx/index.py --metanetxdatafolder /local/data/metanetx\
+        --index biosets --db MongoDB;
 ```
 
 
 Elasticsearch query to get distribution of reactions among source/reference
 libraries: 
  ```bash
-curl -XGET "http://localhost:9200/biosets/metanetx_reaction/_search?pretty=true"\
+curl -XGET "http://localhost:9200/metanetx_reaction/_search?pretty=true"\
  -H 'Content-Type: application/json' -d'
 {
   "size": 0,
@@ -46,12 +45,8 @@ See [../../tests/download.sh](../../tests/download.sh)
 
 
 #### Typical indexing times
-* MongoDB: ~20 mins
-* Elasticsearch: 10-15 mins
-
-
-#### TODO
-* Use MongoDB Bulk Write API for more efficient indexing
+* MongoDB: 30 min 
+* Elasticsearch: 10 min
 
 #### Notes
 MetaNetX scripts here used the words 'metabolite' and 'compound' with 

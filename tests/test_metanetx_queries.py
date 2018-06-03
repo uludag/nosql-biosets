@@ -41,7 +41,6 @@ class TestQueryMetanetx(unittest.TestCase):
     # Then links metanetx_reaction.ecno to uniprot.dbReference.id
     #     where uniprot.dbReference.type = EC,  to get gene names
     def test_keggrid2ecno2gene(self, db='Elasticsearch'):
-        doctype = "metanetx_reaction"
         dbc = DBconnection(db, self.index)
         keggids = [('R01047', '4.2.1.30', {'dhaB'}),
                    ('R03119', '1.1.1.202', {'dhaT'})
@@ -49,7 +48,7 @@ class TestQueryMetanetx(unittest.TestCase):
         for keggid, ec, genes in keggids:
             if db == "Elasticsearch":
                 qc = {"match": {"xrefs.id": keggid}}
-                hits, n = qrymtntx.esquery(dbc.es, "*", qc, doctype, 10)
+                hits, n = qrymtntx.esquery(dbc.es, "*", qc, '_doc', 10)
                 ecnos = [r['_source']['ecno'] for r in hits]
             else:
                 doctype = "metanetx_reaction"

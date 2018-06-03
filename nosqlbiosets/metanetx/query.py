@@ -21,7 +21,7 @@ class QueryMetaNetX:
     # Given MetaNetX compound id return its name
     def getcompoundname(self, dbc, mid, limit=0):
         if dbc.db == 'Elasticsearch':
-            index, doctype = "metanetx", DOCTYPE
+            index, doctype = DOCTYPE, "_doc"
             qc = {"match": {"_id": mid}}
             hits, n = self.esquery(dbc.es, index, qc, doctype)
         else:  # MongoDB
@@ -37,7 +37,7 @@ class QueryMetaNetX:
     # Given KEGG compound ids find ids for other libraries
     def keggcompoundids2otherids(self, dbc, cids, lib='MetanetX'):
         if dbc.db == 'Elasticsearch':
-            index, doctype = "metanetx", DOCTYPE
+            index, doctype = DOCTYPE, "_doc"
             qc = {"match": {"xrefs.id": ' '.join(cids)}}
             hits, n = self.esquery(dbc.es, index, qc, doctype, len(cids))
         else:  # MongoDB

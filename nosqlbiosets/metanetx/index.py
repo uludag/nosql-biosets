@@ -34,7 +34,7 @@ def getcompoundrecord(row, xrefsmap):
         '_id':     id_,     'desc':   row[1],
         'formula': row[2],  'charge': charge,
         'mass':    mass,    'inchi':  row[5],
-        'smiles':  row[6],  '_type':  TYPE_COMPOUND,
+        'smiles':  row[6],
         'source': {'lib': sourcelib, 'id': sourceid},
         'inchikey': row[8],
         'xrefs': xrefsmap[id_] if id_ in xrefsmap else None
@@ -71,8 +71,7 @@ def getcompartmentrecord(row, xrefsmap):
     r = {
         '_id':     id_,     'desc':   row[1],
         'source': {'lib': sourcelib, 'id': sourceid},
-        'xrefs': xrefsmap[id_] if id_ in xrefsmap else None,
-        '_type': TYPE_COMPARTMENT,
+        'xrefs': xrefsmap[id_] if id_ in xrefsmap else None
     }
     return r
 
@@ -134,7 +133,7 @@ def getreactionrecord(row, xrefsmap):
     r = {
         '_id':  id_, 'equation': row[1],
         'desc': row[2], 'balance':  row[3],
-        'ecno': row[4], '_type': TYPE_REACTION,
+        'ecno': row[4],
         'source': {'lib': sourcelib, 'id': sourceid},
         'xrefs': xrefsmap[id_] if id_ in xrefsmap else None
     }
@@ -156,8 +155,10 @@ class Indexer(DBconnection):
 
     def __init__(self, db, index, host, port, doctype):
         self.doctype = doctype
+        if args.db == "Elasticsearch":
+            index = doctype
         super(Indexer, self).__init__(db, index, host, port,
-                                      recreateindex=False)
+                                      recreateindex=True)
         if db != "Elasticsearch":
             self.mcl = self.mdbi[doctype]
 
@@ -175,6 +176,7 @@ class Indexer(DBconnection):
     def es_index(self, reader):
         i = 0
         for ok, result in streaming_bulk(self.es, reader, index=self.index,
+                                         doc_type="_doc",
                                          chunk_size=ES_CHUNK_SIZE):
             action, result = result.popitem()
             i += 1
@@ -219,26 +221,28 @@ if __name__ == '__main__':
                         help='MetaNetX reac_prop.tsv file')
     parser.add_argument('--reactionsxreffile',
                         help='MetaNetX reac_xref.tsv file')
-    parser.add_argument('--index', default="nosqlbiosets-tests",
-                        help='Name of the Elasticsearch index'
-                             ' or MongoDB database')
+    parser.add_argument('--index', default="biosets",
+                        help='Name of the MongoDB database'
+                             'Elasticsearch index name are predefined'
+                             ' type names; metanetx_compound, metanetx_reaction'
+                             ' and metanetx_compartment')
     parser.add_argument('--host',
                         help='Elasticsearch/MongoDB server hostname')
     parser.add_argument('--port',
-                        help="Elasticsearch/MongoDB server port")
+                        help="Elasticsearch/MongoDB server port number")
     parser.add_argument('--db', default='Elasticsearch',
                         help="Database: Elasticsearch or MongoDB")
     args = parser.parse_args()
 
-    l = [("compoundsfile", "chem_prop.tsv"),
-         ("compoundsxreffile", "chem_xref.tsv"),
-         ("compartmentsfile", "comp_prop.tsv"),
-         ("compartmentsxreffile", "comp_xref.tsv"),
-         ("reactionsfile", "reac_prop.tsv"),
-         ("reactionsxreffile", "reac_xref.tsv")
-         ]
+    files = [("compoundsfile", "chem_prop.tsv"),
+             ("compoundsxreffile", "chem_xref.tsv"),
+             ("compartmentsfile", "comp_prop.tsv"),
+             ("compartmentsxreffile", "comp_xref.tsv"),
+             ("reactionsfile", "reac_prop.tsv"),
+             ("reactionsxreffile", "reac_xref.tsv")
+             ]
     v = vars(args)
-    for arg, filename in l:
+    for arg, filename in files:
         if v[arg] is None:
             v[arg] = os.path.join(args.metanetxdatafolder, filename)
 
