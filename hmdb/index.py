@@ -44,8 +44,9 @@ class Indexer(DBconnection):
         self.doctype = doctype
         self.index = index
         super(Indexer, self).__init__(db, index, host, port, recreateindex=True)
-        if db != "Elasticsearch":
+        if db == "MongoDB":
             self.mcl = self.mdbi[doctype]
+            self.mcl.drop()
 
     # Tune entries for better data representation
     def tune(self, entry):
@@ -60,6 +61,11 @@ class Indexer(DBconnection):
     def es_index_hmdb_entry(self, _, entry):
         docid = entry['accession']
         self.tune(entry)
+        if "taxonomy" in entry and entry['taxonomy'] is not None and\
+                'molecular_framework' in entry['taxonomy']:
+            del entry['taxonomy']['molecular_framework']
+        if "cs_description" in entry:
+            del entry['cs_description']
         try:
             self.es.index(index=self.index, doc_type=self.doctype,
                           id=docid, body=entry)

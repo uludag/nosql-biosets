@@ -2,8 +2,8 @@
 ## Index/query scripts for HMDB and DrugBank xml datasets
 
 * [index.py](index.py) Index HMDB protein and metabolite datasets.
-  Tests made with HMDB version 4.0; _metabolites_ April 2018 update,
-  _proteins_ April 2018 update
+  Tests made with HMDB version 4.0; _metabolites_ June 2018 update,
+  _proteins_ June 2018 update
 
 * [../tests/test_hmdb_queries.py](../tests/test_hmdb_queries.py)
   Includes example queries
@@ -38,7 +38,7 @@ mkdir -p data
 wget -P ./data http://www.hmdb.ca/system/downloads/current/hmdb_metabolites.zip
 wget -P ./data http://www.hmdb.ca/system/downloads/current/hmdb_proteins.zip
 
-# Index with Elasticsearch, time for proteins is ~10m, for metabolites ~160m
+# Index with Elasticsearch, time for proteins is ~10m, for metabolites ~120m
 ./hmdb/index.py --infile ./data/hmdb_metabolites.zip --db Elasticsearch --index hmdb_metabolite
 ./hmdb/index.py --infile ./data/hmdb_proteins.zip --db Elasticsearch --index hmdb_protein
 
@@ -55,11 +55,13 @@ requires registration. Save `drugbank_all_full_database.xml.zip` file to the
 `data` folder
 
 ```bash
-# Index with MongoDB,  takes ~10-16m, with MongoDB Atlas ~35m
-./hmdb/drugbank.py --infile ./data/drugbank_all_full_database.xml.zip --db MongoDB
+# Index with MongoDB,  takes ~20m, with MongoDB Atlas ~35m
+./hmdb/drugbank.py --infile ./data/drugbank_all_full_database.xml.zip\
+ --db MongoDB --index biosets
 
-# Index with Elasticsearch,  takes ~16-22m
-./hmdb/drugbank.py --infile ./data/drugbank_all_full_database.xml.zip --db Elasticsearch
+# Index with Elasticsearch,  takes ~20m
+./hmdb/drugbank.py --infile ./data/drugbank_all_full_database.xml.zip\
+ --db Elasticsearch --index drugbank
 
 # Save drug-drug interactions as graph file in GML format
 # takes ~15m,  #edges ~ 660 000, #nodes ~ 3140
