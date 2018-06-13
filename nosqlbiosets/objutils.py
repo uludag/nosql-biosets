@@ -9,21 +9,24 @@
  """
 
 
-# Make sure type of given list attribute is list
-def unifylistattribute(e, listname, objname):
+# Make sure type of given attribute is list
+def unifylistattribute(e, listname, objname, renamelistto=None):
     if e is None:
         return
     if listname in e:
         if e[listname] is None:
             del e[listname]
         else:
+            newlist = listname if renamelistto is None else renamelistto
             if isinstance(e[listname][objname], list):
-                e[listname] = e[listname][objname]
+                e[newlist] = e[listname][objname]
             else:
-                e[listname] = [e[listname][objname]]
+                e[newlist] = [e[listname][objname]]
+            if renamelistto is not None:
+                del e[listname]
 
 
-# Make sure type of given list attributes are list
+# Make sure type of given attributes are list
 # List attribute names are assumed to end with 's', and object names
 # are equal to the list names without 's', such as genes vs gene
 def unifylistattributes(e, list_attrs):

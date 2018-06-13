@@ -10,7 +10,7 @@ import xmltodict
 from six import string_types
 
 from nosqlbiosets.dbutils import DBconnection
-from nosqlbiosets.objutils import unifylistattributes
+from nosqlbiosets.objutils import *
 
 DOCTYPE = 'intenz'     # Default document-type or collection name
 
@@ -26,7 +26,7 @@ class Indexer(DBconnection):
             "index.number_of_shards": 5,
             "index.refresh_interval": "30s"}
         super(Indexer, self).__init__(db, index, host, port,
-                                      es_indexsettings=indxcfg,
+                                      es_settings=indxcfg,
                                       recreateindex=True)
         if db == "MongoDB":
             self.mcl = self.mdbi[doctype]
@@ -59,14 +59,23 @@ class Indexer(DBconnection):
             self.indexwithneo4j()
 
     def index_intenz_entry(self, _, entry):
+        slim = False  # TODO: option to select indexing selected fields only
         if not isinstance(entry, string_types):
             docid = entry['ec'][3:]
-            list_attrs = ["reactions", "synonyms", "cofactors",
-                          "comments", "links"]
+            list_attrs = ["reactions", "cofactors"]
+            if not slim:
+                list_attrs += ["synonyms", "comments", "links"]
             unifylistattributes(entry, list_attrs)
-            # TODO: remove extra layers:
-            #       reactantList.reactant -> reactants
-            #       productList.product -> products
+            if slim:
+                for attr in ['map', 'comments', 'links', 'references',
+                             'synonyms']:
+                    if attr in entry:
+                        del entry[attr]
+            if 'reactions' in entry:
+                for r in entry['reactions']:
+                    unifylistattribute(r, 'reactantList', 'reactant',
+                                       'reactants')
+                    unifylistattribute(r, 'productList', 'product', 'products')
             # TODO: make accepted_name list
             try:
                 if self.db == "Elasticsearch":
@@ -108,7 +117,7 @@ class Indexer(DBconnection):
                     rid = r['id']  # Rhea reaction id
                     tx.run("CREATE (a:Reaction {id:{rid}, name:{name}})",
                            rid=rid, name=r['name'])
-                    for re in r['reactantList']['reactant']:
+                    for re in r['reactants']:
                         if isinstance(re, dict):
                             substrate = re['title']
                         else:
@@ -121,7 +130,7 @@ class Indexer(DBconnection):
                             tx.run(c, rid=rid,
                                    substrate=substrate)
                             self.edges.remove((substrate, rid))
-                    for pr in r['productList']['product']:
+                    for pr in r['products']:
                         if isinstance(pr, dict):
                             product = pr['title']
                         else:
@@ -145,7 +154,7 @@ class Indexer(DBconnection):
                 if rid not in self.reactions:
                     self.reactions[rid] = r
                 rproducts = set()
-                for pr in r['productList']['product']:
+                for pr in r['products']:
                     if isinstance(pr, dict):
                         product = pr['title']
                     else:
@@ -153,7 +162,7 @@ class Indexer(DBconnection):
                     rproducts.add(product)
                     self.products.add(product)
                     self.edges.add((rid, product))
-                for re in r['reactantList']['reactant']:
+                for re in r['reactants']:
                     if isinstance(re, dict):
                         substrate = re['title']
                     else:
@@ -166,8 +175,8 @@ def mongodb_textindex(mdb):
     index = [
         ("accepted_name.#text", "text"),
         ("reactions.name", "text"),
-        ("reactions.reactantList.reactant.title", "text"),
-        ("reactions.productList.product.title", "text"),
+        ("reactions.reactants.title", "text"),
+        ("reactions.products.title", "text"),
         ("comments.#text", "text"), ("synonyms.#text", "text")
     ]
     mdb.create_index(index, name="text fields")

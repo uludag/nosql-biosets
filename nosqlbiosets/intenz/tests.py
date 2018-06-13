@@ -40,7 +40,9 @@ class TestQueryIntEnz(unittest.TestCase):
 
     def test_enzymeswithreactant_chebiid(self):
         tests = [
-            (32682, "3.5.3.6", "Arginine deiminase", 22)
+            # ChEBI id, id and name of one enzyme, # of enzymes
+            (32682, "3.5.3.6", "Arginine deiminase", 22),
+            (58098, "4.1.2.20", "2-dehydro-3-deoxyglucarate aldolase", 1)
         ]
         for chebiid, ecn, ename, n in tests:
             enzymes = qryintenz.getenzymeswithreactant_chebiid(chebiid)
@@ -49,7 +51,10 @@ class TestQueryIntEnz(unittest.TestCase):
 
     def test_enzymeswithproduct_chebiid(self):
         tests = [
-            (32682, "3.6.3.21", "Polar-amino-acid-transporting ATPase", 5)
+            # ChEBI id, id and name of one enzyme, # of enzymes
+            (32682, "3.6.3.21", "Polar-amino-acid-transporting ATPase", 5),
+            (15361, "4.1.2.20", "2-dehydro-3-deoxyglucarate aldolase", 100),
+            (33019, "2.7.7.19", "Polynucleotide adenylyltransferase", 471)
         ]
         for chebiid, ecn, ename, n in tests:
             enzymes = qryintenz.getenzymeswithproduct_chebiid(chebiid)
@@ -117,8 +122,8 @@ class TestQueryIntEnz(unittest.TestCase):
     def test_getconnections_graph(self):
         qc = {'reactions.label.value': "Chemically balanced"}
         g = qryintenz.get_connections_graph(qc, limit=40000)
-        self.assertAlmostEqual(76170, g.number_of_edges(), delta=200)
-        self.assertAlmostEqual(12460, g.number_of_nodes(), delta=200)
+        self.assertAlmostEqual(38160, g.number_of_edges(), delta=200)
+        self.assertAlmostEqual(7030,  g.number_of_nodes(), delta=200)
 
     def test_lookup_connected_metabolites(self):
         tests = [

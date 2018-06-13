@@ -2,7 +2,7 @@
 # Index/query scripts for IntEnz enzyme dataset
 
 * [index.py](index.py): Index [IntEnz](http://www.ebi.ac.uk/intenz) xml files,
-  tested with IntEnz March 2018 release
+  tested with IntEnz May 2018 release
   
   ```text
     $ ./nosqlbiosets/intenz/index.py --help

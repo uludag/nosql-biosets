@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """ Query IntEnz data indexed with MongoDB or Neo4j """
-# Server connection details are read from  conf/dbservers.json file
+# Server connection details are read from file conf/dbservers.json
 
 import argparse
 import json
@@ -21,13 +21,13 @@ class QueryIntEnz:
 
     def getreactantnames(self, filterc=None):
         assert self.dbc.db == 'MongoDB'
-        key = "reactions.reactantList.reactant.title"
+        key = "reactions.reactants.title"
         r = self.dbc.mdbi[self.doctype].distinct(key, filter=filterc)
         return r
 
     def getproductnames(self, filterc=None):
         assert self.dbc.db == 'MongoDB'
-        key = "reactions.productList.product.title"
+        key = "reactions.products.title"
         r = self.dbc.mdbi[self.doctype].distinct(key, filter=filterc)
         return r
 
@@ -47,7 +47,7 @@ class QueryIntEnz:
     def getenzymeswithreactant(self, reactant):
         assert self.dbc.db == 'MongoDB'
         qc = {
-            "reactions.reactantList.reactant.title": reactant}
+            "reactions.reactants.title": reactant}
         r = self.getenzymenames(qc)
         return r
 
@@ -55,8 +55,8 @@ class QueryIntEnz:
     def getenzymeswithreactant_chebiid(self, chebiid):
         assert self.dbc.db == 'MongoDB'
         qc = {
-            "reactions.reactantList."
-            "reactant.molecule.identifier.value": "CHEBI:%d" % chebiid}
+            "reactions.reactants."
+            "molecule.identifier.value": "CHEBI:%d" % chebiid}
         r = self.getenzymenames(qc)
         return r
 
@@ -64,8 +64,8 @@ class QueryIntEnz:
     def getenzymeswithproduct_chebiid(self, chebiid):
         assert self.dbc.db == 'MongoDB'
         qc = {
-            "reactions.productList."
-            "product.molecule.identifier.value": "CHEBI:%d" % chebiid}
+            "reactions.products."
+            "molecule.identifier.value": "CHEBI:%d" % chebiid}
         r = self.getenzymenames(qc)
         return r
 
@@ -85,7 +85,7 @@ class QueryIntEnz:
     def query_products(self, rnames):
         if self.dbc.db == 'MongoDB':
             qc = {
-                "reactions.productList.product.title": {
+                "reactions.products.title": {
                     '$in': rnames}}
             r = ["_id", "accepted_name.#text"]
             hits = self.dbc.mdbi[self.doctype].find(qc, projection=r, limit=100)
@@ -107,14 +107,14 @@ class QueryIntEnz:
                 "reactions.convention": "rhea:direction.UN",
                 "$or": [
                     {
-                        "reactions.reactantList.reactant.title": {
+                        "reactions.reactants.title": {
                             '$in': [reactant]},
-                        "reactions.productList.product.title": {
+                        "reactions.products.title": {
                             '$in': [product]}},
                     {
-                        "reactions.reactantList.reactant.title": {
+                        "reactions.reactants.title": {
                             '$in': [product]},
-                        "reactions.productList.product.title": {
+                        "reactions.products.title": {
                             '$in': [reactant]}}
                 ]}
             hits = self.dbc.mdbi[self.doctype].find(qc)
@@ -130,36 +130,36 @@ class QueryIntEnz:
     def lookup_connected_metabolites(self, source, target):
         agpl = [
             {"$match": {
-                "reactions.reactantList.reactant.title": source}},
+                "reactions.reactants.title": source}},
             {"$unwind": "$reactions"},
             {"$match": {
-                "reactions.productList": {"$exists": True}}},
+                "reactions.products": {"$exists": True}}},
             {"$project": {
-                "reactions.productList.product.title": 1,
-                "reactions.reactantList.reactant.title": 1,
+                "reactions.products.title": 1,
+                "reactions.reactants.title": 1,
                 "accepted_name.#text": 1
             }},
             {"$lookup": {
                 "from": "intenz",
                 "localField":
-                    "reactions.productList.product.title",
+                    "reactions.products.title",
                 "foreignField":
-                    "reactions.reactantList.reactant.title",
+                    "reactions.reactants.title",
                 "as": "enzyme2"
             }},
             {"$unwind": "$enzyme2"},
             {"$match": {
-                "enzyme2.reactions.productList.product":
+                "enzyme2.reactions.products":
                     {'$elemMatch': {"title": target}}}},
             {"$project": {
                 "accepted_name.#text": 1,
-                "reactions.productList.product.title": 1,
-                "reactions.reactantList.reactant.title": 1,
+                "reactions.products.title": 1,
+                "reactions.reactants.title": 1,
                 "enzyme2.depth": 1,
                 "enzyme2._id": 1,
                 "enzyme2.accepted_name.#text": 1,
-                "enzyme2.reactions.productList.product.title": 1,
-                "enzyme2.reactions.reactantList.reactant.title": 1
+                "enzyme2.reactions.products.title": 1,
+                "enzyme2.reactions.reactants.title": 1
             }}
         ]
         hits = self.dbc.mdbi[self.doctype].aggregate(agpl)
@@ -174,24 +174,24 @@ class QueryIntEnz:
             graphfilter = {}
         agpl = [
             {"$match": {
-                "reactions.reactantList.reactant.title": source}},
+                "reactions.reactants.title": source}},
             {"$unwind": "$reactions"},
             {"$match": {
-                "reactions.reactantList.reactant.title": {"$exists": True}}},
+                "reactions.reactants.title": {"$exists": True}}},
             {"$match": {
-                "reactions.productList.product.title": {"$exists": True}}},
+                "reactions.products.title": {"$exists": True}}},
             {"$project": {
-                "reactions.productList.product.title": 1,
-                "reactions.reactantList.reactant.title": 1,
+                "reactions.products.title": 1,
+                "reactions.reactants.title": 1,
                 "accepted_name.#text": 1
             }},
             {"$graphLookup": {
                 "from": "intenz",
-                "startWith": "$reactions.productList.product.title",
+                "startWith": "$reactions.products.title",
                 "connectToField":
-                    "reactions.reactantList.reactant.title",
+                    "reactions.reactants.title",
                 "connectFromField":
-                    "reactions.productList.product.title",
+                    "reactions.products.title",
                 "as": "enzymes",
                 "maxDepth": depth,
                 "depthField": "depth",
@@ -200,24 +200,24 @@ class QueryIntEnz:
             {"$project": {
                 "accepted_name.#text": 1,
                 "enzymes.depth": 1,
-                "reactions.productList.product.title": 1,
-                "reactions.reactantList.reactant.title": 1,
+                "reactions.products.title": 1,
+                "reactions.reactants.title": 1,
                 "enzymes._id": 1,
                 "enzymes.accepted_name.#text": 1,
-                "enzymes.reactions.productList.product.title": 1,
-                "enzymes.reactions.reactantList.reactant.title": 1
+                "enzymes.reactions.products.title": 1,
+                "enzymes.reactions.reactants.title": 1
             }},
             {"$unwind": "$enzymes"},
             {"$unwind": "$enzymes.reactions"},
             {"$match": {
-                "enzymes.reactions.reactantList.reactant.title": {
+                "enzymes.reactions.reactants.title": {
                     "$exists": True}}},
             {"$match": {
-                "enzymes.reactions.productList.product.title": {
+                "enzymes.reactions.products.title": {
                     "$exists": True}}},
             {"$match": {
                 "$or": [{"depth": {"$lt": depth}},
-                        {"enzymes.reactions.productList.product": {
+                        {"enzymes.reactions.products": {
                             '$elemMatch': {"title": target}}}]}},
         ]
         hits = self.dbc.mdbi[self.doctype].aggregate(agpl)
@@ -262,14 +262,14 @@ class QueryIntEnz:
                 "reactions": 1
             }},
             {"$unwind": "$reactions"},
-            {"$unwind": "$reactions.reactantList.reactant"},
-            {"$unwind": "$reactions.productList.product"},
+            {"$unwind": "$reactions.reactants"},
+            {"$unwind": "$reactions.products"},
             {"$group": {
                 "_id": {
                     "enzyme": "$_id",
                     "reactant":
-                        "$reactions.reactantList.reactant.title",
-                    "product": "$reactions.productList.product.title"
+                        "$reactions.reactants.title",
+                    "product": "$reactions.products.title"
                 },
             }},
             {"$limit": limit}
@@ -283,12 +283,11 @@ class QueryIntEnz:
     def get_connections_graph(self, qc, limit):
         connections = self.get_connections(qc, limit)
         graph = nx.MultiDiGraph(name="IntEnz query %s" % json.dumps(qc))
+        # Set enzymes as edge attributes
         for c in connections:
             graph.add_node(c['reactant'], type='reactant', color='green')
             graph.add_node(c['product'], type='product', color='orange')
-            graph.add_node(c['enzyme'], type='enzyme', color='brown')
-            graph.add_edge(c['reactant'], c['enzyme'])
-            graph.add_edge(c['enzyme'], c['product'])
+            graph.add_edge(c['reactant'], c['product'], ec=c['enzyme'])
         return graph
 
 
