@@ -171,13 +171,12 @@ def pgsql_index_genes(session, genes):
 
 def main(db, infile, index, user=None, password=None, host=None, port=None):
     if db in ["Elasticsearch",  "MongoDB"]:
-        dbc = DBconnection(db, index, host=host, port=port)
+        dbc = DBconnection(db, index, host=host, port=port, recreateindex=True)
         if dbc.db == "Elasticsearch":
-            dbc.es.delete_by_query(index=index, doc_type=DOCTYPE,
-                                   body={"query": {"match_all": {}}})
             read_and_index_hgnc_file(infile, dbc, es_index_genes)
             dbc.es.indices.refresh(index=index)
         elif dbc.db == "MongoDB":
+            dbc.mdbi.drop_collection(DOCTYPE)
             read_and_index_hgnc_file(infile, dbc.mdbi, mongodb_index_genes)
     else:
         session = pgsql_connect(host, port, user, password, index)

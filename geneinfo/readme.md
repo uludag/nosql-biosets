@@ -4,10 +4,9 @@
 [hgnc_geneinfo.py](hgnc_geneinfo.py); Index HGNC data using Elasticsearch,
  MongoDB or PostgreSQL
  
- Tested with Feb 2018 release
+ Tested with June 2018 release
 
 ```bash
-mkdir -p data
 # ~30M
 wget -P ./data http://ftp.ebi.ac.uk/pub/databases/genenames/new/json/hgnc_complete_set.json
 
@@ -27,6 +26,10 @@ wget -P ./data http://ftp.ebi.ac.uk/pub/databases/genenames/new/json/hgnc_comple
  --db PostgreSQL --index geneinfo --user tests --password tests
 ```
 PostgreSQL support is based on [SQLAlchemy](http://www.sqlalchemy.org) library
+
+Note: A command line option to change MongoDB collection name and PostgreSQL table name
+has not been implemented yet, it is defined with constant `DOCTYPE = 'hgncgeneinfo'`
+in hgnc_geneinfo.py
 
 ### Similar work
 
