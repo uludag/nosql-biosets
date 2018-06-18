@@ -7,7 +7,7 @@ from geneinfo.ensembl_regbuild import regregions_reader
 from geneinfo.ensembl_regbuild import tfs_reader
 from geneinfo.rnacentral_idmappings import mappingreader
 from hmdb.index import parse_hmdb_xmlfile
-from nosqlbiosets.kbase.index_modelseed import read_modelseed_datafile, \
+from nosqlbiosets.modelseed.index import read_modelseed_datafile, \
     updatecompoundrecord, updatereactionrecord
 from nosqlbiosets.kegg.index import read_and_index_kegg_xmltarfile
 from nosqlbiosets.metanetx.index import *

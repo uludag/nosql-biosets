@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 """ Index ModelSEEDDatabase compounds/reactions with Elasticsearch or MongoDB"""
 # https://github.com/ModelSEED/ModelSEEDDatabase/blob/master/Biochemistry
-# TODO: move to .json files, we currently index the .csv files
 from __future__ import print_function
 
 import argparse
@@ -17,9 +16,15 @@ TYPE_COMPOUND = 'modelseed_compound'
 TYPE_REACTION = 'modelseed_reaction'
 
 
+def delete_attrs_with_value_null(r):
+    for k, v in list(r.items()):
+        if v == 'null':
+            del r[k]
+
+
 # Parse records in ModelSEED DB compounds tsv file which has the
 # following columns:
-# id, abbreviation, name, formula, mass, source, structure, charge,
+# id, abbreviation, name, formula, mass, source, inchikey, structure, charge,
 # is_core, is_obsolete, linked_compound, is_cofactor, deltag, deltagerr,
 # pka, pkb, abstract_compound, comprised_of	aliases
 def updatecompoundrecord(row, _):
@@ -32,7 +37,8 @@ def updatecompoundrecord(row, _):
         row[a] = True if row[a] == '1' else False
     row['_id'] = row['id']
     del row['id'], row['source']
-    row['_type'] = TYPE_COMPOUND
+    row['_type'] = '_doc'
+    delete_attrs_with_value_null(row)
     return row
 
 
@@ -52,7 +58,8 @@ def updatereactionrecord(row, _):
         row[a] = True if row[a] == '1' else False
     row['_id'] = row['id']
     del row['id']
-    row['_type'] = TYPE_REACTION
+    row['_type'] = '_doc'
+    delete_attrs_with_value_null(row)
     return row
 
 
@@ -103,7 +110,7 @@ def mongodb_index(mdbc, infile, typetuner):
 
 
 def main(infile, index, doctype, db, host=None, port=None):
-    dbc = DBconnection(db, index, host, port)
+    dbc = DBconnection(db, index, host, port, recreateindex=True)
     if doctype == TYPE_REACTION:
         typetuner = updatereactionrecord
     else:
@@ -124,7 +131,7 @@ if __name__ == '__main__':
                         help='ModelSEEDDatabase compounds tsv file')
     parser.add_argument('--reactionsfile',
                         help='ModelSEEDDatabase reactions tsv file')
-    parser.add_argument('--index', default="modelseeddb",
+    parser.add_argument('--index', default="biosets",
                         help='Name of the Elasticsearch index or '
                              'MongoDB database')
     parser.add_argument('--host',

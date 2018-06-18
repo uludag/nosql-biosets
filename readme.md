@@ -2,14 +2,14 @@
 
 NoSQL-biosets project includes scripts for indexing and querying
 selected free bioinformatics datasets. In adition to datasets, project aims
-to include index/query scripts for commonly used bioinformatics data types
+to include index/query scripts for common bioinformatics data types
 and formats, such as SBML and GFF.
 
-In the early stages of the project only indexing with Elasticsearch was supported.
+In the early stages of the project only Elasticsearch was supported.
 Later MongoDB support was implemented for most of the datasets already included
 in the project.
-For IntEnz, PubTator and HGNC datasets, Neo4j or PostgreSQL support
-was added as the 3rd database option.
+Neo4j and PostgreSQL support was implemented for few datasets
+as the third database option, namely IntEnz, PubTator and HGNC.
 
 ## Datasets supported
 
@@ -24,7 +24,7 @@ was added as the 3rd database option.
 * ModelSEEDDatabase [compounds and reactions data files](
   https://github.com/ModelSEED/ModelSEEDDatabase/tree/master/Biochemistry)
   in tsv format:
-  [`./nosqlbiosets/kbase/index_modelseed.py`](nosqlbiosets/kbase/index_modelseed.py)
+  [`./nosqlbiosets/modelseed/index.py`](nosqlbiosets/modelseed/index.py)
 
 * MetaNetX [compounds and reactions](
   http://www.metanetx.org/mnxdoc/mnxref.html
@@ -88,9 +88,8 @@ and aim to implement query APIs for common query patterns with individual indexe
 as well as connected data.
 We are also working on saving selected networks from IntEnz and DrugBank
 datasets as  graph files;
-either the complete datasets by parsing the dataset source files,
-or selected subsets of the networks after the datasets has been indexed.
-
+either the complete datasets, by parsing the dataset source files,
+or selected subsets, after the datasets has been indexed.
 
 We want to implement automated tests as early as
 possible, this should help us to understand where we are in minimal time.

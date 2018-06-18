@@ -44,7 +44,7 @@ class TestQueryModelSEEDDatabase(unittest.TestCase):
         ]
         r = dbc.mdbi["modelseed_reaction"].aggregate(aggpl)
         inmodelseeddb = {i['abbreviation'] for i in r}
-        assert 6766 == len(inmodelseeddb)
+        self.assertAlmostEqual(6768, len(inmodelseeddb), delta=30)
         aggpl = [
             {"$match": {"balance": "true"}},
             {"$project": {"xrefs": 1}},
@@ -56,7 +56,9 @@ class TestQueryModelSEEDDatabase(unittest.TestCase):
         assert 7950 == len(inmetanetx)
         assert 501 == len(inmodelseeddb - inmetanetx)
         assert 8451 == len(inmodelseeddb.union(inmetanetx))
-        assert 6265 == len(inmodelseeddb.intersection(inmetanetx))
+        self.assertAlmostEqual(6267,
+                               len(inmodelseeddb.intersection(inmetanetx)),
+                               delta=30)
 
 
 if __name__ == '__main__':
