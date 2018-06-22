@@ -10,7 +10,7 @@
 
 * [drugbank.py](drugbank.py) Index DrugBank xml dataset with MongoDB,
   or Elasticsearch, or save drug-drug interactions as graph file in GML format.
-  Tests made with DrugBank version 5.0, Dec 2017 update
+  Tests made with DrugBank version 5.1, April 2018 update
 
 * [queries.py](queries.py) Query API for DrugBank data indexed with MongoDB,
   _at its early stages_

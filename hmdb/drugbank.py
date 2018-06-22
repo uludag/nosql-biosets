@@ -192,7 +192,7 @@ if __name__ == '__main__':
                         required=True,
                         help='Input file name')
     parser.add_argument('--index',
-                        default="drugbank",
+                        default="biosets",
                         help='Name of the MongoDB database or Elasticsearch'
                              ' index, or filename for NetworkX graph')
     parser.add_argument('--doctype',

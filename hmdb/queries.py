@@ -13,7 +13,7 @@ DOCTYPE = 'drug'  # MongoDB collection name
 
 
 class QueryDrugBank:
-    index = "drugbank"
+    index = "biosets"
     db = "MongoDB"
     dbc = DBconnection(db, index)
     mdb = dbc.mdbi
@@ -114,7 +114,7 @@ class QueryDrugBank:
     # based on file extension used, detailed in the readme.md file
     def get_connections_graph(self, qc, connections, outfile=None):
         interactions = self.get_connections(qc, connections)
-        graph = nx.DiGraph(name=connections, query=json.dumps(qc))
+        graph = nx.MultiDiGraph(name=connections, query=json.dumps(qc))
 
         for u, v in interactions:
             graph.add_node(u, type='drug', viz_color='green')
