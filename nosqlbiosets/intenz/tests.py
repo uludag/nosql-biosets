@@ -23,6 +23,16 @@ class TestQueryIntEnz(unittest.TestCase):
                                msg="Chemicals both in reactants and products")
         assert "cytidine" in i
 
+    def test_getcofactors(self):
+        r = qryintenz.getcofactors()
+        r = list(r)
+        self.assertAlmostEqual(115, len(r), delta=100,
+                               msg="Number of cofactors")
+        assert 71 == len(set(i['accession'] for i in r))  # ChEBI accessions
+        r = set(i['#text'] for i in r)
+        assert "Mg(2+)" in r
+        assert 71 == len(r)
+
     def test_enzymeswithreactant(self):
         tests = [
             # reactant, name of one expected enzyme, # of expected enzymes
@@ -196,16 +206,16 @@ class TestQueryIntEnz(unittest.TestCase):
     def test_mdb_getreactions(self):
         qc = {'$text': {'$search': '"poly(A)"'}}
         r = list(qryintenz.getreactions(qc))
-        assert 1 == len(r)
+        assert 3 == len(r)
         qc = {'$text': {'$search': '"oxopropanoate" "malonyl"'}}
         r = list(qryintenz.getreactions(qc))
-        assert 2 == len(r)
+        assert 4 == len(r)
         qc = {'$text': {'$search': 'oxopropanoate malonyl'}}
         r = list(qryintenz.getreactions(qc))
         self.assertAlmostEqual(90, len(r), delta=20)
         qc = {'$text': {'$search': 'semialdehyde'}}
         r = list(qryintenz.getreactions(qc))
-        self.assertAlmostEqual(70, len(r), delta=20)
+        self.assertAlmostEqual(96, len(r), delta=20)
 
 
 if __name__ == '__main__':

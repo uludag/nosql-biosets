@@ -21,13 +21,7 @@ class Indexer(DBconnection):
         self.doctype = doctype
         self.index = index
         self.db = db
-        indxcfg = {
-            "index.number_of_replicas": 0,
-            "index.number_of_shards": 5,
-            "index.refresh_interval": "30s"}
-        super(Indexer, self).__init__(db, index, host, port,
-                                      es_settings=indxcfg,
-                                      recreateindex=True)
+        super(Indexer, self).__init__(db, index, host, port, recreateindex=True)
         if db == "MongoDB":
             self.mcl = self.mdbi[doctype]
             self.mcl.drop()

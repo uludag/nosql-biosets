@@ -31,6 +31,16 @@ class QueryIntEnz:
         r = self.dbc.mdbi[self.doctype].distinct(key, filter=filterc)
         return r
 
+    def getcofactors(self, filterc=None):
+        """A cofactor is any non-protein substance required
+         for a protein to be catalytically active
+         http://www.uniprot.org/help/cofactor
+         """
+        assert self.dbc.db == 'MongoDB'
+        key = "cofactors"
+        r = self.dbc.mdbi[self.doctype].distinct(key, filter=filterc)
+        return r
+
     # Find enzyme names for given query
     def getenzymenames(self, qc):
         if self.dbc.db == 'MongoDB':
