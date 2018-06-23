@@ -65,9 +65,9 @@ class TestQueryUniProt(unittest.TestCase):
             312: 630    # imported information used in manual assertion
         }
         qc = {'$text': {'$search': 'antimicrobial'}}
-        self.assertAlmostEqual(4080,
+        self.assertAlmostEqual(4120,
                                len(list(qryuniprot.query(qc, {'_id': 1}))),
-                               delta=40)
+                               delta=400)
         aggqc = [
             {"$match": qc},
             {"$unwind": "$evidence"},

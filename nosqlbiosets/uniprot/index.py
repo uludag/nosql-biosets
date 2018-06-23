@@ -33,9 +33,10 @@ class Indexer(DBconnection):
             "index.refresh_interval": "60m"}
         super(Indexer, self).__init__(db, index, host, port,
                                       es_indexsettings=indxcfg,
-                                      recreateindex=False)
-        if db != "Elasticsearch":
+                                      recreateindex=True)
+        if db == "MongoDB":
             self.mcl = self.mdbi[doctype]
+            self.mcl.drop()
 
     # Read and Index entries in UniProt xml file
     def parse_uniprot_xmlfiles(self, infile):
