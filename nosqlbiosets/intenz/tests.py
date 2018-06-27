@@ -26,8 +26,8 @@ class TestQueryIntEnz(unittest.TestCase):
     def test_getcofactors(self):
         r = qryintenz.getcofactors()
         r = list(r)
-        self.assertAlmostEqual(115, len(r), delta=100,
-                               msg="Number of cofactors")
+        self.assertAlmostEqual(115, len(r), delta=10,
+                               msg="Number of unique cofactors")
         assert 71 == len(set(i['accession'] for i in r))  # ChEBI accessions
         r = set(i['#text'] for i in r)
         assert "Mg(2+)" in r
@@ -190,13 +190,13 @@ class TestQueryIntEnz(unittest.TestCase):
             assert n == len(r)
             for path in r:
                 path = path['path']
-                assert source == path.start.properties["id"]
-                assert target == path.end.properties["id"]
+                assert source == path.start["id"]
+                assert target == path.end["id"]
                 assert 2 == len(path.relationships)
                 assert "Reactant_in" == path.relationships[0].type
-                assert source == path.nodes[0].properties['id']
+                assert source == path.nodes[0]['id']
                 assert "Produces" == path.relationships[-1].type
-                assert target == path.nodes[-1].properties['id']
+                assert target == path.nodes[-1]['id']
 
     def test_neo4j_getreactions(self):
         nqry = QueryIntEnz("Neo4j")
