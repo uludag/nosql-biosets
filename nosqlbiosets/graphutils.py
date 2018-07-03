@@ -1,7 +1,7 @@
 """ Methods to return NetworkX graphs in Cytoscape.js or D3js formats """
 import json
 
-import networkx
+import networkx as nx
 
 
 # Return input NetworkX graph in Cytoscape.js JSON format
@@ -71,7 +71,7 @@ def networkx2d3_json(networkxgraph):
 # Otherwise it is saved in GML format
 def save_graph(graph, outfile):
     if outfile.endswith(".xml"):
-        networkx.write_graphml(graph, outfile)
+        nx.write_graphml(graph, outfile)
     elif outfile.endswith(".d3js.json"):
         cygraph = networkx2d3_json(graph)
         json.dump(cygraph, open(outfile, "w"), indent=4)
@@ -79,5 +79,20 @@ def save_graph(graph, outfile):
         cygraph = networkx2cytoscape_json(graph)
         json.dump(cygraph, open(outfile, "w"), indent=4)
     else:  # Assume GML format
-        networkx.write_gml(graph, outfile)
+        nx.write_gml(graph, outfile)
     print('Network file saved: ' + outfile)
+
+
+def shortest_paths(dg, source, target, k=None, cutoff=7):
+    # KSP search based on algorithm by Jin Y. Yen
+    gr = nx.shortest_simple_paths(dg, source=source, target=target)
+    if k is None:
+        return gr
+    else:
+        i, r = 0, []
+        for path in gr:
+            r.append(path)
+            i += 1
+            if i >= k or len(path) > cutoff:
+                break
+        return r
