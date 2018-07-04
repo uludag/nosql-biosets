@@ -89,6 +89,18 @@ class TestQueryModelSEEDDatabase(unittest.TestCase):
             assert desc == qry.getcompoundname(esdbc, mid)
             assert desc == qry.getcompoundname(dbc, mid)
 
+    def test_textsearch_metabolites(self):
+        mids = ['cpd00306', 'cpd00191', 'cpd00047', 'cpd00776',
+                'cpd00100', 'cpd26831']
+        names = ['Xylitol', '3-Oxopropanoate', 'Formate', 'Squalene',
+                 'Glycerol', 'D-xylose']
+        for mid in mids:
+            name = names.pop(0)
+            for qterm in [name.lower(), name.upper(), name]:
+                r = qry.textsearch_metabolites(qterm)
+                assert 1 <= len(r)
+                assert mid in [i['_id'] for i in r]
+
     def test_metabolite_networks(self):
         qc = {"status": "OK", "reversibility": "<"}
         mn = qry.get_metabolite_network(qc)
@@ -97,6 +109,12 @@ class TestQueryModelSEEDDatabase(unittest.TestCase):
         assert 'Phosphate' in mn.nodes
         qc = {}
         mn = qry.get_metabolite_network(qc)
+        assert mn.has_node('D-Xylose')
+        assert mn.has_node('Xylitol')
+        paths = shortest_paths(mn, 'D-Xylose', 'Xylitol', 10)
+        assert 10 == len(paths)
+        assert 4 == len(paths[0])
+
         assert mn.has_edge('Parapyruvate', 'Pyruvate')
         assert 'rxn00004' in\
                mn.get_edge_data('Parapyruvate', 'Pyruvate')['reactions']

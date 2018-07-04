@@ -10,6 +10,7 @@ import time
 from elasticsearch.helpers import streaming_bulk
 
 from nosqlbiosets.dbutils import DBconnection
+from pymongo import IndexModel
 
 ES_CHUNK_SIZE = 2048  # for Elasticsearch index requests
 TYPE_COMPOUND = 'modelseed_compound'
@@ -95,6 +96,17 @@ def es_index(dbc, infile, typetuner):
     return 1
 
 
+def mongodb_indices(mdb):
+    index = IndexModel([
+        ("name", "text"),
+        ("abbreviation", "text")])
+    mdb.create_indexes([index])
+    indx_fields = ["mass", "deltag", "deltagerr", "charge",
+                   "name", 'abbreviation', "inchikey"]
+    for field in indx_fields:
+        mdb.create_index(field)
+
+
 def mongodb_index(mdbc, infile, typetuner):
     print("Reading from %s" % infile)
     i = 0
@@ -121,6 +133,8 @@ def main(infile, index, doctype, db, host=None, port=None):
     else:  # assume MongoDB
         dbc.mdbi.drop_collection(doctype)
         mongodb_index(dbc.mdbi[doctype], infile, typetuner)
+        if doctype == TYPE_COMPOUND:
+            mongodb_indices(dbc.mdbi[doctype])
 
 
 if __name__ == '__main__':

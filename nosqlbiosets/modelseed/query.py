@@ -88,21 +88,30 @@ class QueryModelSEED:
         r = [c for c in hits]
         return r
 
-    # Get network of metabolites ,
+    # Text search metabolites with given query term
+    def textsearch_metabolites(self, queryterm):
+        assert "MongoDB" == self.dbc.db
+        doctype = COMPOUNDSTYPE
+        qc = {'$text': {'$search': queryterm}}
+        hits = self.dbc.mdbi[doctype].find(qc, projection={
+            'score': {'$meta': "textScore"}})
+        r = [c for c in hits]
+        r.sort(key=lambda x: x['score'])
+        return r
+
+    # Get network of metabolites,
     # edges refer to the unique set of reactions connecting two metabolites
-    def get_metabolite_network(self, qc):
+    def get_metabolite_network(self, qc, **kwargs):
         import networkx as nx
         graph = nx.DiGraph(name='metanetx', query=json.dumps(qc))
-        reacts = self.dbc.mdbi[REACTIONSTYPE].find(qc)
+        reacts = self.dbc.mdbi[REACTIONSTYPE].find(qc, **kwargs)
         mre = re.compile(r'\((\d*\.*\d*(e-\d+)?)\) (cpd\d+)\[(\d+)\]')
         r = self.query_metabolites({}, projection=['name'])
         id2name = {i['_id']: i['name'] for i in r}
         for r in reacts:
             reactants, products, _ = \
                 modelseeddb_parse_equation(r['equation'])
-            if reactants is None:
-                print(r['equation'])
-                continue
+            assert reactants is not None
             for u in reactants:
                 match = re.search(mre, u)
                 u = match.group(3)
