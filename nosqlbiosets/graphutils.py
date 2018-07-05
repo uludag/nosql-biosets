@@ -84,7 +84,8 @@ def save_graph(graph, outfile):
 
 
 def shortest_paths(dg, source, target, k=None, cutoff=7):
-    # KSP search based on algorithm by Jin Y. Yen
+    # NetworkX shortest_simple_paths function return paths generator
+    # for the input graph from source to target starting from shortest ones
     gr = nx.shortest_simple_paths(dg, source=source, target=target)
     if k is None:
         return gr
@@ -96,3 +97,13 @@ def shortest_paths(dg, source, target, k=None, cutoff=7):
             if i >= k or len(path) > cutoff:
                 break
         return r
+
+
+def neighbors_graph(ingraph, source, beamwidth=4, maxnodes=30):
+    centrality = nx.eigenvector_centrality_numpy(ingraph, max_iter=10, tol=0.1)
+    outgraph = nx.MultiDiGraph()
+    for u, v in nx.bfs_beam_edges(ingraph, source, centrality.get, beamwidth):
+        outgraph.add_edge(u, v)
+        if outgraph.number_of_nodes() >= maxnodes:
+            break
+    return outgraph
