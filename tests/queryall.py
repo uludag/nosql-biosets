@@ -1,43 +1,63 @@
 #!/usr/bin/env python
-""" Test queries with multiple 'nosql-biosets' Elasticsearch indexes """
+""" Test queries with multiple 'nosql-biosets' Elasticsearch indexes.
+Work in this file is a stub.
+"""
 
 import unittest
 
 from nosqlbiosets.dbutils import DBconnection
 
-typeaggs = {
-    "type": {
+groupbyindex = {
+    "indx": {
         "terms": {
-            "field": "_type",
+            "field": "_index",
             "size": 10}}}
 
 
-class QueryallTests(unittest.TestCase):
+class Queryall:
     es = DBconnection('Elasticsearch', "*").es
 
-    def query(self, qterms, doctype=None):
-        qc = {"match": {"_all": ' AND '.join(qterms)}}
-        r = self.es.search(doc_type=doctype,
-                           body={"size": 0, "query": qc, 'aggs': typeaggs})
+    def queryterms(self, qterms, aggs, index=None, size=10):
+        qc = {
+            "query_string": {
+                "query": ' AND '.join(qterms)}}
+        r = self.es.search(index=index,
+                           body={"size": size, "query": qc, 'aggs': aggs})
         return r
 
-    def querywithtypes(self, qterms):
-        r = self.query(qterms)
-        types = r['aggregations']['type']['buckets']
-        self.assertGreater(len(types), 1)
-        for t in types:
-            doctype = t['key']
-            r = self.query(qterms, doctype=doctype)
-            self.assertEqual(r['hits']['total'], t['doc_count'])
 
-    def test_queries(self):
-        """Makes a query with given query terms, grouping the results
-        with document types, number of results are then compared by repeating
-        the same query with specifying document type with each type"""
-        qtermsl = [["p53", "kinase"], ["xylose"], ["naringenin"], ["acetyl"]]
-        for qterms in qtermsl:
-            self.querywithtypes(qterms)
+def querytermsgroupbyindex(qterms):
+    qryall = Queryall()
+    r = qryall.queryterms(qterms, aggs=groupbyindex, size=0)
+    buckets = r['aggregations']['indx']['buckets']
+    assert 1 <= len(buckets)
+    print(qterms)
+    for b in buckets:
+        index = b['key']
+        n = b['doc_count']
+        print("%s: %d" % (index, n))
+    print("Total: %d" % (r['hits']['total']))
+    return r
 
 
-if __name__ == '__main__':
-    unittest.main()
+class QueryallTests(unittest.TestCase):
+    qryall = Queryall()
+    qtermsl = [["p53", "kinase"], ["xylose"], ["naringenin"], ["acetyl"]]
+
+    def test_querytermsgroupbyindex(self):
+        for qterms in self.qtermsl:
+            r = querytermsgroupbyindex(qterms)
+            assert r is not None
+
+    def test_queryterms(self):
+        """Query with sample query terms, grouping the results
+        with indexes, number of results are then compared by repeating
+        the same query with specifying index for each result group"""
+        for qterms in self.qtermsl:
+            r = self.qryall.queryterms(qterms, aggs=groupbyindex, size=0)
+            buckets = r['aggregations']['indx']['buckets']
+            self.assertGreater(len(buckets), 1)
+            for t in buckets:
+                index = t['key']
+                r = self.qryall.queryterms(qterms, aggs={}, index=index, size=0)
+                assert t['doc_count'] == r['hits']['total'], qterms
