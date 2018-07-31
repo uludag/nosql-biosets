@@ -2,15 +2,15 @@
 ## Index/query scripts for HMDB and DrugBank xml datasets
 
 * [index.py](index.py) Index HMDB protein and metabolite datasets.
-  Tests made with HMDB version 4.0; _metabolites_ June 2018 update,
-  _proteins_ June 2018 update
+  Tests made with HMDB version 4.0; _metabolites_ July 2018 update,
+  _proteins_ July 2018 update
 
 * [../tests/test_hmdb_queries.py](../tests/test_hmdb_queries.py)
   Includes example queries
 
 * [drugbank.py](drugbank.py) Index DrugBank xml dataset with MongoDB,
   or Elasticsearch, or save drug-drug interactions as graph file in GML format.
-  Tests made with DrugBank version 5.1, April 2018 update
+  Tests made with DrugBank version 5.1, July 2018 update
 
 * [queries.py](queries.py) Query API for DrugBank data indexed with MongoDB,
   _at its early stages_
@@ -38,11 +38,11 @@ mkdir -p data
 wget -P ./data http://www.hmdb.ca/system/downloads/current/hmdb_metabolites.zip
 wget -P ./data http://www.hmdb.ca/system/downloads/current/hmdb_proteins.zip
 
-# Index with Elasticsearch, time for proteins is ~10m, for metabolites ~120m
+# Index with Elasticsearch, time for proteins is ~10m, for metabolites ~140m
 ./hmdb/index.py --infile ./data/hmdb_metabolites.zip --db Elasticsearch --index hmdb_metabolite
 ./hmdb/index.py --infile ./data/hmdb_proteins.zip --db Elasticsearch --index hmdb_protein
 
-# Index with MongoDB, time for proteins is ~8m, for metabolites ~80m
+# Index with MongoDB, time for proteins is ~8m, for metabolites ~100m
 ./hmdb/index.py --infile ./data/hmdb_metabolites.zip --db MongoDB --index biosets
 ./hmdb/index.py --infile ./data/hmdb_proteins.zip --db MongoDB --index biosets
 ```
