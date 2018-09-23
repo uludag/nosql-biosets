@@ -3,7 +3,7 @@
 
 * [index.py](index.py): Index UniProtKB xml files
   
-  _Tested with Swiss-Prot dataset only, (May 2018 release)_
+  _Tested with Swiss-Prot dataset only, (Sep 2018 release)_
   
     ```
     ./nosqlbiosets/uniprot/index.py --help
@@ -55,11 +55,11 @@ _Server default connection settings are read from [../../conf/dbservers.json](
 )_
 
 ```bash
-# Index with Elasticsearch,  typically requires 6 to 8 hours
+# Index with Elasticsearch, requires about 6 to 8 hours
 ./nosqlbiosets/uniprot/index.py ./data/uniprot_sprot.xml.gz\
  --host localhost --db Elasticsearch  --index uniprot
 
-# Index with MongoDB, typically requires 4 to 6 hours
+# Index with MongoDB, requires about 5 hours
 ./nosqlbiosets/uniprot/index.py ./data/uniprot_sprot.xml.gz\
  --host localhost --db MongoDB --index biosets
 ```
@@ -94,5 +94,5 @@ wget -P ./data http://cbdm-01.zdv.uni-mainz.de/~mschaefer/hippie/HIPPIE-current.
 ./nosqlbiosets/uniprot/index_mitab.py --infile ./data/HIPPIE-current.mitab.txt\
  --db MongoDB
 ```
- HIPPIE indexing takes ~8m with MongoDB, ~2m with Elasticsearch,
-  _we will move to MongoDB bulk API to improve MongoDB indexing speed_
+ HIPPIE indexing takes ~8m with MongoDB, ~2m with Elasticsearch
+ 

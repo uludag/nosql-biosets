@@ -56,7 +56,7 @@ class TestQueryUniProt(unittest.TestCase):
     # Distribution of evidence codes in a text query result set
     def test_evidence_codes(self):
         ecodes = {  # http://www.uniprot.org/help/evidences
-            255: 3350,  # match to sequence model evidence, manual assertion
+            255: 3460,  # match to sequence model evidence, manual assertion
             269: 4640,  # experimental evidence used in manual assertion
             305: 3740,  # curator inference used in manual assertion
             250: 2770,  # sequence similarity evidence used in manual assertion
