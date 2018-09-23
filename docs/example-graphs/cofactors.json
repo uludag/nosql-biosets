@@ -1,0 +1,929 @@
+{
+    "elements": {
+        "nodes": [
+            {
+                "data": {
+                    "label": "a carboxylate",
+                    "viz_color": "orange",
+                    "id": "a carboxylate"
+                }
+            },
+            {
+                "data": {
+                    "label": "2n H(+)",
+                    "viz_color": "orange",
+                    "id": "2n H(+)"
+                }
+            },
+            {
+                "data": {
+                    "label": "an aldehyde",
+                    "viz_color": "orange",
+                    "id": "an aldehyde"
+                }
+            },
+            {
+                "data": {
+                    "label": "2 reduced [azurin]",
+                    "viz_color": "orange",
+                    "id": "2 reduced [azurin]"
+                }
+            },
+            {
+                "data": {
+                    "label": "H2O",
+                    "viz_color": "brown",
+                    "id": "H2O"
+                }
+            },
+            {
+                "data": {
+                    "label": "pyrroloquinoline quinone",
+                    "viz_color": "brown",
+                    "id": "pyrroloquinoline quinone"
+                }
+            },
+            {
+                "data": {
+                    "label": "acetaldehyde",
+                    "viz_color": "orange",
+                    "id": "acetaldehyde"
+                }
+            },
+            {
+                "data": {
+                    "label": "2 [Fe(II)cytochrome cL]",
+                    "viz_color": "orange",
+                    "id": "2 [Fe(II)cytochrome cL]"
+                }
+            },
+            {
+                "data": {
+                    "label": "2 [Fe(III)cytochrome cL]",
+                    "viz_color": "brown",
+                    "id": "2 [Fe(III)cytochrome cL]"
+                }
+            },
+            {
+                "data": {
+                    "label": "D-glucono-1,5-lactone",
+                    "viz_color": "orange",
+                    "id": "D-glucono-1,5-lactone"
+                }
+            },
+            {
+                "data": {
+                    "label": "AH2",
+                    "viz_color": "orange",
+                    "id": "AH2"
+                }
+            },
+            {
+                "data": {
+                    "label": "a primary alcohol",
+                    "viz_color": "brown",
+                    "id": "a primary alcohol"
+                }
+            },
+            {
+                "data": {
+                    "label": "ethanol",
+                    "viz_color": "brown",
+                    "id": "ethanol"
+                }
+            },
+            {
+                "data": {
+                    "label": "17-hydroxylupanine",
+                    "viz_color": "orange",
+                    "id": "17-hydroxylupanine"
+                }
+            },
+            {
+                "data": {
+                    "label": "a ubiquinol",
+                    "viz_color": "orange",
+                    "id": "a ubiquinol"
+                }
+            },
+            {
+                "data": {
+                    "label": "2n [Fe(III)cytochrome c]",
+                    "viz_color": "brown",
+                    "id": "2n [Fe(III)cytochrome c]"
+                }
+            },
+            {
+                "data": {
+                    "label": "2 [Fe(III)cytochrome c]",
+                    "viz_color": "brown",
+                    "id": "2 [Fe(III)cytochrome c]"
+                }
+            },
+            {
+                "data": {
+                    "label": "a ubiquinone",
+                    "viz_color": "brown",
+                    "id": "a ubiquinone"
+                }
+            },
+            {
+                "data": {
+                    "label": "betaine aldehyde",
+                    "viz_color": "orange",
+                    "id": "betaine aldehyde"
+                }
+            },
+            {
+                "data": {
+                    "label": "glycerol",
+                    "viz_color": "brown",
+                    "id": "glycerol"
+                }
+            },
+            {
+                "data": {
+                    "label": "lupanine",
+                    "viz_color": "brown",
+                    "id": "lupanine"
+                }
+            },
+            {
+                "data": {
+                    "label": "methanol",
+                    "viz_color": "brown",
+                    "id": "methanol"
+                }
+            },
+            {
+                "data": {
+                    "label": "scyllo-inosose",
+                    "viz_color": "orange",
+                    "id": "scyllo-inosose"
+                }
+            },
+            {
+                "data": {
+                    "label": "formaldehyde",
+                    "viz_color": "orange",
+                    "id": "formaldehyde"
+                }
+            },
+            {
+                "data": {
+                    "label": "choline",
+                    "viz_color": "brown",
+                    "id": "choline"
+                }
+            },
+            {
+                "data": {
+                    "label": "a quinol",
+                    "viz_color": "orange",
+                    "id": "a quinol"
+                }
+            },
+            {
+                "data": {
+                    "label": "a polyvinyl alcohol",
+                    "viz_color": "brown",
+                    "id": "a polyvinyl alcohol"
+                }
+            },
+            {
+                "data": {
+                    "label": "L-quinate",
+                    "viz_color": "brown",
+                    "id": "L-quinate"
+                }
+            },
+            {
+                "data": {
+                    "label": "pyrroloquinoline quinol",
+                    "viz_color": "orange",
+                    "id": "pyrroloquinoline quinol"
+                }
+            },
+            {
+                "data": {
+                    "label": "an oxidized polyvinyl alcohol",
+                    "viz_color": "orange",
+                    "id": "an oxidized polyvinyl alcohol"
+                }
+            },
+            {
+                "data": {
+                    "label": "3-dehydroquinate",
+                    "viz_color": "orange",
+                    "id": "3-dehydroquinate"
+                }
+            },
+            {
+                "data": {
+                    "label": "D-glucose",
+                    "viz_color": "brown",
+                    "id": "D-glucose"
+                }
+            },
+            {
+                "data": {
+                    "label": "a quinone",
+                    "viz_color": "brown",
+                    "id": "a quinone"
+                }
+            },
+            {
+                "data": {
+                    "label": "myo-inositol",
+                    "viz_color": "brown",
+                    "id": "myo-inositol"
+                }
+            },
+            {
+                "data": {
+                    "label": "2 oxidized [azurin]",
+                    "viz_color": "brown",
+                    "id": "2 oxidized [azurin]"
+                }
+            },
+            {
+                "data": {
+                    "label": "H(+)",
+                    "viz_color": "orange",
+                    "id": "H(+)"
+                }
+            },
+            {
+                "data": {
+                    "label": "2 H(+)",
+                    "viz_color": "orange",
+                    "id": "2 H(+)"
+                }
+            },
+            {
+                "data": {
+                    "label": "A",
+                    "viz_color": "brown",
+                    "id": "A"
+                }
+            },
+            {
+                "data": {
+                    "label": "2n [Fe(II)cytochrome c]",
+                    "viz_color": "orange",
+                    "id": "2n [Fe(II)cytochrome c]"
+                }
+            },
+            {
+                "data": {
+                    "label": "dihydroxyacetone",
+                    "viz_color": "orange",
+                    "id": "dihydroxyacetone"
+                }
+            },
+            {
+                "data": {
+                    "label": "2 [Fe(II)cytochrome c]",
+                    "viz_color": "orange",
+                    "id": "2 [Fe(II)cytochrome c]"
+                }
+            }
+        ],
+        "edges": [
+            {
+                "data": {
+                    "target": "a carboxylate",
+                    "source": "an aldehyde",
+                    "ec": "1.2.5.2",
+                    "id": "an aldehydea carboxylate"
+                }
+            },
+            {
+                "data": {
+                    "target": "a quinol",
+                    "source": "an aldehyde",
+                    "ec": "1.2.5.2",
+                    "id": "an aldehydea quinol"
+                }
+            },
+            {
+                "data": {
+                    "target": "H(+)",
+                    "source": "an aldehyde",
+                    "ec": "1.2.5.2",
+                    "id": "an aldehydeH(+)"
+                }
+            },
+            {
+                "data": {
+                    "target": "a carboxylate",
+                    "source": "H2O",
+                    "ec": "1.2.5.2",
+                    "id": "H2Oa carboxylate"
+                }
+            },
+            {
+                "data": {
+                    "target": "H(+)",
+                    "source": "H2O",
+                    "ec": "1.2.5.2",
+                    "id": "H2OH(+)"
+                }
+            },
+            {
+                "data": {
+                    "target": "2 H(+)",
+                    "source": "H2O",
+                    "ec": "1.17.2.2",
+                    "id": "H2O2 H(+)"
+                }
+            },
+            {
+                "data": {
+                    "target": "2 [Fe(II)cytochrome c]",
+                    "source": "H2O",
+                    "ec": "1.17.2.2",
+                    "id": "H2O2 [Fe(II)cytochrome c]"
+                }
+            },
+            {
+                "data": {
+                    "target": "a quinol",
+                    "source": "H2O",
+                    "ec": "1.2.5.2",
+                    "id": "H2Oa quinol"
+                }
+            },
+            {
+                "data": {
+                    "target": "17-hydroxylupanine",
+                    "source": "H2O",
+                    "ec": "1.17.2.2",
+                    "id": "H2O17-hydroxylupanine"
+                }
+            },
+            {
+                "data": {
+                    "target": "scyllo-inosose",
+                    "source": "pyrroloquinoline quinone",
+                    "ec": "1.1.5.n1",
+                    "id": "pyrroloquinoline quinonescyllo-inosose"
+                }
+            },
+            {
+                "data": {
+                    "target": "pyrroloquinoline quinol",
+                    "source": "pyrroloquinoline quinone",
+                    "ec": "1.1.5.n1",
+                    "id": "pyrroloquinoline quinonepyrroloquinoline quinol"
+                }
+            },
+            {
+                "data": {
+                    "target": "H(+)",
+                    "source": "pyrroloquinoline quinone",
+                    "ec": "1.1.5.n1",
+                    "id": "pyrroloquinoline quinoneH(+)"
+                }
+            },
+            {
+                "data": {
+                    "target": "2 H(+)",
+                    "source": "2 [Fe(III)cytochrome cL]",
+                    "ec": "1.1.2.7",
+                    "id": "2 [Fe(III)cytochrome cL]2 H(+)"
+                }
+            },
+            {
+                "data": {
+                    "target": "an aldehyde",
+                    "source": "2 [Fe(III)cytochrome cL]",
+                    "ec": "1.1.2.7",
+                    "id": "2 [Fe(III)cytochrome cL]an aldehyde"
+                }
+            },
+            {
+                "data": {
+                    "target": "formaldehyde",
+                    "source": "2 [Fe(III)cytochrome cL]",
+                    "ec": "1.1.2.7",
+                    "id": "2 [Fe(III)cytochrome cL]formaldehyde"
+                }
+            },
+            {
+                "data": {
+                    "target": "2 [Fe(II)cytochrome cL]",
+                    "source": "2 [Fe(III)cytochrome cL]",
+                    "ec": "1.1.2.7",
+                    "id": "2 [Fe(III)cytochrome cL]2 [Fe(II)cytochrome cL]"
+                }
+            },
+            {
+                "data": {
+                    "target": "AH2",
+                    "source": "a primary alcohol",
+                    "ec": "1.1.99.20",
+                    "id": "a primary alcoholAH2"
+                }
+            },
+            {
+                "data": {
+                    "target": "an aldehyde",
+                    "source": "a primary alcohol",
+                    "ec": "1.1.2.8",
+                    "id": "a primary alcoholan aldehyde"
+                }
+            },
+            {
+                "data": {
+                    "target": "an aldehyde",
+                    "source": "a primary alcohol",
+                    "ec": "1.1.2.8",
+                    "id": "a primary alcoholan aldehyde"
+                }
+            },
+            {
+                "data": {
+                    "target": "an aldehyde",
+                    "source": "a primary alcohol",
+                    "ec": "1.1.2.8",
+                    "id": "a primary alcoholan aldehyde"
+                }
+            },
+            {
+                "data": {
+                    "target": "an aldehyde",
+                    "source": "a primary alcohol",
+                    "ec": "1.1.2.8",
+                    "id": "a primary alcoholan aldehyde"
+                }
+            },
+            {
+                "data": {
+                    "target": "2 [Fe(II)cytochrome c]",
+                    "source": "a primary alcohol",
+                    "ec": "1.1.2.8",
+                    "id": "a primary alcohol2 [Fe(II)cytochrome c]"
+                }
+            },
+            {
+                "data": {
+                    "target": "2 reduced [azurin]",
+                    "source": "a primary alcohol",
+                    "ec": "1.1.9.1",
+                    "id": "a primary alcohol2 reduced [azurin]"
+                }
+            },
+            {
+                "data": {
+                    "target": "2 [Fe(II)cytochrome cL]",
+                    "source": "a primary alcohol",
+                    "ec": "1.1.2.7",
+                    "id": "a primary alcohol2 [Fe(II)cytochrome cL]"
+                }
+            },
+            {
+                "data": {
+                    "target": "2 H(+)",
+                    "source": "a primary alcohol",
+                    "ec": "1.1.2.7",
+                    "id": "a primary alcohol2 H(+)"
+                }
+            },
+            {
+                "data": {
+                    "target": "2 H(+)",
+                    "source": "a primary alcohol",
+                    "ec": "1.1.2.7",
+                    "id": "a primary alcohol2 H(+)"
+                }
+            },
+            {
+                "data": {
+                    "target": "2 H(+)",
+                    "source": "a primary alcohol",
+                    "ec": "1.1.2.7",
+                    "id": "a primary alcohol2 H(+)"
+                }
+            },
+            {
+                "data": {
+                    "target": "acetaldehyde",
+                    "source": "ethanol",
+                    "ec": "1.1.5.5",
+                    "id": "ethanolacetaldehyde"
+                }
+            },
+            {
+                "data": {
+                    "target": "a ubiquinol",
+                    "source": "ethanol",
+                    "ec": "1.1.5.5",
+                    "id": "ethanola ubiquinol"
+                }
+            },
+            {
+                "data": {
+                    "target": "2n H(+)",
+                    "source": "2n [Fe(III)cytochrome c]",
+                    "ec": "1.1.2.6",
+                    "id": "2n [Fe(III)cytochrome c]2n H(+)"
+                }
+            },
+            {
+                "data": {
+                    "target": "an oxidized polyvinyl alcohol",
+                    "source": "2n [Fe(III)cytochrome c]",
+                    "ec": "1.1.2.6",
+                    "id": "2n [Fe(III)cytochrome c]an oxidized polyvinyl alcohol"
+                }
+            },
+            {
+                "data": {
+                    "target": "2n [Fe(II)cytochrome c]",
+                    "source": "2n [Fe(III)cytochrome c]",
+                    "ec": "1.1.2.6",
+                    "id": "2n [Fe(III)cytochrome c]2n [Fe(II)cytochrome c]"
+                }
+            },
+            {
+                "data": {
+                    "target": "an aldehyde",
+                    "source": "2 [Fe(III)cytochrome c]",
+                    "ec": "1.1.2.8",
+                    "id": "2 [Fe(III)cytochrome c]an aldehyde"
+                }
+            },
+            {
+                "data": {
+                    "target": "17-hydroxylupanine",
+                    "source": "2 [Fe(III)cytochrome c]",
+                    "ec": "1.17.2.2",
+                    "id": "2 [Fe(III)cytochrome c]17-hydroxylupanine"
+                }
+            },
+            {
+                "data": {
+                    "target": "2 H(+)",
+                    "source": "2 [Fe(III)cytochrome c]",
+                    "ec": "1.17.2.2",
+                    "id": "2 [Fe(III)cytochrome c]2 H(+)"
+                }
+            },
+            {
+                "data": {
+                    "target": "2 H(+)",
+                    "source": "2 [Fe(III)cytochrome c]",
+                    "ec": "1.17.2.2",
+                    "id": "2 [Fe(III)cytochrome c]2 H(+)"
+                }
+            },
+            {
+                "data": {
+                    "target": "2 [Fe(II)cytochrome c]",
+                    "source": "2 [Fe(III)cytochrome c]",
+                    "ec": "1.17.2.2",
+                    "id": "2 [Fe(III)cytochrome c]2 [Fe(II)cytochrome c]"
+                }
+            },
+            {
+                "data": {
+                    "target": "2 [Fe(II)cytochrome c]",
+                    "source": "2 [Fe(III)cytochrome c]",
+                    "ec": "1.17.2.2",
+                    "id": "2 [Fe(III)cytochrome c]2 [Fe(II)cytochrome c]"
+                }
+            },
+            {
+                "data": {
+                    "target": "D-glucono-1,5-lactone",
+                    "source": "a ubiquinone",
+                    "ec": "1.1.5.2",
+                    "id": "a ubiquinoneD-glucono-1,5-lactone"
+                }
+            },
+            {
+                "data": {
+                    "target": "acetaldehyde",
+                    "source": "a ubiquinone",
+                    "ec": "1.1.5.5",
+                    "id": "a ubiquinoneacetaldehyde"
+                }
+            },
+            {
+                "data": {
+                    "target": "a ubiquinol",
+                    "source": "a ubiquinone",
+                    "ec": "1.1.5.2",
+                    "id": "a ubiquinonea ubiquinol"
+                }
+            },
+            {
+                "data": {
+                    "target": "a ubiquinol",
+                    "source": "a ubiquinone",
+                    "ec": "1.1.5.2",
+                    "id": "a ubiquinonea ubiquinol"
+                }
+            },
+            {
+                "data": {
+                    "target": "AH2",
+                    "source": "glycerol",
+                    "ec": "1.1.99.22",
+                    "id": "glycerolAH2"
+                }
+            },
+            {
+                "data": {
+                    "target": "dihydroxyacetone",
+                    "source": "glycerol",
+                    "ec": "1.1.99.22",
+                    "id": "glyceroldihydroxyacetone"
+                }
+            },
+            {
+                "data": {
+                    "target": "2 [Fe(II)cytochrome c]",
+                    "source": "lupanine",
+                    "ec": "1.17.2.2",
+                    "id": "lupanine2 [Fe(II)cytochrome c]"
+                }
+            },
+            {
+                "data": {
+                    "target": "17-hydroxylupanine",
+                    "source": "lupanine",
+                    "ec": "1.17.2.2",
+                    "id": "lupanine17-hydroxylupanine"
+                }
+            },
+            {
+                "data": {
+                    "target": "2 H(+)",
+                    "source": "lupanine",
+                    "ec": "1.17.2.2",
+                    "id": "lupanine2 H(+)"
+                }
+            },
+            {
+                "data": {
+                    "target": "2 H(+)",
+                    "source": "methanol",
+                    "ec": "1.1.2.7",
+                    "id": "methanol2 H(+)"
+                }
+            },
+            {
+                "data": {
+                    "target": "2 [Fe(II)cytochrome cL]",
+                    "source": "methanol",
+                    "ec": "1.1.2.7",
+                    "id": "methanol2 [Fe(II)cytochrome cL]"
+                }
+            },
+            {
+                "data": {
+                    "target": "formaldehyde",
+                    "source": "methanol",
+                    "ec": "1.1.2.7",
+                    "id": "methanolformaldehyde"
+                }
+            },
+            {
+                "data": {
+                    "target": "AH2",
+                    "source": "choline",
+                    "ec": "1.1.99.1",
+                    "id": "cholineAH2"
+                }
+            },
+            {
+                "data": {
+                    "target": "betaine aldehyde",
+                    "source": "choline",
+                    "ec": "1.1.99.1",
+                    "id": "cholinebetaine aldehyde"
+                }
+            },
+            {
+                "data": {
+                    "target": "2n H(+)",
+                    "source": "a polyvinyl alcohol",
+                    "ec": "1.1.2.6",
+                    "id": "a polyvinyl alcohol2n H(+)"
+                }
+            },
+            {
+                "data": {
+                    "target": "an oxidized polyvinyl alcohol",
+                    "source": "a polyvinyl alcohol",
+                    "ec": "1.1.2.6",
+                    "id": "a polyvinyl alcoholan oxidized polyvinyl alcohol"
+                }
+            },
+            {
+                "data": {
+                    "target": "2n [Fe(II)cytochrome c]",
+                    "source": "a polyvinyl alcohol",
+                    "ec": "1.1.2.6",
+                    "id": "a polyvinyl alcohol2n [Fe(II)cytochrome c]"
+                }
+            },
+            {
+                "data": {
+                    "target": "3-dehydroquinate",
+                    "source": "L-quinate",
+                    "ec": "1.1.5.8",
+                    "id": "L-quinate3-dehydroquinate"
+                }
+            },
+            {
+                "data": {
+                    "target": "a quinol",
+                    "source": "L-quinate",
+                    "ec": "1.1.5.8",
+                    "id": "L-quinatea quinol"
+                }
+            },
+            {
+                "data": {
+                    "target": "D-glucono-1,5-lactone",
+                    "source": "D-glucose",
+                    "ec": "1.1.5.2",
+                    "id": "D-glucoseD-glucono-1,5-lactone"
+                }
+            },
+            {
+                "data": {
+                    "target": "a ubiquinol",
+                    "source": "D-glucose",
+                    "ec": "1.1.5.2",
+                    "id": "D-glucosea ubiquinol"
+                }
+            },
+            {
+                "data": {
+                    "target": "a carboxylate",
+                    "source": "a quinone",
+                    "ec": "1.2.5.2",
+                    "id": "a quinonea carboxylate"
+                }
+            },
+            {
+                "data": {
+                    "target": "3-dehydroquinate",
+                    "source": "a quinone",
+                    "ec": "1.1.5.8",
+                    "id": "a quinone3-dehydroquinate"
+                }
+            },
+            {
+                "data": {
+                    "target": "a quinol",
+                    "source": "a quinone",
+                    "ec": "1.1.5.8",
+                    "id": "a quinonea quinol"
+                }
+            },
+            {
+                "data": {
+                    "target": "a quinol",
+                    "source": "a quinone",
+                    "ec": "1.1.5.8",
+                    "id": "a quinonea quinol"
+                }
+            },
+            {
+                "data": {
+                    "target": "H(+)",
+                    "source": "a quinone",
+                    "ec": "1.2.5.2",
+                    "id": "a quinoneH(+)"
+                }
+            },
+            {
+                "data": {
+                    "target": "scyllo-inosose",
+                    "source": "myo-inositol",
+                    "ec": "1.1.5.n1",
+                    "id": "myo-inositolscyllo-inosose"
+                }
+            },
+            {
+                "data": {
+                    "target": "pyrroloquinoline quinol",
+                    "source": "myo-inositol",
+                    "ec": "1.1.5.n1",
+                    "id": "myo-inositolpyrroloquinoline quinol"
+                }
+            },
+            {
+                "data": {
+                    "target": "H(+)",
+                    "source": "myo-inositol",
+                    "ec": "1.1.5.n1",
+                    "id": "myo-inositolH(+)"
+                }
+            },
+            {
+                "data": {
+                    "target": "an aldehyde",
+                    "source": "2 oxidized [azurin]",
+                    "ec": "1.1.9.1",
+                    "id": "2 oxidized [azurin]an aldehyde"
+                }
+            },
+            {
+                "data": {
+                    "target": "2 H(+)",
+                    "source": "2 oxidized [azurin]",
+                    "ec": "1.1.9.1",
+                    "id": "2 oxidized [azurin]2 H(+)"
+                }
+            },
+            {
+                "data": {
+                    "target": "2 reduced [azurin]",
+                    "source": "2 oxidized [azurin]",
+                    "ec": "1.1.9.1",
+                    "id": "2 oxidized [azurin]2 reduced [azurin]"
+                }
+            },
+            {
+                "data": {
+                    "target": "AH2",
+                    "source": "A",
+                    "ec": "1.1.99.22",
+                    "id": "AAH2"
+                }
+            },
+            {
+                "data": {
+                    "target": "AH2",
+                    "source": "A",
+                    "ec": "1.1.99.22",
+                    "id": "AAH2"
+                }
+            },
+            {
+                "data": {
+                    "target": "AH2",
+                    "source": "A",
+                    "ec": "1.1.99.22",
+                    "id": "AAH2"
+                }
+            },
+            {
+                "data": {
+                    "target": "an aldehyde",
+                    "source": "A",
+                    "ec": "1.1.99.20",
+                    "id": "Aan aldehyde"
+                }
+            },
+            {
+                "data": {
+                    "target": "betaine aldehyde",
+                    "source": "A",
+                    "ec": "1.1.99.1",
+                    "id": "Abetaine aldehyde"
+                }
+            },
+            {
+                "data": {
+                    "target": "dihydroxyacetone",
+                    "source": "A",
+                    "ec": "1.1.99.22",
+                    "id": "Adihydroxyacetone"
+                }
+            }
+        ]
+    },
+    "style": [
+        {
+            "selector": "node",
+            "style": {
+                "background-color": "#666",
+                "label": "data(id)"
+            }
+        },
+        {
+            "selector": "edge",
+            "style": {
+                "width": 3,
+                "line-color": "#ccc",
+                "target-arrow-shape": "triangle",
+                "target-arrow-color": "#ccc"
+            }
+        }
+    ],
+    "layout": {
+        "directed": true,
+        "nodeDimensionsIncludeLabels": true,
+        "name": "cose"
+    },
+    "data": {
+        "name": "IntEnz query {\"cofactors.#text\": \"Pyrroloquinoline quinone\"}"
+    }
+}

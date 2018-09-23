@@ -1,0 +1,944 @@
+{
+    "layout": {
+        "directed": true,
+        "nodeDimensionsIncludeLabels": true,
+        "name": "cose"
+    },
+    "style": [
+        {
+            "selector": "node",
+            "style": {
+                "label": "data(id)",
+                "background-color": "#666"
+            }
+        },
+        {
+            "selector": "edge",
+            "style": {
+                "width": 3,
+                "line-color": "#ccc",
+                "target-arrow-shape": "triangle",
+                "target-arrow-color": "#ccc"
+            }
+        }
+    ],
+    "data": {
+        "name": "targets"
+    },
+    "elements": {
+        "nodes": [
+            {
+                "data": {
+                    "label": "Enoyl-CoA delta isomerase 1, mitochondrial",
+                    "id": "Enoyl-CoA delta isomerase 1, mitochondrial",
+                    "viz_color": "orange"
+                }
+            },
+            {
+                "data": {
+                    "label": "Monoisopropylphosphorylserine",
+                    "id": "Monoisopropylphosphorylserine",
+                    "viz_color": "brown"
+                }
+            },
+            {
+                "data": {
+                    "label": "[3-(1,3,2-Dioxaborolan-2-Yloxy)Propyl]Guanidine",
+                    "id": "[3-(1,3,2-Dioxaborolan-2-Yloxy)Propyl]Guanidine",
+                    "viz_color": "brown"
+                }
+            },
+            {
+                "data": {
+                    "label": "Ig kappa chain V-IV region Len",
+                    "id": "Ig kappa chain V-IV region Len",
+                    "viz_color": "orange"
+                }
+            },
+            {
+                "data": {
+                    "label": "Trypsin",
+                    "id": "Trypsin",
+                    "viz_color": "orange"
+                }
+            },
+            {
+                "data": {
+                    "label": "Adenosylhomocysteinase",
+                    "id": "Adenosylhomocysteinase",
+                    "viz_color": "orange"
+                }
+            },
+            {
+                "data": {
+                    "label": "Kallikrein-6",
+                    "id": "Kallikrein-6",
+                    "viz_color": "orange"
+                }
+            },
+            {
+                "data": {
+                    "label": "GTP cyclohydrolase 1",
+                    "id": "GTP cyclohydrolase 1",
+                    "viz_color": "orange"
+                }
+            },
+            {
+                "data": {
+                    "label": "Suppressor of tumorigenicity 14 protein",
+                    "id": "Suppressor of tumorigenicity 14 protein",
+                    "viz_color": "orange"
+                }
+            },
+            {
+                "data": {
+                    "label": "Chitotriosidase-1",
+                    "id": "Chitotriosidase-1",
+                    "viz_color": "orange"
+                }
+            },
+            {
+                "data": {
+                    "label": "DNA mismatch repair protein MutL",
+                    "id": "DNA mismatch repair protein MutL",
+                    "viz_color": "orange"
+                }
+            },
+            {
+                "data": {
+                    "label": "Chymotrypsinogen B",
+                    "id": "Chymotrypsinogen B",
+                    "viz_color": "orange"
+                }
+            },
+            {
+                "data": {
+                    "label": "Primary amine oxidase",
+                    "id": "Primary amine oxidase",
+                    "viz_color": "orange"
+                }
+            },
+            {
+                "data": {
+                    "label": "Phosphorylisopropane",
+                    "id": "Phosphorylisopropane",
+                    "viz_color": "brown"
+                }
+            },
+            {
+                "data": {
+                    "label": "Hydrolase, TatD family",
+                    "id": "Hydrolase, TatD family",
+                    "viz_color": "orange"
+                }
+            },
+            {
+                "data": {
+                    "label": "Pectate lyase",
+                    "id": "Pectate lyase",
+                    "viz_color": "orange"
+                }
+            },
+            {
+                "data": {
+                    "label": "Tartrate-resistant acid phosphatase type 5",
+                    "id": "Tartrate-resistant acid phosphatase type 5",
+                    "viz_color": "orange"
+                }
+            },
+            {
+                "data": {
+                    "label": "Isopropyl Alcohol",
+                    "id": "Isopropyl Alcohol",
+                    "viz_color": "brown"
+                }
+            },
+            {
+                "data": {
+                    "label": "Transcription termination/antitermination protein NusG",
+                    "id": "Transcription termination/antitermination protein NusG",
+                    "viz_color": "orange"
+                }
+            },
+            {
+                "data": {
+                    "label": "Gag-Pro-Pol polyprotein",
+                    "id": "Gag-Pro-Pol polyprotein",
+                    "viz_color": "orange"
+                }
+            },
+            {
+                "data": {
+                    "label": "Benzylamine",
+                    "id": "Benzylamine",
+                    "viz_color": "brown"
+                }
+            },
+            {
+                "data": {
+                    "label": "Aldehyde oxidoreductase",
+                    "id": "Aldehyde oxidoreductase",
+                    "viz_color": "orange"
+                }
+            },
+            {
+                "data": {
+                    "label": "4-(Hydroxymethyl)Benzamidine",
+                    "id": "4-(Hydroxymethyl)Benzamidine",
+                    "viz_color": "brown"
+                }
+            },
+            {
+                "data": {
+                    "label": "Ganglioside GM2 activator",
+                    "id": "Ganglioside GM2 activator",
+                    "viz_color": "orange"
+                }
+            },
+            {
+                "data": {
+                    "label": "4-Hydroxybutan-1-Aminium",
+                    "id": "4-Hydroxybutan-1-Aminium",
+                    "viz_color": "brown"
+                }
+            },
+            {
+                "data": {
+                    "label": "Growth/differentiation factor 5",
+                    "id": "Growth/differentiation factor 5",
+                    "viz_color": "orange"
+                }
+            },
+            {
+                "data": {
+                    "label": "Kallikrein-1",
+                    "id": "Kallikrein-1",
+                    "viz_color": "orange"
+                }
+            },
+            {
+                "data": {
+                    "label": "Alr1529 protein",
+                    "id": "Alr1529 protein",
+                    "viz_color": "orange"
+                }
+            },
+            {
+                "data": {
+                    "label": "Phenethylamine",
+                    "id": "Phenethylamine",
+                    "viz_color": "brown"
+                }
+            },
+            {
+                "data": {
+                    "label": "Peroxiredoxin-6",
+                    "id": "Peroxiredoxin-6",
+                    "viz_color": "orange"
+                }
+            },
+            {
+                "data": {
+                    "label": "Urokinase-type plasminogen activator",
+                    "id": "Urokinase-type plasminogen activator",
+                    "viz_color": "orange"
+                }
+            },
+            {
+                "data": {
+                    "label": "3-Phenylpropylamine",
+                    "id": "3-Phenylpropylamine",
+                    "viz_color": "brown"
+                }
+            },
+            {
+                "data": {
+                    "label": "Lysozyme",
+                    "id": "Lysozyme",
+                    "viz_color": "orange"
+                }
+            },
+            {
+                "data": {
+                    "label": "L-xylulose reductase",
+                    "id": "L-xylulose reductase",
+                    "viz_color": "orange"
+                }
+            },
+            {
+                "data": {
+                    "label": "Guanidine-3-Propanol",
+                    "id": "Guanidine-3-Propanol",
+                    "viz_color": "brown"
+                }
+            },
+            {
+                "data": {
+                    "label": "Ribonuclease pancreatic",
+                    "id": "Ribonuclease pancreatic",
+                    "viz_color": "orange"
+                }
+            },
+            {
+                "data": {
+                    "label": "1,3,2-Dioxaborolan-2-Ol",
+                    "id": "1,3,2-Dioxaborolan-2-Ol",
+                    "viz_color": "brown"
+                }
+            },
+            {
+                "data": {
+                    "label": "Trypsin-1",
+                    "id": "Trypsin-1",
+                    "viz_color": "orange"
+                }
+            },
+            {
+                "data": {
+                    "label": "Capsid scaffolding protein",
+                    "id": "Capsid scaffolding protein",
+                    "viz_color": "orange"
+                }
+            },
+            {
+                "data": {
+                    "label": "Gag polyprotein",
+                    "id": "Gag polyprotein",
+                    "viz_color": "orange"
+                }
+            },
+            {
+                "data": {
+                    "label": "Thermolysin",
+                    "id": "Thermolysin",
+                    "viz_color": "orange"
+                }
+            },
+            {
+                "data": {
+                    "label": "Phospholipase A2, membrane associated",
+                    "id": "Phospholipase A2, membrane associated",
+                    "viz_color": "orange"
+                }
+            },
+            {
+                "data": {
+                    "label": "Subtilisin BPN'",
+                    "id": "Subtilisin BPN'",
+                    "viz_color": "orange"
+                }
+            },
+            {
+                "data": {
+                    "label": "Alkaline protease",
+                    "id": "Alkaline protease",
+                    "viz_color": "orange"
+                }
+            },
+            {
+                "data": {
+                    "label": "Casein kinase II subunit alpha",
+                    "id": "Casein kinase II subunit alpha",
+                    "viz_color": "orange"
+                }
+            },
+            {
+                "data": {
+                    "label": "Subtilisin Savinase",
+                    "id": "Subtilisin Savinase",
+                    "viz_color": "orange"
+                }
+            },
+            {
+                "data": {
+                    "label": "[4-(1,3,2-Dioxaborolan-2-Yloxy)Methyl]Benzamidine",
+                    "id": "[4-(1,3,2-Dioxaborolan-2-Yloxy)Methyl]Benzamidine",
+                    "viz_color": "brown"
+                }
+            },
+            {
+                "data": {
+                    "label": "Trypsin-3",
+                    "id": "Trypsin-3",
+                    "viz_color": "orange"
+                }
+            },
+            {
+                "data": {
+                    "label": "Benzamidine",
+                    "id": "Benzamidine",
+                    "viz_color": "brown"
+                }
+            },
+            {
+                "data": {
+                    "label": "Spliceosome RNA helicase DDX39B",
+                    "id": "Spliceosome RNA helicase DDX39B",
+                    "viz_color": "orange"
+                }
+            },
+            {
+                "data": {
+                    "label": "mRNA-capping enzyme",
+                    "id": "mRNA-capping enzyme",
+                    "viz_color": "orange"
+                }
+            },
+            {
+                "data": {
+                    "label": "Tumor necrosis factor",
+                    "id": "Tumor necrosis factor",
+                    "viz_color": "orange"
+                }
+            },
+            {
+                "data": {
+                    "label": "Carboxymethylenebutenolidase",
+                    "id": "Carboxymethylenebutenolidase",
+                    "viz_color": "orange"
+                }
+            },
+            {
+                "data": {
+                    "label": "Glucarate dehydratase",
+                    "id": "Glucarate dehydratase",
+                    "viz_color": "orange"
+                }
+            },
+            {
+                "data": {
+                    "label": "4-(1,3,2-Dioxaborolan-2-Yloxy)Butan-1-Aminium",
+                    "id": "4-(1,3,2-Dioxaborolan-2-Yloxy)Butan-1-Aminium",
+                    "viz_color": "brown"
+                }
+            },
+            {
+                "data": {
+                    "label": "Acetylcholinesterase",
+                    "id": "Acetylcholinesterase",
+                    "viz_color": "orange"
+                }
+            },
+            {
+                "data": {
+                    "label": "Trypsin-2",
+                    "id": "Trypsin-2",
+                    "viz_color": "orange"
+                }
+            },
+            {
+                "data": {
+                    "label": "1,2-dihydroxy-3-keto-5-methylthiopentene dioxygenase",
+                    "id": "1,2-dihydroxy-3-keto-5-methylthiopentene dioxygenase",
+                    "viz_color": "orange"
+                }
+            },
+            {
+                "data": {
+                    "label": "Scaffolding dockerin binding protein A",
+                    "id": "Scaffolding dockerin binding protein A",
+                    "viz_color": "orange"
+                }
+            },
+            {
+                "data": {
+                    "label": "O-Benzylsulfonyl-Serine",
+                    "id": "O-Benzylsulfonyl-Serine",
+                    "viz_color": "brown"
+                }
+            },
+            {
+                "data": {
+                    "label": "Copper transport protein ATOX1",
+                    "id": "Copper transport protein ATOX1",
+                    "viz_color": "orange"
+                }
+            },
+            {
+                "data": {
+                    "label": "FMN-dependent NADH-azoreductase",
+                    "id": "FMN-dependent NADH-azoreductase",
+                    "viz_color": "orange"
+                }
+            }
+        ],
+        "edges": [
+            {
+                "data": {
+                    "target": "Trypsin-1",
+                    "source": "Monoisopropylphosphorylserine",
+                    "id": "MonoisopropylphosphorylserineTrypsin-1"
+                }
+            },
+            {
+                "data": {
+                    "target": "Trypsin-2",
+                    "source": "Monoisopropylphosphorylserine",
+                    "id": "MonoisopropylphosphorylserineTrypsin-2"
+                }
+            },
+            {
+                "data": {
+                    "target": "Acetylcholinesterase",
+                    "source": "Monoisopropylphosphorylserine",
+                    "id": "MonoisopropylphosphorylserineAcetylcholinesterase"
+                }
+            },
+            {
+                "data": {
+                    "target": "Subtilisin BPN'",
+                    "source": "Monoisopropylphosphorylserine",
+                    "id": "MonoisopropylphosphorylserineSubtilisin BPN'"
+                }
+            },
+            {
+                "data": {
+                    "target": "Trypsin-3",
+                    "source": "[3-(1,3,2-Dioxaborolan-2-Yloxy)Propyl]Guanidine",
+                    "id": "[3-(1,3,2-Dioxaborolan-2-Yloxy)Propyl]GuanidineTrypsin-3"
+                }
+            },
+            {
+                "data": {
+                    "target": "Trypsin-1",
+                    "source": "Phosphorylisopropane",
+                    "id": "PhosphorylisopropaneTrypsin-1"
+                }
+            },
+            {
+                "data": {
+                    "target": "Capsid scaffolding protein",
+                    "source": "Phosphorylisopropane",
+                    "id": "PhosphorylisopropaneCapsid scaffolding protein"
+                }
+            },
+            {
+                "data": {
+                    "target": "Trypsin-2",
+                    "source": "Phosphorylisopropane",
+                    "id": "PhosphorylisopropaneTrypsin-2"
+                }
+            },
+            {
+                "data": {
+                    "target": "Chymotrypsinogen B",
+                    "source": "Phosphorylisopropane",
+                    "id": "PhosphorylisopropaneChymotrypsinogen B"
+                }
+            },
+            {
+                "data": {
+                    "target": "Ribonuclease pancreatic",
+                    "source": "Isopropyl Alcohol",
+                    "id": "Isopropyl AlcoholRibonuclease pancreatic"
+                }
+            },
+            {
+                "data": {
+                    "target": "Ig kappa chain V-IV region Len",
+                    "source": "Isopropyl Alcohol",
+                    "id": "Isopropyl AlcoholIg kappa chain V-IV region Len"
+                }
+            },
+            {
+                "data": {
+                    "target": "Adenosylhomocysteinase",
+                    "source": "Isopropyl Alcohol",
+                    "id": "Isopropyl AlcoholAdenosylhomocysteinase"
+                }
+            },
+            {
+                "data": {
+                    "target": "GTP cyclohydrolase 1",
+                    "source": "Isopropyl Alcohol",
+                    "id": "Isopropyl AlcoholGTP cyclohydrolase 1"
+                }
+            },
+            {
+                "data": {
+                    "target": "Gag polyprotein",
+                    "source": "Isopropyl Alcohol",
+                    "id": "Isopropyl AlcoholGag polyprotein"
+                }
+            },
+            {
+                "data": {
+                    "target": "DNA mismatch repair protein MutL",
+                    "source": "Isopropyl Alcohol",
+                    "id": "Isopropyl AlcoholDNA mismatch repair protein MutL"
+                }
+            },
+            {
+                "data": {
+                    "target": "Thermolysin",
+                    "source": "Isopropyl Alcohol",
+                    "id": "Isopropyl AlcoholThermolysin"
+                }
+            },
+            {
+                "data": {
+                    "target": "Chitotriosidase-1",
+                    "source": "Isopropyl Alcohol",
+                    "id": "Isopropyl AlcoholChitotriosidase-1"
+                }
+            },
+            {
+                "data": {
+                    "target": "Phospholipase A2, membrane associated",
+                    "source": "Isopropyl Alcohol",
+                    "id": "Isopropyl AlcoholPhospholipase A2, membrane associated"
+                }
+            },
+            {
+                "data": {
+                    "target": "Subtilisin BPN'",
+                    "source": "Isopropyl Alcohol",
+                    "id": "Isopropyl AlcoholSubtilisin BPN'"
+                }
+            },
+            {
+                "data": {
+                    "target": "Hydrolase, TatD family",
+                    "source": "Isopropyl Alcohol",
+                    "id": "Isopropyl AlcoholHydrolase, TatD family"
+                }
+            },
+            {
+                "data": {
+                    "target": "Pectate lyase",
+                    "source": "Isopropyl Alcohol",
+                    "id": "Isopropyl AlcoholPectate lyase"
+                }
+            },
+            {
+                "data": {
+                    "target": "Tartrate-resistant acid phosphatase type 5",
+                    "source": "Isopropyl Alcohol",
+                    "id": "Isopropyl AlcoholTartrate-resistant acid phosphatase type 5"
+                }
+            },
+            {
+                "data": {
+                    "target": "Alr1529 protein",
+                    "source": "Isopropyl Alcohol",
+                    "id": "Isopropyl AlcoholAlr1529 protein"
+                }
+            },
+            {
+                "data": {
+                    "target": "Transcription termination/antitermination protein NusG",
+                    "source": "Isopropyl Alcohol",
+                    "id": "Isopropyl AlcoholTranscription termination/antitermination protein NusG"
+                }
+            },
+            {
+                "data": {
+                    "target": "Aldehyde oxidoreductase",
+                    "source": "Isopropyl Alcohol",
+                    "id": "Isopropyl AlcoholAldehyde oxidoreductase"
+                }
+            },
+            {
+                "data": {
+                    "target": "Ganglioside GM2 activator",
+                    "source": "Isopropyl Alcohol",
+                    "id": "Isopropyl AlcoholGanglioside GM2 activator"
+                }
+            },
+            {
+                "data": {
+                    "target": "Spliceosome RNA helicase DDX39B",
+                    "source": "Isopropyl Alcohol",
+                    "id": "Isopropyl AlcoholSpliceosome RNA helicase DDX39B"
+                }
+            },
+            {
+                "data": {
+                    "target": "mRNA-capping enzyme",
+                    "source": "Isopropyl Alcohol",
+                    "id": "Isopropyl AlcoholmRNA-capping enzyme"
+                }
+            },
+            {
+                "data": {
+                    "target": "Tumor necrosis factor",
+                    "source": "Isopropyl Alcohol",
+                    "id": "Isopropyl AlcoholTumor necrosis factor"
+                }
+            },
+            {
+                "data": {
+                    "target": "Glucarate dehydratase",
+                    "source": "Isopropyl Alcohol",
+                    "id": "Isopropyl AlcoholGlucarate dehydratase"
+                }
+            },
+            {
+                "data": {
+                    "target": "Growth/differentiation factor 5",
+                    "source": "Isopropyl Alcohol",
+                    "id": "Isopropyl AlcoholGrowth/differentiation factor 5"
+                }
+            },
+            {
+                "data": {
+                    "target": "Gag-Pro-Pol polyprotein",
+                    "source": "Isopropyl Alcohol",
+                    "id": "Isopropyl AlcoholGag-Pro-Pol polyprotein"
+                }
+            },
+            {
+                "data": {
+                    "target": "Trypsin-2",
+                    "source": "Isopropyl Alcohol",
+                    "id": "Isopropyl AlcoholTrypsin-2"
+                }
+            },
+            {
+                "data": {
+                    "target": "1,2-dihydroxy-3-keto-5-methylthiopentene dioxygenase",
+                    "source": "Isopropyl Alcohol",
+                    "id": "Isopropyl Alcohol1,2-dihydroxy-3-keto-5-methylthiopentene dioxygenase"
+                }
+            },
+            {
+                "data": {
+                    "target": "Peroxiredoxin-6",
+                    "source": "Isopropyl Alcohol",
+                    "id": "Isopropyl AlcoholPeroxiredoxin-6"
+                }
+            },
+            {
+                "data": {
+                    "target": "Scaffolding dockerin binding protein A",
+                    "source": "Isopropyl Alcohol",
+                    "id": "Isopropyl AlcoholScaffolding dockerin binding protein A"
+                }
+            },
+            {
+                "data": {
+                    "target": "Lysozyme",
+                    "source": "Isopropyl Alcohol",
+                    "id": "Isopropyl AlcoholLysozyme"
+                }
+            },
+            {
+                "data": {
+                    "target": "FMN-dependent NADH-azoreductase",
+                    "source": "Isopropyl Alcohol",
+                    "id": "Isopropyl AlcoholFMN-dependent NADH-azoreductase"
+                }
+            },
+            {
+                "data": {
+                    "target": "L-xylulose reductase",
+                    "source": "Isopropyl Alcohol",
+                    "id": "Isopropyl AlcoholL-xylulose reductase"
+                }
+            },
+            {
+                "data": {
+                    "target": "Trypsin-1",
+                    "source": "Benzylamine",
+                    "id": "BenzylamineTrypsin-1"
+                }
+            },
+            {
+                "data": {
+                    "target": "Trypsin-2",
+                    "source": "Benzylamine",
+                    "id": "BenzylamineTrypsin-2"
+                }
+            },
+            {
+                "data": {
+                    "target": "Trypsin-3",
+                    "source": "4-(Hydroxymethyl)Benzamidine",
+                    "id": "4-(Hydroxymethyl)BenzamidineTrypsin-3"
+                }
+            },
+            {
+                "data": {
+                    "target": "Trypsin-3",
+                    "source": "4-Hydroxybutan-1-Aminium",
+                    "id": "4-Hydroxybutan-1-AminiumTrypsin-3"
+                }
+            },
+            {
+                "data": {
+                    "target": "Trypsin-1",
+                    "source": "Phenethylamine",
+                    "id": "PhenethylamineTrypsin-1"
+                }
+            },
+            {
+                "data": {
+                    "target": "Trypsin-2",
+                    "source": "Phenethylamine",
+                    "id": "PhenethylamineTrypsin-2"
+                }
+            },
+            {
+                "data": {
+                    "target": "Primary amine oxidase",
+                    "source": "Phenethylamine",
+                    "id": "PhenethylaminePrimary amine oxidase"
+                }
+            },
+            {
+                "data": {
+                    "target": "Trypsin-1",
+                    "source": "3-Phenylpropylamine",
+                    "id": "3-PhenylpropylamineTrypsin-1"
+                }
+            },
+            {
+                "data": {
+                    "target": "Trypsin-2",
+                    "source": "3-Phenylpropylamine",
+                    "id": "3-PhenylpropylamineTrypsin-2"
+                }
+            },
+            {
+                "data": {
+                    "target": "Trypsin-3",
+                    "source": "Guanidine-3-Propanol",
+                    "id": "Guanidine-3-PropanolTrypsin-3"
+                }
+            },
+            {
+                "data": {
+                    "target": "Trypsin-3",
+                    "source": "1,3,2-Dioxaborolan-2-Ol",
+                    "id": "1,3,2-Dioxaborolan-2-OlTrypsin-3"
+                }
+            },
+            {
+                "data": {
+                    "target": "Trypsin-3",
+                    "source": "[4-(1,3,2-Dioxaborolan-2-Yloxy)Methyl]Benzamidine",
+                    "id": "[4-(1,3,2-Dioxaborolan-2-Yloxy)Methyl]BenzamidineTrypsin-3"
+                }
+            },
+            {
+                "data": {
+                    "target": "Enoyl-CoA delta isomerase 1, mitochondrial",
+                    "source": "Benzamidine",
+                    "id": "BenzamidineEnoyl-CoA delta isomerase 1, mitochondrial"
+                }
+            },
+            {
+                "data": {
+                    "target": "Trypsin-1",
+                    "source": "Benzamidine",
+                    "id": "BenzamidineTrypsin-1"
+                }
+            },
+            {
+                "data": {
+                    "target": "Trypsin-2",
+                    "source": "Benzamidine",
+                    "id": "BenzamidineTrypsin-2"
+                }
+            },
+            {
+                "data": {
+                    "target": "Trypsin-3",
+                    "source": "Benzamidine",
+                    "id": "BenzamidineTrypsin-3"
+                }
+            },
+            {
+                "data": {
+                    "target": "Trypsin",
+                    "source": "Benzamidine",
+                    "id": "BenzamidineTrypsin"
+                }
+            },
+            {
+                "data": {
+                    "target": "Kallikrein-1",
+                    "source": "Benzamidine",
+                    "id": "BenzamidineKallikrein-1"
+                }
+            },
+            {
+                "data": {
+                    "target": "Kallikrein-6",
+                    "source": "Benzamidine",
+                    "id": "BenzamidineKallikrein-6"
+                }
+            },
+            {
+                "data": {
+                    "target": "Casein kinase II subunit alpha",
+                    "source": "Benzamidine",
+                    "id": "BenzamidineCasein kinase II subunit alpha"
+                }
+            },
+            {
+                "data": {
+                    "target": "Copper transport protein ATOX1",
+                    "source": "Benzamidine",
+                    "id": "BenzamidineCopper transport protein ATOX1"
+                }
+            },
+            {
+                "data": {
+                    "target": "Suppressor of tumorigenicity 14 protein",
+                    "source": "Benzamidine",
+                    "id": "BenzamidineSuppressor of tumorigenicity 14 protein"
+                }
+            },
+            {
+                "data": {
+                    "target": "Urokinase-type plasminogen activator",
+                    "source": "Benzamidine",
+                    "id": "BenzamidineUrokinase-type plasminogen activator"
+                }
+            },
+            {
+                "data": {
+                    "target": "Trypsin-3",
+                    "source": "4-(1,3,2-Dioxaborolan-2-Yloxy)Butan-1-Aminium",
+                    "id": "4-(1,3,2-Dioxaborolan-2-Yloxy)Butan-1-AminiumTrypsin-3"
+                }
+            },
+            {
+                "data": {
+                    "target": "Capsid scaffolding protein",
+                    "source": "O-Benzylsulfonyl-Serine",
+                    "id": "O-Benzylsulfonyl-SerineCapsid scaffolding protein"
+                }
+            },
+            {
+                "data": {
+                    "target": "Subtilisin Savinase",
+                    "source": "O-Benzylsulfonyl-Serine",
+                    "id": "O-Benzylsulfonyl-SerineSubtilisin Savinase"
+                }
+            },
+            {
+                "data": {
+                    "target": "Alkaline protease",
+                    "source": "O-Benzylsulfonyl-Serine",
+                    "id": "O-Benzylsulfonyl-SerineAlkaline protease"
+                }
+            },
+            {
+                "data": {
+                    "target": "Trypsin-2",
+                    "source": "O-Benzylsulfonyl-Serine",
+                    "id": "O-Benzylsulfonyl-SerineTrypsin-2"
+                }
+            },
+            {
+                "data": {
+                    "target": "Carboxymethylenebutenolidase",
+                    "source": "O-Benzylsulfonyl-Serine",
+                    "id": "O-Benzylsulfonyl-SerineCarboxymethylenebutenolidase"
+                }
+            }
+        ]
+    }
+}

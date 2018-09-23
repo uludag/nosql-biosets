@@ -86,7 +86,21 @@ or for the complete set
 ./hmdb/queries.py --qc='{"carriers.name": "Serum albumin"}'\
  --graphfile carriers-sa.xml --connections carriers
 
+# Drug-targets graph for drugs with "side effects"
+./hmdb/queries.py --qc='{"$text": {"$search": "side effects"}}'\
+ --graphfile carriers-sa.xml --connections targets
+
+
 ```
+
+#### Example graph
+
+* [../docs/example-graphs/defensin-targets.json](
+../docs/example-graphs/defensin-targets.json)
+
+* [../docs/example-graphs/drug-targets.html](
+../docs/example-graphs/drug-targets.html)
+
 
 ## Related work
 

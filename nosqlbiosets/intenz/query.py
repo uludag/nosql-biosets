@@ -19,10 +19,10 @@ class QueryIntEnz:
         self.doctype = doctype
         self.dbc = DBconnection(db, index)
 
-    def getreactantnames(self, filterc=None):
+    def getreactantnames(self, filterc=None, **kwargs):
         assert self.dbc.db == 'MongoDB'
         key = "reactions.reactants.title"
-        r = self.dbc.mdbi[self.doctype].distinct(key, filter=filterc)
+        r = self.dbc.mdbi[self.doctype].distinct(key, filter=filterc, **kwargs)
         return r
 
     def getproductnames(self, filterc=None):
@@ -35,6 +35,7 @@ class QueryIntEnz:
         """A cofactor is any non-protein substance required
          for a protein to be catalytically active
          http://www.uniprot.org/help/cofactor
+         https://en.wikipedia.org/wiki/Cofactor_(biochemistry)
          """
         assert self.dbc.db == 'MongoDB'
         key = "cofactors"
@@ -67,6 +68,14 @@ class QueryIntEnz:
         qc = {
             "reactions.reactants."
             "molecule.identifier.value": "CHEBI:%d" % chebiid}
+        r = self.getenzymenames(qc)
+        return r
+
+    # Find enzymes where given chemical is a product
+    def getenzymeswithproduct(self, product):
+        assert self.dbc.db == 'MongoDB'
+        qc = {
+            "reactions.products.title": product}
         r = self.getenzymenames(qc)
         return r
 
@@ -295,8 +304,8 @@ class QueryIntEnz:
         graph = nx.MultiDiGraph(name="IntEnz query %s" % json.dumps(qc))
         # Set enzymes as edge attributes
         for c in connections:
-            graph.add_node(c['reactant'], type='reactant', color='green')
-            graph.add_node(c['product'], type='product', color='orange')
+            graph.add_node(c['reactant'], type='reactant', viz_color='brown')
+            graph.add_node(c['product'], type='product', viz_color='orange')
             graph.add_edge(c['reactant'], c['product'], ec=c['enzyme'])
         return graph
 
@@ -314,7 +323,7 @@ if __name__ == '__main__':
                              'Format is selected based on the file extension'
                              ' of the given output file;'
                              ' .xml for GraphML, .gml for GML,'
-                             ' .js for Cytoscape.js,'
+                             ' .json for Cytoscape.js,'
                              ' or .d3js.json for d3js format')
     parser.add_argument('--limit',
                         default=3000, type=int,

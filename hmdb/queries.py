@@ -136,6 +136,68 @@ class QueryDrugBank:
         return graph
 
 
+class QueryHMDB:
+    index = "biosets"
+    db = "MongoDB"
+    dbc = DBconnection(db, index)
+    mdb = dbc.mdbi
+
+    def getconnectedmetabolites_graphlookup(self, maxdepth=0):
+        # do we need graph lookup???, edges enough for constructing network
+        agpl = [
+            {'$match': {'$text': {'$search': 'antibiotic'}}},
+            # {'$match': {'_id': 'HMDB0000126'}},
+            {"$project": {
+                "pathways": 0
+            }},
+            {'$graphLookup': {
+                'from': DOCTYPE_PROTEIN,
+                'startWith': '$accession',
+                'connectFromField':
+                    'accession',
+                'connectToField':
+                    'metabolite_associations.metabolite.accession',
+                'maxDepth': maxdepth,
+                'depthField': "depth",
+                'as': 'connections'
+            }}
+        ]
+        r = self.mdb[DOCTYPE_METABOLITE].aggregate(agpl)
+        return r
+
+    def getconnectedmetabolites_prt(self):
+        agpl = [
+            {'$match': {'gene_name': 'TPO'}},
+            {"$unwind": "$metabolite_associations.metabolite"},
+            {'$lookup': {
+                'from': DOCTYPE_METABOLITE,
+                'foreignField':
+                    'accession',
+                'localField':
+                    'protein_associations.protein.accession',
+                'as': 'connections'
+            }}
+        ]
+        r = self.mdb[DOCTYPE_PROTEIN].aggregate(agpl)
+        return r
+
+    def getconnectedmetabolites(self):
+        agpl = [
+            {'$match': {'$text': {'$search': 'antibiotic'}}},
+            {"$unwind": "$protein_associations.protein"},
+            {'$lookup': {
+                'from': DOCTYPE_PROTEIN,
+                'foreignField':
+                    'accession',
+                'localField':
+                    'protein_associations.protein.accession',
+                'as': 'connections'
+            }}
+        ]
+        r = self.mdb[DOCTYPE_METABOLITE].aggregate(agpl)
+        return r
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Save DrugBank interactions as NetworkX graph files')

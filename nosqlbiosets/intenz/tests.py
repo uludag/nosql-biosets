@@ -4,6 +4,7 @@
 import unittest
 
 from nosqlbiosets.dbutils import DBconnection
+from nosqlbiosets.graphutils import save_graph
 from .query import QueryIntEnz
 
 qryintenz = QueryIntEnz()
@@ -16,10 +17,10 @@ class TestQueryIntEnz(unittest.TestCase):
         self.assertAlmostEqual(4200, len(re), delta=100,
                                msg="Number of reactant names")
         pr = qryintenz.getproductnames()
-        self.assertAlmostEqual(4800, len(pr), delta=100,
+        self.assertAlmostEqual(4931, len(pr), delta=200,
                                msg="Number of product names")
         i = set(re).intersection(pr)
-        self.assertAlmostEqual(2030, len(i), delta=40,
+        self.assertAlmostEqual(2093, len(i), delta=140,
                                msg="Chemicals both in reactants and products")
         assert "cytidine" in i
 
@@ -28,10 +29,10 @@ class TestQueryIntEnz(unittest.TestCase):
         r = list(r)
         self.assertAlmostEqual(115, len(r), delta=10,
                                msg="Number of unique cofactors")
-        assert 71 == len(set(i['accession'] for i in r))  # ChEBI accessions
+        self.assertAlmostEqual(70,  # ChEBI accessions
+                               len(set(i['accession'] for i in r)), delta=10)
         r = set(i['#text'] for i in r)
         assert "Mg(2+)" in r
-        assert 71 == len(r)
 
     def test_enzymeswithreactant(self):
         tests = [
@@ -64,12 +65,12 @@ class TestQueryIntEnz(unittest.TestCase):
             # ChEBI id, id and name of one enzyme, # of enzymes
             (32682, "3.6.3.21", "Polar-amino-acid-transporting ATPase", 5),
             (15361, "4.1.2.20", "2-dehydro-3-deoxyglucarate aldolase", 100),
-            (33019, "2.7.7.19", "Polynucleotide adenylyltransferase", 471)
+            (33019, "2.7.7.19", "Polynucleotide adenylyltransferase", 474)
         ]
         for chebiid, ecn, ename, n in tests:
             enzymes = qryintenz.getenzymeswithproduct_chebiid(chebiid)
             assert (ecn, ename) in enzymes
-            assert n == len(enzymes)
+            self.assertAlmostEqual(n, len(enzymes), delta=10)
 
     def test_query_products(self):
         rnames = {
@@ -124,7 +125,7 @@ class TestQueryIntEnz(unittest.TestCase):
              "1.1.1.286")
         ]
         r = qryintenz.get_connections({})
-        self.assertAlmostEqual(38165, len(r), delta=100)
+        self.assertAlmostEqual(38620, len(r), delta=200)
         r = {(e['reactant'], e['product'], e['enzyme']) for e in r}
         for c in tests:
             assert c in r
@@ -132,8 +133,14 @@ class TestQueryIntEnz(unittest.TestCase):
     def test_getconnections_graph(self):
         qc = {'reactions.label.value': "Chemically balanced"}
         g = qryintenz.get_connections_graph(qc, limit=40000)
-        self.assertAlmostEqual(38160, g.number_of_edges(), delta=200)
+        self.assertAlmostEqual(38540, g.number_of_edges(), delta=800)
         self.assertAlmostEqual(7030,  g.number_of_nodes(), delta=200)
+
+        qc = {'cofactors.#text': "Pyrroloquinoline quinone"}
+        g = qryintenz.get_connections_graph(qc, limit=40000)
+        self.assertAlmostEqual(76, g.number_of_edges(), delta=8)
+        self.assertAlmostEqual(41,  g.number_of_nodes(), delta=4)
+        save_graph(g, '../docs/example-graphs/cofactors.json')
 
     def test_lookup_connected_metabolites(self):
         tests = [

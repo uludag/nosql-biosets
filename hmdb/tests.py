@@ -74,6 +74,12 @@ class TestQueryDrugBank(unittest.TestCase):
         self.assertIn("A10AC04", atc_codes)
         self.assertAlmostEqual(3600, len(atc_codes), delta=100)
 
+    def test_distinct_ahfs_codes(self):
+        key = "ahfs-codes.ahfs-code"
+        ahfs_codes = self.qry.distinctquery(key)
+        self.assertIn("72:00.00", ahfs_codes)
+        self.assertAlmostEqual(347, len(ahfs_codes), delta=10)
+
     def test_query_products(self):
         naprroved = self.qry.aggregate_query([
             {'$unwind': '$products'},
@@ -197,28 +203,26 @@ class TestQueryDrugBank(unittest.TestCase):
         assert g.number_of_selfloops() == 0
 
     def test_drug_targets_graph(self):
-        from os import unlink
+        qc = {'$text': {'$search': '\"side effects\"'}}
+        g = self.qry.get_connections_graph(qc, "targets")
+        assert g.number_of_edges() == 580
+        assert g.number_of_nodes() == 335
+        assert "Olanzapine" in g.nodes
+        assert "CCX915" in g.nodes
         qc = {'$text': {'$search': 'defensin'}}
-        gfile = "defensin-targets.xml"
+        gfile = "./docs/example-graphs/defensin-targets.json"
         g = self.qry.get_connections_graph(qc, "targets", gfile)
         assert g.number_of_edges() == 68
         assert g.number_of_nodes() == 62
-        unlink(gfile)
-        gfile = "defensin-enzymes.d3js.json"
-        g = self.qry.get_connections_graph(qc, "enzymes", gfile)
+        g = self.qry.get_connections_graph(qc, "enzymes")
         assert g.number_of_edges() == 1
         assert g.number_of_nodes() == 2
-        unlink(gfile)
-        gfile = "defensin-transporters.json"
-        g = self.qry.get_connections_graph(qc, "transporters", gfile)
+        g = self.qry.get_connections_graph(qc, "transporters")
         assert g.number_of_edges() == 0
         assert g.number_of_nodes() == 0
-        unlink(gfile)
-        gfile = "defensin-carriers.gml"
-        g = self.qry.get_connections_graph(qc, "carriers", gfile)
+        g = self.qry.get_connections_graph(qc, "carriers")
         assert g.number_of_edges() == 0
         assert g.number_of_nodes() == 0
-        unlink(gfile)
 
     def test_drug_targets_graph_merge(self):
         import networkx as nx

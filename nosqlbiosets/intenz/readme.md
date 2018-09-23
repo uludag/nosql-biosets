@@ -2,7 +2,7 @@
 # Index/query scripts for IntEnz enzyme dataset
 
 * [index.py](index.py): Index [IntEnz](http://www.ebi.ac.uk/intenz) xml files,
-  tested with IntEnz May 2018 release
+  tested with IntEnz Sep 2018 release
   
   ```text
     $ ./nosqlbiosets/intenz/index.py --help
@@ -37,7 +37,7 @@
                      e.g.: '{"reactions.label.value": "Chemically balanced"}'
       outfile        File name for saving the output graph. Format is selected
                      based on the file extension of the given output file; .xml
-                     for GraphML, .gml for GML, .js for Cytoscape.js, or
+                     for GraphML, .gml for GML, .json for Cytoscape.js, or
                      .d3js.json for d3js format
     
     optional arguments:
@@ -47,14 +47,26 @@
 
   ```bash
   ./nosqlbiosets/intenz/query.py '{"reactions.label.value": "Chemically balanced"}'\
-    docs/intenz-test.json --limit 80
+    balanced-reactions.xml --limit 800
   
-  ./nosqlbiosets/intenz/query.py '{"$text": {"$search": "poly(A)"}}' test.json
+  ./nosqlbiosets/intenz/query.py '{"cofactors.#text": "Pyrroloquinoline quinone"}'\
+    cofactors.json
+  
+  ./nosqlbiosets/intenz/query.py '{"$text": {"$search": "poly(A)"}}' polyA.json
   ```
 
 * [tests.py](tests.py): Tests with the query API
 
-## Example command lines
+## Example graph
+
+* [../../docs/example-graphs/cofactors.json](
+../../docs/example-graphs/cofactors.json)
+
+* [../../docs/example-graphs/enzyme-cofactors.html](
+../../docs/example-graphs/enzyme-cofactors.html)
+
+
+## Example command lines for indexing
 _Server default connection settings are read from [../../conf/dbservers.json](
 ../../conf/dbservers.json
 )_
