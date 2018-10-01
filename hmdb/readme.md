@@ -93,7 +93,7 @@ or for the complete set
 
 ```
 
-#### Example graph
+#### Example graphs
 
 * [../docs/example-graphs/defensin-targets.json](
 ../docs/example-graphs/defensin-targets.json)
@@ -107,3 +107,8 @@ or for the complete set
 * [https://github.com/egonw/create-bridgedb-hmdb](),
   [http://www.bridgedb.org/]()
   BridgeDB identity mapping files from HMDB, ChEBI, and Wikidata 
+
+## Related links
+
+* http://www.hmdb.ca/sources: a brief introduction to HMDB,
+  and a detailed list of data sources for the data fields of HMDB entries

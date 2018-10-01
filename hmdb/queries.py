@@ -1,20 +1,21 @@
 #!/usr/bin/env python
-""" Queries with DrugBank data indexed with MongoDB """
+""" Queries with HMDB and DrugBank data indexed with MongoDB """
 
 import argparse
 
-import networkx as nx
+from pivottablejs import pivot_ui
 
+from hmdb.index import DOCTYPE_METABOLITE, DOCTYPE_PROTEIN
 from nosqlbiosets.dbutils import DBconnection
 from nosqlbiosets.graphutils import *
 from nosqlbiosets.uniprot.query import QueryUniProt
 
-DOCTYPE = 'drug'  # MongoDB collection name
+DOCTYPE = 'drug'  # Default collection name for MongoDB DrugBank data
+index = "biosets"
+db = "MongoDB"
 
 
 class QueryDrugBank:
-    index = "biosets"
-    db = "MongoDB"
     dbc = DBconnection(db, index)
     mdb = dbc.mdbi
 
@@ -137,65 +138,102 @@ class QueryDrugBank:
 
 
 class QueryHMDB:
-    index = "biosets"
-    db = "MongoDB"
     dbc = DBconnection(db, index)
     mdb = dbc.mdbi
 
-    def getconnectedmetabolites_graphlookup(self, maxdepth=0):
-        # do we need graph lookup???, edges enough for constructing network
+    def getconnectedmetabolites(self, qc, beamwidth=-1):
+        # Return pairs of connected metabolites
+        # together with associated proteins and their types
+        graphlookup = True
         agpl = [
-            {'$match': {'$text': {'$search': 'antibiotic'}}},
-            # {'$match': {'_id': 'HMDB0000126'}},
-            {"$project": {
-                "pathways": 0
+            qc,
+            {"$unwind": {
+                "path": "$protein_associations.protein",
+                "preserveNullAndEmptyArrays": False
             }},
             {'$graphLookup': {
                 'from': DOCTYPE_PROTEIN,
-                'startWith': '$accession',
+                'startWith': '$protein_associations.protein.protein_accession',
                 'connectFromField':
-                    'accession',
+                    'metabolite_associations.metabolite.accession__??',
                 'connectToField':
-                    'metabolite_associations.metabolite.accession',
-                'maxDepth': maxdepth,
-                'depthField': "depth",
-                'as': 'connections'
-            }}
-        ]
-        r = self.mdb[DOCTYPE_METABOLITE].aggregate(agpl)
-        return r
-
-    def getconnectedmetabolites_prt(self):
-        agpl = [
-            {'$match': {'gene_name': 'TPO'}},
-            {"$unwind": "$metabolite_associations.metabolite"},
-            {'$lookup': {
-                'from': DOCTYPE_METABOLITE,
-                'foreignField':
                     'accession',
-                'localField':
-                    'protein_associations.protein.accession',
-                'as': 'connections'
-            }}
-        ]
-        r = self.mdb[DOCTYPE_PROTEIN].aggregate(agpl)
-        return r
-
-    def getconnectedmetabolites(self):
-        agpl = [
-            {'$match': {'$text': {'$search': 'antibiotic'}}},
-            {"$unwind": "$protein_associations.protein"},
+                'maxDepth': 0,
+                'depthField': "depth",
+                'as': 'associated_proteins',
+                "restrictSearchWithMatch": {
+                    "metabolite_associations.metabolite.%d" % beamwidth: {
+                        "$exists": False}
+                } if beamwidth != -1 else {}
+            }} if graphlookup else
             {'$lookup': {
                 'from': DOCTYPE_PROTEIN,
                 'foreignField':
                     'accession',
                 'localField':
-                    'protein_associations.protein.accession',
-                'as': 'connections'
-            }}
+                    'protein_associations.protein.protein_accession',
+                'as': 'associated_proteins'
+            }},
+            {'$project': {
+                "name": 1,
+                "protein_associations.protein.gene_name": 1,
+                "protein_associations.protein.protein_type": 1,
+                "associated_proteins.metabolite_associations.metabolite.name": 1
+            }},
+            {"$unwind": {
+                "path": "$associated_proteins",
+                "preserveNullAndEmptyArrays": False
+             }},
+            {'$match': {
+                'associated_proteins.metabolite_associations.'
+                'metabolite.%d' % beamwidth: {
+                    "$exists": False}} if beamwidth != -1 else {}
+             },
+            {"$unwind": {
+                "path": "$associated_proteins."
+                        "metabolite_associations.metabolite",
+                "preserveNullAndEmptyArrays": False
+            }},
+            {"$redact": {
+                "$cond": [
+                    {"$ne": [
+                        "$name",
+                        "$associated_proteins."
+                        "metabolite_associations.metabolite.name"]},
+                    "$$KEEP",
+                    "$$PRUNE"]
+            }},
+            {'$group': {
+                '_id': {
+                    "m1": "$name",
+                    "gene": "$protein_associations.protein.gene_name",
+                    "type": "$protein_associations.protein.protein_type",
+                    "m2": "$associated_proteins."
+                          "metabolite_associations.metabolite.name"
+                }
+            }},
+            {"$replaceRoot": {"newRoot": "$_id"}}
         ]
-        r = self.mdb[DOCTYPE_METABOLITE].aggregate(agpl)
+        r = self.mdb[DOCTYPE_METABOLITE].aggregate(agpl, allowDiskUse=True)
         return r
+
+    def get_connections_graph(self, connections, query=None, outfile=None):
+        graph = nx.DiGraph(name='test', query=query)
+
+        for i in connections:
+            u = i['m1']
+            v = i['m2']
+            gene = i['gene']
+            proteintype = i['type']
+            graph.add_node(u, type='metabolite', viz_color='green')
+            graph.add_node(v, type='metabolite', viz_color='honeydew')
+            graph.add_node(gene, type=proteintype, viz_color='lavender')
+            graph.add_edge(u, gene)
+            graph.add_edge(gene, v)
+
+        if outfile is not None:
+            save_graph(graph, outfile)
+        return graph
 
 
 if __name__ == '__main__':

@@ -1,16 +1,25 @@
 #!/usr/bin/env python
 """ Test queries with HMDB metabolites and proteins, indexed with MongoDB """
+import json
+import os
 import unittest
 
+import networkx as nx
+
 from hmdb.index import DOCTYPE_METABOLITE, DOCTYPE_PROTEIN
+from hmdb.queries import QueryHMDB
 from nosqlbiosets.dbutils import DBconnection
 
+EXAMPLES = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                        '../docs/example-graphs/')
 
-class QueryHMDB(unittest.TestCase):
+
+class TestQueryHMDB(unittest.TestCase):
     index = "biosets"
     db = "MongoDB"
     dbc = DBconnection(db, index)
     mdb = dbc.mdbi
+    qry = QueryHMDB()
 
     def query(self, qc, doctype=None, size=20):
         print(self.db)
@@ -35,7 +44,7 @@ class QueryHMDB(unittest.TestCase):
         mids = [c['_id'] for c in hits]
         self.assertEqual(len(mids), 20)
 
-    def test_ex_aggregate_query(self):
+    def test_ex_query_groupby(self):
         agpl = [
             {'$match': {'$text': {'$search': 'bacteriocin'}}},
             {'$group': {
@@ -45,7 +54,53 @@ class QueryHMDB(unittest.TestCase):
         mids = [c['_id'] for c in hits]
         self.assertIn('Organoheterocyclic compounds', mids)
 
-    def test_lookup_with_metabolite_ids(self):
+    def test_ex_query__related_entries_stat(self):
+        # (2, 846), (3, 591), (4, 563), (5, 279), (6, 202), (7, 149), (8, 121),
+        # (9, 109), (11, 81), (10, 77), (12, 49), (13, 45), (32, 31), (14, 29),
+        # (17, 23), (15, 21), (23, 21), (16, 20), (1278, 18), (41, 18),
+        # (19, 17), (518, 15), (1281, 15), (18, 15), (843, 14), (42, 14),
+        # (897, 14), (43, 13), (20, 13), (25, 13), (38, 13), (22, 12), ...
+        # (1279, 12), (24, 11), (2618, 10), (44, 9), (124, 9), (36, 8), (40, 8)
+        agpl = [
+            {'$match': {
+                'metabolite_associations.metabolite': {
+                    '$type': 'array'}}},
+            {'$group': {
+                '_id': {'$size': '$metabolite_associations.metabolite'},
+                "count": {"$sum": 1}
+            }},
+            {"$sort": {"count": -1}},
+        ]
+        hits = self.mdb[DOCTYPE_PROTEIN].aggregate(agpl)
+        r = [(c['_id'], c['count']) for c in hits]
+        print(r)
+        assert (2, 846) == r[0]  # total number of proteins is 5702
+        assert (3, 591) == r[1]
+        assert (4, 563) == r[2]
+        # (34, 13636), (2, 1453), (43, 971), (78, 955), (130, 803), (3, 759),
+        # (115, 440), (41, 408), (80, 363), (4, 357), (30, 233), (5, 209),
+        # (8, 186), (26, 179), (6, 171), (9, 144), (7, 136), (72, 126),
+        # (44, 75), (10, 74), (25, 55), (18, 53), (19, 52), (11, 51), (131, 40),
+        # (12, 39), (14, 35), (46, 32), (50, 29), (13, 27), (66, 24), ...
+        # (1040, 1), (261, 1), (686, 1), (129, 1), (179, 1), (788, 1), (87, 1)
+        agpl = [
+            {'$match': {
+                'protein_associations.protein': {
+                    '$type': 'array'}}},
+            {'$group': {
+                '_id': {'$size': '$protein_associations.protein'},
+                "count": {"$sum": 1}
+            }},
+            {"$sort": {"count": -1}},
+        ]
+        hits = self.mdb[DOCTYPE_METABOLITE].aggregate(agpl)
+        r = [(c['_id'], c['count']) for c in hits]
+        print(r)
+        assert (34, 13636) == r[0]  # total number of metabolites is 114400
+        assert (2, 1453) == r[1]
+        assert (43, 971) == r[2]
+
+    def test_ex_query_lookup(self):
         agpl = [
             {'$match': {'$text': {'$search': 'antibiotic'}}},
             {'$match': {
@@ -65,35 +120,44 @@ class QueryHMDB(unittest.TestCase):
                  for metabolite in r]
         assert {'CYP3A4'} == genes[0].intersection(genes[1])
 
-    def test_lookup_with_gene_names(self):
-        agpl = [
-            {'$match': {"name": "Succinic acid semialdehyde"}},
-            {'$unwind':
-                {
-                    'path': '$protein_associations.protein'
-                }},
-            {'$project': {
-                "accession": 1,
-                "protein_associations.protein": 1}},
-            {'$lookup': {
-                'from': DOCTYPE_PROTEIN,
-                'localField':
-                    'protein_associations.protein.gene_name',
-                'foreignField': 'gene_name',
-                'as': 'proteins'
-            }},
-            {'$project': {
-                "accession": 1,
-                "protein_associations.protein": 1,
-                "proteins.general_function": 1
-            }}
+    def test_connected_metabolites__example_graph(self):
+        qc = {'$match': {'$text': {'$search': 'albumin'}}}
+        connections = self.qry.getconnectedmetabolites(qc, beamwidth=10)
+        r = self.qry.get_connections_graph(connections, json.dumps(qc))
+        print(nx.info(r))
+        from nosqlbiosets.graphutils import save_graph
+        save_graph(r, EXAMPLES + 'hmdb-ex-graph.json')
+        assert 49 == len(r)
+
+    def test_connected_metabolites(self):
+        qry = QueryHMDB()
+        tests = [
+            ({'$match': {'$text': {'$search': 'bilirubin'}}},
+             (16688, 7, 37, 2679), (188, 3, 15, 66)),
+            ({'$match': {'$text': {'$search': 'albumin'}}},
+             (2498, 6, 24, 822), (68, 4, 12, 41)),
+            ({'$match': {'$text': {'$search': 'cofactor'}}},
+             (33892, 63, 543, 8808), (5266, 57, 461, 862)),
+            ({'$match': {"taxonomy.class": "Quinolines and derivatives"}},
+             (25232, 33, 65, 5595), (954, 24, 30, 282)),
+            ({'$match': {"taxonomy.sub_class": "Pyrroloquinolines"}},
+             (0, 0, 0, 0), (0, 0, 0, 0)),
+            ({'$match': {'taxonomy.substituents': "Pyrroloquinoline"}},
+             (8662, 10, 23, 720), (896, 7, 10, 75)),
+            ({'$match': {'accession': 'HMDB0000678'}},
+             (366, 1, 4, 163), (0, 0, 0, 0))
         ]
-        hits = self.mdb[DOCTYPE_METABOLITE].aggregate(agpl)
-        proteintypes = (
-            c["protein_associations"]["protein"]["protein_type"] for c in hits
-        )
-        hits.close()
-        self.assertIn("Enzyme", proteintypes)
+        for qc, a, b in tests:
+            for c, beamwidth in [[a, -1], [b, 30]]:
+                n, u_, g_, v_ = c
+                r = list(qry.getconnectedmetabolites(qc, beamwidth=beamwidth))
+                u = {i['m1'] for i in r}
+                g = {i['gene'] for i in r}
+                v = {i['m2'] for i in r}
+                assert n == len(r), qc
+                assert u_ == len(u), qc
+                assert g_ == len(g), qc
+                assert v_ == len(v), qc
 
 
 if __name__ == '__main__':
