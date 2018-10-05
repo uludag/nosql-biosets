@@ -1,7 +1,14 @@
 #!/usr/bin/env python
 """ Test queries with DrugBank data indexed with MongoDB """
+import os
 import unittest
 
+import networkx as nx
+
+from nosqlbiosets.graphutils import neighbors_graph
+from nosqlbiosets.graphutils import remove_highly_connected_nodes
+from nosqlbiosets.graphutils import remove_small_subgraphs
+from nosqlbiosets.graphutils import save_graph
 from .queries import DOCTYPE
 from .queries import QueryDrugBank
 
@@ -10,6 +17,9 @@ ATdrugs = ['Isoniazid', 'Rifampicin', 'Ethambutol', 'Ethionamide',
            'Pyrazinamide', 'Streptomycin', 'Amikacin', 'Kanamycin',
            'Capreomycin', 'Ciprofloxacin', 'Moxifloxacin', 'Ofloxacin',
            'Cycloserine', 'Aminosalicylic Acid']
+
+EX_GRAPHS = os.path.dirname(os.path.abspath(__file__)) + \
+           '/../docs/example-graphs/'
 
 
 class TestQueryDrugBank(unittest.TestCase):
@@ -202,6 +212,37 @@ class TestQueryDrugBank(unittest.TestCase):
         assert 'Pregnenolone' in g.nodes
         assert g.number_of_selfloops() == 0
 
+    def test_example_text_queries(self):
+        for qterm, n in [
+            ('methicillin', 23), ('meticillin', 1), ('defensin', 15)
+        ]:
+            qc = {'$text': {'$search': qterm}}
+            g = self.qry.query(qc)
+            g = list(g)
+            assert n == len(g)
+
+    def test_example_graph(self):
+        qc = {'$text': {'$search': 'methicillin'}}
+        g1 = self.qry.get_connections_graph(qc, "targets")
+        self.assertAlmostEqual(72, g1.number_of_edges(), delta=8)
+        self.assertAlmostEqual(62, g1.number_of_nodes(), delta=8)
+        g2 = self.qry.get_connections_graph(qc, "enzymes")
+        self.assertAlmostEqual(15, g2.number_of_edges(), delta=2)
+        self.assertAlmostEqual(14, g2.number_of_nodes(), delta=1)
+        g3 = self.qry.get_connections_graph(qc, "transporters")
+        self.assertAlmostEqual(16, g3.number_of_edges(), delta=1)
+        self.assertAlmostEqual(16, g3.number_of_nodes(), delta=1)
+        g4 = self.qry.get_connections_graph(qc, "carriers")
+        self.assertAlmostEqual(7, g4.number_of_edges(), delta=4)
+        self.assertAlmostEqual(8, g4.number_of_nodes(), delta=4)
+        r = nx.compose_all([g1, g2, g3, g4])
+        self.assertAlmostEqual(108, r.number_of_edges(), delta=8)
+        self.assertAlmostEqual(79, r.number_of_nodes(), delta=4)
+        remove_small_subgraphs(r)
+        save_graph(r, EX_GRAPHS + 'drugbank-methicillin.json')
+        r = neighbors_graph(r, "Ticarcillin", beamwidth=8, maxnodes=100)
+        assert 2 == r.number_of_nodes()
+
     def test_drug_targets_graph(self):
         qc = {'$text': {'$search': '\"side effects\"'}}
         g = self.qry.get_connections_graph(qc, "targets")
@@ -209,6 +250,9 @@ class TestQueryDrugBank(unittest.TestCase):
         assert g.number_of_nodes() == 335
         assert "Olanzapine" in g.nodes
         assert "CCX915" in g.nodes
+        r = neighbors_graph(g, "Olanzapine")
+        assert 5 == r.number_of_nodes()
+
         qc = {'$text': {'$search': 'defensin'}}
         gfile = "./docs/example-graphs/defensin-targets.json"
         g = self.qry.get_connections_graph(qc, "targets", gfile)
@@ -225,7 +269,6 @@ class TestQueryDrugBank(unittest.TestCase):
         assert g.number_of_nodes() == 0
 
     def test_drug_targets_graph_merge(self):
-        import networkx as nx
         qc = {'$text': {'$search': 'lipid'}}
         g1 = self.qry.get_connections_graph(qc, "targets")
         self.assertAlmostEqual(3669, g1.number_of_edges(), delta=800)
@@ -242,6 +285,12 @@ class TestQueryDrugBank(unittest.TestCase):
         g = nx.compose_all([g1, g2, g3, g4])
         self.assertAlmostEqual(5173, g.number_of_edges(), delta=800)
         self.assertAlmostEqual(2715, g.number_of_nodes(), delta=400)
+        remove_highly_connected_nodes(g)
+        self.assertAlmostEqual(768, g.number_of_edges(), delta=80)
+        self.assertAlmostEqual(2525, g.number_of_nodes(), delta=40)
+        remove_small_subgraphs(g, 20)
+        self.assertAlmostEqual(461, g.number_of_edges(), delta=80)
+        self.assertAlmostEqual(2093, g.number_of_nodes(), delta=40)
 
     def test_get_allnetworks(self):
         tests = [

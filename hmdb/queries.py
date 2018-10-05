@@ -117,9 +117,19 @@ class QueryDrugBank:
         interactions = self.get_connections(qc, connections)
         graph = nx.MultiDiGraph(name=connections, query=json.dumps(qc))
 
+        colors = {
+            "drug": 'yellowgreen',
+            "targets": 'orchid',
+            "enzymes": 'sienna',
+            "transporters": 'coral',
+            "carriers": 'blue'
+        }
+        type = 'drug' if connections == 'drug-interactions' else connections
         for u, v in interactions:
-            graph.add_node(u, type='drug', viz_color='green')
-            graph.add_node(v, type='target', viz_color='orange')
+            graph.add_node(u, type='drug', viz_color='yellowgreen')
+            graph.add_node(v,
+                           type=type,
+                           viz_color=colors[type])
             graph.add_edge(u, v)
 
         if outfile is not None:

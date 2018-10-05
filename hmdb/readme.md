@@ -95,10 +95,11 @@ or for the complete set
 
 #### Example graphs
 
-* [../docs/example-graphs/defensin-targets.json](
-../docs/example-graphs/defensin-targets.json)
+* [Drugs which have mention of term "methicillin",
+ with their targets, enzymes, transportes, and carriers](
+../docs/example-graphs/drugbank-methicillin.html)
 
-* [../docs/example-graphs/drug-targets.html](
+* [Drugs with their targets, which have mention of term "defensin"](
 ../docs/example-graphs/drug-targets.html)
 
 

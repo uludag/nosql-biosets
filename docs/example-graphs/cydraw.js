@@ -4,7 +4,7 @@ function cydraw(elements) {
     var cy = cytoscape({
         container: document.getElementById('cy'),
         elements: elements,
-        minZoom: 0.8, maxZoom: 1.2,
+        minZoom: 0.8, maxZoom: 1.4,
         style: [
             {
                 selector: 'node',
@@ -30,9 +30,13 @@ function cydraw(elements) {
         ],
         layout: {
             name: 'cose',
+            numIter: 100,
             directed: true,
             nodeDimensionsIncludeLabels: true
         }
     });
+
+    if (typeof(cy.navigator) !== 'undefined')
+        cy.navigator({});
 
 }  
