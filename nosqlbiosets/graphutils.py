@@ -5,17 +5,35 @@ import networkx as nx
 
 
 # Return input NetworkX graph in Cytoscape.js JSON format
+# TODO: replace with py2cytoscape calls, https://py2cytoscape.readthedocs.io/
 def networkx2cytoscape_json(networkxgraph):
     nodes = []
     edges = []
+
     for node in networkxgraph.nodes():
-        nodes.append({'data': {'id': node, 'label': node}})
+        node_ = {'data': {
+            'id': node,
+            'label': node}
+        }
+        if 'viz_color' in networkxgraph.nodes[node]:
+            node_['data']['viz_color'] = networkxgraph.nodes[node]['viz_color']
+        nodes.append(node_)
     for edge in networkxgraph.edges():
         data = {
             "id": edge[0] + edge[1],
             "source": edge[0],
             "target": edge[1]
         }
+        ed = networkxgraph.get_edge_data(edge[0], edge[1])
+        if 0 in ed:  # MultiDiGraph, select the first edge only
+            ed = ed[0]
+
+        for key in ed:
+            val = ed[key]
+            if isinstance(val, set):
+                val = list(val)
+            data[key] = val
+
         edges.append({'data': data})
     cygraph = {
         'data': {
@@ -99,11 +117,39 @@ def shortest_paths(dg, source, target, k=None, cutoff=7):
         return r
 
 
-def neighbors_graph(ingraph, source, beamwidth=4, maxnodes=30):
+def neighbors_graph(ingraph, source, beamwidth=4, maxnodes=10):
+    """ Neighbors of source node in ingraph """
+    assert ingraph.is_directed(), "not implemented for undirected graphs"
     centrality = nx.eigenvector_centrality_numpy(ingraph, max_iter=10, tol=0.1)
     outgraph = nx.MultiDiGraph()
     for u, v in nx.bfs_beam_edges(ingraph, source, centrality.get, beamwidth):
-        outgraph.add_edge(u, v)
+        if isinstance(ingraph, nx.MultiDiGraph):
+            outgraph.add_edge(u, v, key=0, **(ingraph.get_edge_data(u, v)[0]))
+        else:
+            outgraph.add_edge(u, v, **(ingraph.get_edge_data(u, v)))
         if outgraph.number_of_nodes() >= maxnodes:
             break
     return outgraph
+
+
+# Copied from Cameo project, http://cameo.bio/
+# Original code was using NetworkX-1 API
+def remove_highly_connected_nodes(network, max_degree=10):
+    to_remove = [node for node, degree in network.degree()
+                 if degree > max_degree]
+    network.remove_nodes_from(to_remove)
+
+
+def remove_small_subgraphs(ingraph, min_nodes=5):
+    """ Remove subgraphs with less than given number of nodes """
+    ingraph_ = ingraph.to_undirected()
+    to_remove = set()
+    for node, degree in ingraph.degree():
+        if degree < min_nodes:
+            r = set()
+            for u, v in nx.dfs_edges(ingraph_, node, min_nodes):
+                r.add(u)
+                r.add(v)
+            if len(r) < min_nodes:
+                to_remove = to_remove.union(r)
+    ingraph.remove_nodes_from(to_remove)
