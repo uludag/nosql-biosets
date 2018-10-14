@@ -189,10 +189,8 @@ class Indexer(DBconnection):
     def mongodb_index(self, reader):
         i = 0
         for r in reader:
-            docid = r['_id']
-            spec = {"_id": docid}
             try:
-                self.mcl.update(spec, r, upsert=True)
+                self.mcl.insert(r)
                 i += 1
                 self.reportprogress()
             except Exception as e:

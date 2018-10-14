@@ -14,9 +14,9 @@ DOCTYPE = "metanetx_compound"
 
 class QueryMetaNetX:
 
-    def __init__(self):
+    def __init__(self, db="MongoDB"):
         self.index = "biosets"
-        self.dbc = DBconnection("MongoDB", self.index)
+        self.dbc = DBconnection(db, self.index)
 
     # Given MetaNetX compound id return its name
     def getcompoundname(self, dbc, mid, limit=0):
@@ -29,7 +29,7 @@ class QueryMetaNetX:
             qc = {"_id": mid}
             hits = list(dbc.mdbi[doctype].find(qc, limit=limit))
             n = len(hits)
-        assert 1 == n
+        assert 1 == n, "%s %s" % (dbc.db, mid)
         c = hits[0]
         desc = c['desc'] if 'desc' in c else c['_source']['desc']
         return desc
@@ -62,7 +62,7 @@ class QueryMetaNetX:
         return mids
 
     @staticmethod
-    def esquery(es, index, qc, doc_type=None, size=0):
+    def esquery(es, index, qc, doc_type=None, size=10):
         print("Querying '%s'  %s" % (doc_type, str(qc)))
         r = es.search(index=index, doc_type=doc_type,
                       body={"query": qc}, size=size)
@@ -91,10 +91,13 @@ class QueryMetaNetX:
 
     # Query reactions with given query clause
     def query_reactions(self, qc, **kwargs):
-        assert "MongoDB" == self.dbc.db
-        doctype = "metanetx_reaction"
-        hits = self.dbc.mdbi[doctype].find(qc, **kwargs)
-        r = [c for c in hits]
+        if "MongoDB" == self.dbc.db:
+            doctype = "metanetx_reaction"
+            hits = self.dbc.mdbi[doctype].find(qc, **kwargs)
+            r = [c for c in hits]
+        else:
+            index, doctype = "metanetx_reaction", "_doc"
+            r, _ = self.esquery(self.dbc.es, index, qc, doctype, **kwargs)
         return r
 
     # Query reactions and return reactions together with their metabolites

@@ -2,7 +2,7 @@
 ## MetaNetX index/query scripts
 
 * [index.py](index.py) index MetaNetX compounds, compartments, and reactions
- data including the xref data
+ data including the xref data, tested with MetaNetX Oct 2018 release, version 3.1
 
 * [query.py](query.py) query MetaNetX compounds, compartments, and reactions 
 
@@ -11,9 +11,10 @@
 Command lines for indexing with Elasticsearch and MongoDB:
   
 ```bash
- ./metanetx/index.py --metanetxdatafolder /local/data/metanetx --db Elasticsearch;
+ ./nosqlbiosets/metanetx/index.py --metanetxdatafolder /local/data/metanetx\
+        --db Elasticsearch;
 
- ./metanetx/index.py --metanetxdatafolder /local/data/metanetx\
+ ./nosqlbiosets/metanetx/index.py --metanetxdatafolder /local/data/metanetx\
         --index biosets --db MongoDB;
 ```
 
@@ -36,20 +37,22 @@ curl -XGET "http://localhost:9200/metanetx_reaction/_search?pretty=true"\
 }'
 ```
 
-#### MetaNetX downloads page
+#### MetaNetX downloads
 
 http://www.metanetx.org/mnxdoc/mnxref.html
 
-See [../../tests/download.sh](../../tests/download.sh)
- for example download command-line
-
+```bash
+mkdir -p data/metanetx
+cd data/metanetx
+wget -r ftp://ftp.vital-it.ch/databases/metanetx/MNXref/latest/ --no-directories
+```
 
 #### Typical indexing times
-* MongoDB: 30 min 
+* MongoDB: 6-8 min 
 * Elasticsearch: 10 min
 
 #### Notes
-MetaNetX scripts here used the words 'metabolite' and 'compound' with 
+MetaNetX scripts here use the words 'metabolite' and 'compound' with 
 the same meaning:
 
 A compound in chemistry is a combination of atoms from at least two
