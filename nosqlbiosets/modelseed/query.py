@@ -126,8 +126,8 @@ class QueryModelSEED:
                         graph.add_node(v)
                     if graph.has_edge(u, v):
                         er = graph.get_edge_data(u, v)['reactions']
-                        er.add(r['_id'])
+                        er.append(r['_id'])
                     else:
-                        er = {r['_id']}
+                        er = [r['_id']]
                         graph.add_edge(u, v, reactions=er)
         return graph
