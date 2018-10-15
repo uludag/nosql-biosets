@@ -3,6 +3,7 @@
 import unittest
 
 from nosqlbiosets.dbutils import DBconnection
+from nosqlbiosets.graphutils import neighbors_graph
 from nosqlbiosets.graphutils import shortest_paths
 from nosqlbiosets.modelseed.query import QueryModelSEED
 
@@ -56,10 +57,10 @@ class TestQueryModelSEEDDatabase(unittest.TestCase):
         ]
         r = dbc.mdbi["metanetx_reaction"].aggregate(aggpl)
         inmetanetx = {i['xrefs']['id'] for i in r}
-        assert 7950 == len(inmetanetx)
-        assert 501 == len(inmodelseeddb - inmetanetx)
-        assert 8451 == len(inmodelseeddb.union(inmetanetx))
-        self.assertAlmostEqual(6267,
+        assert 7785 == len(inmetanetx)
+        assert 657 == len(inmodelseeddb - inmetanetx)
+        assert 8442 == len(inmodelseeddb.union(inmetanetx))
+        self.assertAlmostEqual(6100,
                                len(inmodelseeddb.intersection(inmetanetx)),
                                delta=30)
 
@@ -73,10 +74,10 @@ class TestQueryModelSEEDDatabase(unittest.TestCase):
         ]
         r = dbc.mdbi["metanetx_compound"].aggregate(aggpl)
         inmetanetx = {i['_id'] for i in r}
-        assert 3183 == len(inmetanetx)
-        assert 16100 == len(inmodelseeddb - inmetanetx)
-        assert 19283 == len(inmodelseeddb.union(inmetanetx))
-        self.assertAlmostEqual(2093,
+        assert 3248 == len(inmetanetx)
+        assert 16016 == len(inmodelseeddb - inmetanetx)
+        assert 19264 == len(inmodelseeddb.union(inmetanetx))
+        self.assertAlmostEqual(2180,
                                len(inmodelseeddb.intersection(inmetanetx)),
                                delta=30)
 
@@ -102,13 +103,35 @@ class TestQueryModelSEEDDatabase(unittest.TestCase):
                 assert mid in [i['_id'] for i in r]
 
     def test_metabolite_networks(self):
+        qc = {
+            '$text': {'$search': 'glycerol'},
+            'is_transport': True
+        }
+        mn = qry.get_metabolite_network(qc)
+        assert "Glycerol" in mn.nodes
+        assert 194 == len(mn.edges)
+        assert 58 == len(mn.nodes)
+
+        qc = {"_id": "rxn36327"}
+        mn = qry.get_metabolite_network(qc)
+        assert "(S)-Propane-1,2-diol" in mn.nodes
+
         qc = {"status": "OK", "reversibility": "<"}
         mn = qry.get_metabolite_network(qc)
         assert 3571 == len(mn.edges)
         assert 1467 == len(mn.nodes)
         assert 'Phosphate' in mn.nodes
+        r = neighbors_graph(mn, "Phosphate", beamwidth=8, maxnodes=100)
+        assert 87 == r.number_of_nodes()
+        r = neighbors_graph(mn, "Phosphate", beamwidth=6, maxnodes=20)
+        assert 20 == r.number_of_nodes()
+        r = neighbors_graph(mn, "Phosphate", beamwidth=4, maxnodes=20)
+        assert 12 == r.number_of_nodes()
+
         qc = {}
         mn = qry.get_metabolite_network(qc)
+        assert "(S)-Propane-1,2-diol" in mn.nodes
+        assert "3-Hydroxypropanal" in mn.nodes
         assert mn.has_node('D-Xylose')
         assert mn.has_node('Xylitol')
         paths = shortest_paths(mn, 'D-Xylose', 'Xylitol', 10)

@@ -97,14 +97,19 @@ def es_index(dbc, infile, typetuner):
 
 
 def mongodb_indices(mdb):
-    index = IndexModel([
-        ("name", "text"),
-        ("abbreviation", "text")])
-    mdb.create_indexes([index])
-    indx_fields = ["mass", "deltag", "deltagerr", "charge",
-                   "name", 'abbreviation', "inchikey"]
-    for field in indx_fields:
-        mdb.create_index(field)
+    if mdb.name == TYPE_COMPOUND:
+        index = IndexModel([
+            ("name", "text"),
+            ("abbreviation", "text")])
+        mdb.create_indexes([index])
+        indx_fields = ["mass", "deltag", "deltagerr", "charge",
+                       "name", 'abbreviation', "inchikey"]
+        for field in indx_fields:
+            mdb.create_index(field)
+    else:
+        index = IndexModel([
+            ("definition", "text")])
+        mdb.create_indexes([index])
 
 
 def mongodb_index(mdbc, infile, typetuner):
@@ -133,8 +138,7 @@ def main(infile, index, doctype, db, host=None, port=None):
     else:  # assume MongoDB
         dbc.mdbi.drop_collection(doctype)
         mongodb_index(dbc.mdbi[doctype], infile, typetuner)
-        if doctype == TYPE_COMPOUND:
-            mongodb_indices(dbc.mdbi[doctype])
+        mongodb_indices(dbc.mdbi[doctype])
 
 
 if __name__ == '__main__':
