@@ -30,7 +30,7 @@ class TestQueryDrugBank(unittest.TestCase):
         idrugs = ["Chlorzoxazone", "Propyphenazone", "Methylprednisolone",
                   "Esomeprazole", "Propicillin"]
         qc = {'name': {'$in': ATdrugs}}
-        r = self.qry.get_target_genes_interacted_drugs(qc, 8000)
+        r = self.qry.get_target_genes_interacted_drugs(qc, 18000)
         rgenes = {i for _, i, _, _ in r}
         assert all([g in rgenes for g in genes])
         ridrugs = {i for _, _, _, i in r}
@@ -182,7 +182,7 @@ class TestQueryDrugBank(unittest.TestCase):
         project = {"drug-interactions": 1}
         qc = {"_id": "DB00001"}
         r = list(self.qry.query(qc, projection=project))
-        assert len(r) == 1
+        assert 1 == len(r)
         interactions = r[0]["drug-interactions"]
         assert 'DB01357' in [i["drugbank-id"] for i in interactions]
         assert 'Mestranol' in [i["name"] for i in interactions]

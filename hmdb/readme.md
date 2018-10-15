@@ -11,6 +11,37 @@
 * [drugbank.py](drugbank.py) Index DrugBank xml dataset with MongoDB,
   or Elasticsearch, or save drug-drug interactions as graph file in GML format.
   Tests made with DrugBank version 5.1, July 2018 update
+  
+```bash
+./hmdb/drugbank.py --help
+usage: drugbank.py [-h] -infile INFILE [--index INDEX] [--doctype DOCTYPE]
+                   [--host HOST] [--port PORT] [--db DB]
+                   [--graphfile GRAPHFILE] [--allfields]
+
+Index DrugBank xml dataset with MongoDB or Elasticsearch, downloaded from
+https://www.drugbank.ca/releases/latest, can also save drug interactions as
+NetworkX graph file
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -infile INFILE, --infile INFILE
+                        Input file name
+  --index INDEX         Name of the MongoDB database or Elasticsearch index,
+                        or filename for NetworkX graph
+  --doctype DOCTYPE     MongoDB collection name or Elasticsearch document type
+                        name
+  --host HOST           MongoDB or Elasticsearch server hostname
+  --port PORT           MongoDB or Elasticsearch server port number
+  --db DB               Database: 'MongoDB' or 'Elasticsearch', if not set
+                        drug-drug interaction network is saved to a graph file
+                        specified with the '--graphfile' option
+  --graphfile GRAPHFILE
+                        Database: 'MongoDB' or 'Elasticsearch',or if
+                        'graphfile' drug-drug interactionnetwork saved as
+                        graph file
+  --allfields           By default sequence fields and the patents field is
+                        not indexed. Select this option to index all fields
+```
 
 * [queries.py](queries.py) Query API for DrugBank data indexed with MongoDB,
   _at its early stages_

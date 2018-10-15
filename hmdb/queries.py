@@ -9,8 +9,8 @@ from hmdb.index import DOCTYPE_METABOLITE, DOCTYPE_PROTEIN
 from nosqlbiosets.dbutils import DBconnection
 from nosqlbiosets.graphutils import *
 from nosqlbiosets.uniprot.query import QueryUniProt
+from .drugbank import DOCTYPE  # Default collection for MongoDB DrugBank data
 
-DOCTYPE = 'drug'  # Default collection name for MongoDB DrugBank data
 index = "biosets"
 db = "MongoDB"
 
@@ -124,12 +124,12 @@ class QueryDrugBank:
             "transporters": 'coral',
             "carriers": 'blue'
         }
-        type = 'drug' if connections == 'drug-interactions' else connections
+        _type = 'drug' if connections == 'drug-interactions' else connections
         for u, v in interactions:
             graph.add_node(u, type='drug', viz_color='yellowgreen')
             graph.add_node(v,
-                           type=type,
-                           viz_color=colors[type])
+                           type=_type,
+                           viz_color=colors[_type])
             graph.add_edge(u, v)
 
         if outfile is not None:

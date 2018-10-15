@@ -16,7 +16,7 @@ from nosqlbiosets.dbutils import DBconnection
 from nosqlbiosets.objutils import *
 
 SOURCE_URL = "https://www.drugbank.ca/releases/latest"
-DOCTYPE = 'drug'  # MongoDB collection name
+DOCTYPE = 'drugbank'  # MongoDB collection name
 # List attributes, processed by function unifylistattributes()
 LIST_ATTRS = ["transporters", "drug-interactions", "food-interactions",
               "atc-codes", "affected-organisms", "targets", "enzymes",
@@ -26,7 +26,7 @@ LIST_ATTRS = ["transporters", "drug-interactions", "food-interactions",
 
 
 # Update DrugBank entry for better database representation
-def update_entry_forindexing(e):
+def update_entry_forindexing(e, slim=True):
     unifylistattributes(e, LIST_ATTRS)
     unifylistattribute(e, 'categories', 'category')
     if 'pathways' in e:
@@ -42,7 +42,7 @@ def update_entry_forindexing(e):
             for i in e[att]:
                 if 'position' in i:
                     i['position'] = int(i['position'])
-                if 'polypeptide' in i:
+                if slim is True and 'polypeptide' in i:
                     # Delete sequence attributes
                     if not (isinstance(i['polypeptide'], list)):
                         del i['polypeptide']['amino-acid-sequence']
@@ -51,7 +51,11 @@ def update_entry_forindexing(e):
                         for j in i['polypeptide']:
                             del j['amino-acid-sequence']
                             del j['gene-sequence']
-
+    if slim is True:
+        if 'sequences' in e:
+            del e['sequences']
+        if 'patents' in e:
+            del e['patents']
     atts = ["average-mass", "monoisotopic-mass"]
     for att in atts:
         if att in e:
@@ -79,9 +83,10 @@ def parse_drugbank_xmlfile(infile, indexf):
 
 class Indexer(DBconnection):
 
-    def __init__(self, db, index, host, port, doctype):
+    def __init__(self, db, index, host, port, doctype, slim=True):
         self.doctype = doctype
         self.index = index
+        self.slim = slim
         super(Indexer, self).__init__(db, index, host, port)
         if db == "MongoDB":
             self.mcl = self.mdbi[doctype]
@@ -89,10 +94,10 @@ class Indexer(DBconnection):
     # Index DrugBank entry with MongoDB
     def mongodb_index_entry(self, _, entry):
         try:
-            update_entry_forindexing(entry)
+            update_entry_forindexing(entry, slim=self.slim)
             docid = self.getdrugid(entry)
-            spec = {"_id": docid}
-            self.mcl.update(spec, entry, upsert=True)
+            entry["_id"] = docid
+            self.mcl.insert(entry)
             self.reportprogress()
             r = True
         except Exception as e:
@@ -168,8 +173,8 @@ def mongodb_indices(mdb):
     mdb.create_index("products.name")
 
 
-def main(infile, db, index, doctype=DOCTYPE, host=None, port=None):
-    indxr = Indexer(db, index, host, port, doctype)
+def main(infile, db, index, doctype=DOCTYPE, host=None, port=None, slim=True):
+    indxr = Indexer(db, index, host, port, doctype, slim)
     if db == 'MongoDB':
         indxr.mdbi.drop_collection(doctype)
         parse_drugbank_xmlfile(infile, indxr.mongodb_index_entry)
@@ -212,5 +217,10 @@ if __name__ == '__main__':
                         help="Database: 'MongoDB' or 'Elasticsearch',"
                              "or if 'graphfile' drug-drug interaction"
                              "network saved as graph file")
+    parser.add_argument('--allfields', default=False, action='store_true',
+                        help="By default sequence fields"
+                             " and the patents field is not indexed."
+                             " Select this option to index all fields")
     args = parser.parse_args()
-    main(args.infile, args.db, args.index, args.doctype, args.host, args.port)
+    main(args.infile, args.db, args.index, args.doctype,
+         args.host, args.port, not args.allfields)
