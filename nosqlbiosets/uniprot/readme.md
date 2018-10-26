@@ -3,7 +3,7 @@
 
 * [index.py](index.py): Index UniProtKB xml files
   
-  _Tested with Swiss-Prot dataset only, (Sep 2018 release)_
+  _Tested with Swiss-Prot dataset only, (Oct 2018 release)_
   
     ```
     ./nosqlbiosets/uniprot/index.py --help
@@ -41,7 +41,7 @@ Example command lines for downloading `uniprot_sprot.xml` file and for indexing:
 
 ```bash
 mkdir -p data
-# ~700M
+# ~700M, ~162 million lines, ~558,600 entries
 wget -P ./data ftp://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/\
 knowledgebase/complete/uniprot_sprot.xml.gz
 ```
@@ -55,11 +55,11 @@ _Server default connection settings are read from [../../conf/dbservers.json](
 )_
 
 ```bash
-# Index with Elasticsearch, requires about 6 to 8 hours
+# Index with Elasticsearch, typically requires about 2 to 8 hours
 ./nosqlbiosets/uniprot/index.py ./data/uniprot_sprot.xml.gz\
  --host localhost --db Elasticsearch  --index uniprot
 
-# Index with MongoDB, requires about 5 hours
+# Index with MongoDB, typically requires about 1 to 5 hours
 ./nosqlbiosets/uniprot/index.py ./data/uniprot_sprot.xml.gz\
  --host localhost --db MongoDB --index biosets
 ```

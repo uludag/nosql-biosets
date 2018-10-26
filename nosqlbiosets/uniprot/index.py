@@ -29,7 +29,7 @@ class Indexer(DBconnection):
         self.db = db
         indxcfg = {  # for Elasticsearch
             "index.number_of_replicas": 0,
-            "index.number_of_shards": 10,
+            "index.number_of_shards": 5,
             "index.refresh_interval": "60m"}
         super(Indexer, self).__init__(db, index, host, port,
                                       es_indexsettings=indxcfg,
@@ -72,7 +72,10 @@ class Indexer(DBconnection):
                 print(traceback.format_exc())
                 exit(-1)
             self.reportprogress(1000)
-        pool.apply_async(index, ())
+        if isinstance(entry, string_types):  # Assume <copyright> notice
+            print("\nUniProt copyright notice: %s " % entry.strip())
+        else:
+            pool.apply_async(index, ())
         return True
 
     # Prepare 'comments' for indexing
@@ -105,7 +108,6 @@ class Indexer(DBconnection):
             self.updatelocation(e['feature'])
 
     # Prepare 'locations' for indexing
-    # @staticmethod
     def updatelocation(self, obj):
         if 'location' in obj:
             loc = obj['location']
@@ -130,14 +132,34 @@ class Indexer(DBconnection):
     @staticmethod
     def updateprotein(e):
         al = ['recommendedName', 'alternativeName', 'allergenName',
-              'domain', 'component', 'cdAntigenName', 'innName']
+              'component', 'cdAntigenName', 'innName']
+        
+        if isinstance(e['protein'], string_types):
+            import json
+            print(json.dumps(e['protein'], indent=4))
+            del e['protein']
+            return
+        if 'domain' in e['protein']:
+            del e['protein']['domain']
+
         for a in al:
             if hasattr(e['protein'], a):
                 if isinstance(e['protein'][a], string_types):
                     text = {'#text': e['protein'][a]}
                     e['protein'][a] = text
             elif a in e['protein']:
-                del e['protein'][a]
+                def getname(name):
+                    if isinstance(name, string_types):
+                        return name
+                    if 'fullName' in name:
+                        return name['fullName']['#text'] \
+                                if '#text' in name['fullName'] else \
+                                name['fullName']
+
+                if not isinstance(e['protein'][a], list):
+                    e['protein'][a] = getname(e['protein'][a])
+                else:
+                    e['protein'][a] = getname(e['protein'][a][0])
 
     @staticmethod
     def updatesequence(s):
@@ -183,7 +205,9 @@ def mongodb_indices(mdb):
     index = IndexModel([
         ("comment.text.#text", "text"),
         ("feature.description", "text"),
-        ("keyword.#text", "text")])
+        ("keyword.#text", "text"),
+        ("reference.citation.title", "text")
+    ], name='text')
     mdb.create_indexes([index])
     indx_fields = ["accession",
                    "dbReference.id", "dbReference.type", "dbReference.property",
