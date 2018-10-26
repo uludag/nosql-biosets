@@ -2,24 +2,25 @@
 """ Query UniProt data indexed with MongoDB or Elasticsearch """
 # Server connection details are read from conf/dbservers.json file
 
-from nosqlbiosets.dbutils import DBconnection
 from collections import OrderedDict
+
+from nosqlbiosets.dbutils import DBconnection
 
 
 class QueryUniProt:
 
-    def __init__(self, db, index, doctype):
+    def __init__(self, db, index, doctype, **kwargs):
         self.index = index
         self.doctype = doctype
-        self.dbc = DBconnection(db, self.index)
+        self.dbc = DBconnection(db, self.index, **kwargs)
 
     def query(self, qc, projection=None, limit=0):
         c = self.dbc.mdbi[self.doctype].find(qc, projection=projection,
                                              limit=limit)
         return c
 
-    def aggregate_query(self, agpl):
-        r = self.dbc.mdbi[self.doctype].aggregate(agpl)
+    def aggregate_query(self, agpl, **kwargs):
+        r = self.dbc.mdbi[self.doctype].aggregate(agpl, **kwargs)
         return r
 
     # Get UniProt acc ids for given enzyme
@@ -111,7 +112,7 @@ class QueryUniProt:
 
     # Get names and observation numbers of the organisms for given enzyme
     # or for entries selected by the query clause qc
-    def getorganisms(self, ecn, qc=None, limit=100):
+    def getorganisms(self, ecn, qc=None, limit=1000):
         if qc is None:
             assert ecn is not None
             qc = {"dbReference.id": ecn}
@@ -165,8 +166,10 @@ class QueryUniProt:
                 rr[nametype][i['_id']['name']] = i['total']
         return rr
 
-    # Get lowest common ancestor for entries selected by the query clause qc
     def get_lca(self, qc):
+        """
+        Get lowest common ancestor for entries selected by the query clause qc
+        """
         aggq = [
             {"$match": qc},
             {"$project": {'organism.lineage.taxon': 1}},

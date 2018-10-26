@@ -56,18 +56,18 @@ class TestQueryUniProt(unittest.TestCase):
     # Distribution of evidence codes in a text query result set
     def test_evidence_codes(self):
         ecodes = {  # http://www.uniprot.org/help/evidences
-            255: 3460,  # match to sequence model evidence, manual assertion
-            269: 4640,  # experimental evidence used in manual assertion
-            305: 3740,  # curator inference used in manual assertion
-            250: 2770,  # sequence similarity evidence used in manual assertion
-            303: 1260,  # non-traceable author statement, manual assertion
-            244: 650,   # combinatorial evidence used in manual assertion
+            255: 3840,  # match to sequence model evidence, manual assertion
+            269: 5575,  # experimental evidence used in manual assertion
+            305: 4010,  # curator inference used in manual assertion
+            250: 2960,  # sequence similarity evidence used in manual assertion
+            303: 1360,  # non-traceable author statement, manual assertion
+            244: 790,   # combinatorial evidence used in manual assertion
             312: 630    # imported information used in manual assertion
         }
         qc = {'$text': {'$search': 'antimicrobial'}}
-        self.assertAlmostEqual(4120,
+        self.assertAlmostEqual(4546,
                                len(list(qryuniprot.query(qc, {'_id': 1}))),
-                               delta=400)
+                               delta=100)
         aggqc = [
             {"$match": qc},
             {"$unwind": "$evidence"},
@@ -93,7 +93,7 @@ class TestQueryUniProt(unittest.TestCase):
              "Cofactor biosynthesis; ubiquinone biosynthesis.",
              '2,5-dichlorohydroquinone + 2 glutathione ='
              ' chloride + chlorohydroquinone + glutathione disulfide.',
-             'Arabidopsis thaliana', 'scientific', 19, 715),
+             'Arabidopsis thaliana', 'scientific', 19, 724),
             ('5.4.2.2', {'P93804'}, ("primary", 'PGM1', 10),
              "Glycolipid metabolism;"
              " diglucosyl-diacylglycerol biosynthesis.",
