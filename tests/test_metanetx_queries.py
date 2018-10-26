@@ -33,6 +33,9 @@ class TestQueryMetanetx(unittest.TestCase):
         self.assertEqual(chebiids,
                          qrymtntx.keggcompoundids2otherids(dbc, keggcids,
                                                            'chebi'))
+        self.assertEqual(['cpd00536'],
+                         qrymtntx.keggcompoundids2otherids(dbc, ['C00712'],
+                                                           'seed'))
 
     def test_id_queries_es(self):
         self.test_id_queries("Elasticsearch")
@@ -97,22 +100,21 @@ class TestQueryMetanetx(unittest.TestCase):
         eids = ["1.1.4.13", "2.3.1"]
         qc = {"ecno": {"$in": eids}}
         m = qrymtntx.universal_model(qc)
-        assert 285 == len(m.reactions)
-        assert 557 == len(m.metabolites)
+        self.assertAlmostEqual(290, len(m.reactions), delta=20)
+        self.assertAlmostEqual(560, len(m.metabolites), delta=20)
 
     def test_universal_model_for_reactome(self):
         qc = {"source.lib": "reactome", "balance": "true"}
         m = qrymtntx.universal_model(qc)
-        assert 336 == len(m.reactions)
-        assert 458 == len(m.metabolites)
+        self.assertAlmostEqual(340, len(m.reactions), delta=20)
+        self.assertAlmostEqual(465, len(m.metabolites), delta=20)
 
     # Find different 'balance' values for reactions referring to KEGG
-    def test_kegg_reaction_balances(self):
-        balance = {"false": 8, "ambiguous": 1077, "true": 7950,
-                   "redox": 56, "NA": 1412}
+    def test_reaction_balances(self):
+        balance = {"false": 8, "ambiguous": 1070, "true": 7760,
+                   "redox": 56, "NA": 1380}
         aggpl = [
             {"$project": {"xrefs": 1, "balance": 1}},
-            {"$unwind": "$xrefs"},
             {"$match": {"xrefs.lib": "kegg"}},
             {"$group": {
                 "_id": "$balance",
@@ -121,13 +123,14 @@ class TestQueryMetanetx(unittest.TestCase):
             ]
         r = qrymtntx.dbc.mdbi["metanetx_reaction"].aggregate(aggpl)
         for i in r:
-            assert len(i['reactions']) == balance[i['_id']]
+            self.assertAlmostEqual(balance[i['_id']], len(i['reactions']),
+                                   delta=10)
 
     # Similar to above test,
     # only MetaNetX reactions with source.lib == kegg is queried
-    def test_kegg_reaction_balances__(self):
-        balance = {"false": 3, "ambiguous": 330, "true": 685,
-                   "redox": 23, "NA": 881}
+    def test_kegg_reaction_balances(self):
+        balance = {"false": 3, "ambiguous": 340, "true": 685,
+                   "redox": 23, "NA": 900}
         aggpl = [
             {"$project": {"source": 1, "balance": 1}},
             {"$match": {"source.lib": "kegg"}},
@@ -138,7 +141,8 @@ class TestQueryMetanetx(unittest.TestCase):
             ]
         r = qrymtntx.dbc.mdbi["metanetx_reaction"].aggregate(aggpl)
         for i in r:
-            assert len(i['reactions']) == balance[i['_id']]
+            self.assertAlmostEqual(balance[i['_id']], len(i['reactions']),
+                                   delta=20)
 
 
 if __name__ == '__main__':

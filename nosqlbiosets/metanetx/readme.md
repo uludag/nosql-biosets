@@ -8,16 +8,29 @@
 
 * [../../tests/test_metanetx_queries.py](../../tests/test_metanetx_queries.py)
 
-Command lines for indexing with Elasticsearch and MongoDB:
-  
-```bash
- ./nosqlbiosets/metanetx/index.py --metanetxdatafolder /local/data/metanetx\
-        --db Elasticsearch;
 
- ./nosqlbiosets/metanetx/index.py --metanetxdatafolder /local/data/metanetx\
-        --index biosets --db MongoDB;
+## MetaNetX downloads
+
+http://www.metanetx.org/mnxdoc/mnxref.html
+
+```bash
+# Download MetaNetX csv files
+mkdir -p data/metanetx
+wget -P data/metanetx -r ftp://ftp.vital-it.ch/databases/metanetx/MNXref/latest/ --no-directories
 ```
 
+
+## Example command lines
+
+Index with Elasticsearch or MongoDB:  
+```bash
+# Index with Elasticsearch, requires ~10m
+ ./nosqlbiosets/metanetx/index.py --metanetxdatafolder ./data/metanetx\
+        --db Elasticsearch;
+# Index with MongoDB, requires ~8m
+ ./nosqlbiosets/metanetx/index.py --metanetxdatafolder ./data/metanetx\
+        --index biosets --db MongoDB;
+```
 
 Elasticsearch query to get distribution of reactions among source/reference
 libraries: 
@@ -37,19 +50,6 @@ curl -XGET "http://localhost:9200/metanetx_reaction/_search?pretty=true"\
 }'
 ```
 
-#### MetaNetX downloads
-
-http://www.metanetx.org/mnxdoc/mnxref.html
-
-```bash
-mkdir -p data/metanetx
-cd data/metanetx
-wget -r ftp://ftp.vital-it.ch/databases/metanetx/MNXref/latest/ --no-directories
-```
-
-#### Typical indexing times
-* MongoDB: 6-8 min 
-* Elasticsearch: 10 min
 
 #### Notes
 MetaNetX scripts here use the words 'metabolite' and 'compound' with 
