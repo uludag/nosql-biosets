@@ -1,11 +1,6 @@
-gffutils
 elasticsearch
-xmljson
-pymongo
-xmltodict
 neo4j-driver
-cobra
-six
-SQLAlchemy
+pymongo
 networkx
-pandas
+six
+xmltodict
