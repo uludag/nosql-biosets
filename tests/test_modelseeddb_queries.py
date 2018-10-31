@@ -40,7 +40,7 @@ class TestQueryModelSEEDDatabase(unittest.TestCase):
             if len(i['kegg_ids']) > 15:
                 assert rstatus[i['_id']] == len(i['kegg_ids'])
 
-    def test_comparewithMetaNetX(self):
+    def test_comparewithMetaNetX_reactions(self):
         aggpl = [
             {"$match": {"status": "OK"}},
             {"$project": {"abbreviation": 1}},
@@ -64,7 +64,7 @@ class TestQueryModelSEEDDatabase(unittest.TestCase):
                                len(inmodelseeddb.intersection(inmetanetx)),
                                delta=30)
 
-    def test_comparewithMetaNetX_inchikey(self):
+    def test_comparewithMetaNetX_inchikeys(self):
         r = dbc.mdbi["modelseed_compound"].distinct("inchikey")
         inmodelseeddb = {i for i in r}
         self.assertAlmostEqual(18193, len(inmodelseeddb), delta=30)
@@ -74,12 +74,24 @@ class TestQueryModelSEEDDatabase(unittest.TestCase):
         ]
         r = dbc.mdbi["metanetx_compound"].aggregate(aggpl)
         inmetanetx = {i['_id'] for i in r}
-        assert 3248 == len(inmetanetx)
+        self.assertAlmostEqual(3248, len(inmetanetx), delta=100)
         assert 16016 == len(inmodelseeddb - inmetanetx)
         assert 19264 == len(inmodelseeddb.union(inmetanetx))
         self.assertAlmostEqual(2180,
                                len(inmodelseeddb.intersection(inmetanetx)),
                                delta=30)
+
+    def test_modelseeddb_parse_equation(self):
+        from nosqlbiosets.modelseed.query import modelseeddb_parse_equation
+        eq = "(1) cpd00003[0] + (1) cpd19024[0] <=>" \
+             " (1) cpd00004[0] + (3) cpd00067[0] + (1) cpd00428[0]"
+        r = modelseeddb_parse_equation(eq)
+        print()
+        print(r)
+        print()
+        st = "-1:cpd02570:0:0:\"Parapyruvate\";2:cpd00020:0:0:\"Pyruvate\""
+        a = st.split(':')
+        print(a)
 
     def test_compoundnames(self):
         mids = ['cpd00191', 'cpd00047', 'cpd00100']

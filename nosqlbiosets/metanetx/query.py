@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 """ Queries with MetaNetX data indexed with MongoDB or Elasticsearch """
 
+import json
+import re
+
+from cobra import Model, Metabolite, Reaction, DictList
 
 from nosqlbiosets.dbutils import DBconnection
-from cobra import Model, Metabolite, Reaction, DictList
-import re
-import json
 
 # Regular expression for metabolite compartments in reaction equations
 COMPARTEMENT_RE = re.compile(r'@(MNXD[\d]|BOUNDARY)')
@@ -48,17 +49,17 @@ class QueryMetaNetX:
         assert len(cids) == n
         mids = [None] * n
         for c in hits:
-            i, id_ = None, None
+            i, libids = None, []
             for xref in (c['xrefs'] if 'xrefs' in c else c['_source']['xrefs']):
-                if i is None and xref['lib'] == 'kegg' and xref['id'][0] == 'C':
-                    i = cids.index(xref['id'])
-                    if id_ is not None:
-                        break
-                if id_ is None and xref['lib'] == lib:
-                    id_ = xref['id']
-                    if i is not None:
-                        break
-            mids[i] = id_
+                if i is None and xref['lib'] == 'kegg':
+                    i = cids.index(xref['id'][0])
+                if xref['lib'] == lib:
+                    if libids is []:
+                        libids = xref['id']
+                    else:
+                        libids += xref['id']
+            if i is not None:
+                mids[i] = libids
         return mids
 
     @staticmethod

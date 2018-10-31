@@ -28,12 +28,11 @@ class TestQueryMetanetx(unittest.TestCase):
         mids = ['MNXM244', 'MNXM89612', 'MNXM2000']
         chebiids = ['17960', '17754', '28425']
         dbc = DBconnection(db, self.index)
-        self.assertEqual(mids,
-                         qrymtntx.keggcompoundids2otherids(dbc, keggcids))
-        self.assertEqual(chebiids,
-                         qrymtntx.keggcompoundids2otherids(dbc, keggcids,
-                                                           'chebi'))
-        self.assertEqual(['cpd00536'],
+        mids_ = qrymtntx.keggcompoundids2otherids(dbc, keggcids)
+        all(mids[i] in mids_[i] for i in [0, 1, 2])
+        chebiids_ = qrymtntx.keggcompoundids2otherids(dbc, keggcids, 'chebi')
+        all(chebiids[i] in chebiids_[i] for i in [0, 1, 2])
+        self.assertEqual([['cpd00536']],
                          qrymtntx.keggcompoundids2otherids(dbc, ['C00712'],
                                                            'seed'))
 
@@ -76,7 +75,7 @@ class TestQueryMetanetx(unittest.TestCase):
         assert len(reacts) == len(rids)
         qc = {"xrefs.lib": "kegg"}
         reacts = qrymtntx.query_reactions(qc, projection=['ecno'])
-        assert 10262 == len(reacts)
+        assert 10302 == len(reacts)
 
     def test_query_metabolites(self):
         mids = ['MNXM39', 'MNXM89612']
@@ -111,8 +110,8 @@ class TestQueryMetanetx(unittest.TestCase):
 
     # Find different 'balance' values for reactions referring to KEGG
     def test_reaction_balances(self):
-        balance = {"false": 8, "ambiguous": 1070, "true": 7760,
-                   "redox": 56, "NA": 1380}
+        balance = {"false": 8, "ambiguous": 1050, "true": 7640,
+                   "redox": 56, "NA": 1550}
         aggpl = [
             {"$project": {"xrefs": 1, "balance": 1}},
             {"$match": {"xrefs.lib": "kegg"}},
@@ -129,7 +128,7 @@ class TestQueryMetanetx(unittest.TestCase):
     # Similar to above test,
     # only MetaNetX reactions with source.lib == kegg is queried
     def test_kegg_reaction_balances(self):
-        balance = {"false": 3, "ambiguous": 340, "true": 685,
+        balance = {"false": 3, "ambiguous": 340, "true": 860,
                    "redox": 23, "NA": 900}
         aggpl = [
             {"$project": {"source": 1, "balance": 1}},

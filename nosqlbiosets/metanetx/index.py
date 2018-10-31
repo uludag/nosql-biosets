@@ -57,6 +57,18 @@ def getcompoundxrefrecord(row):
                         "evidence": row[2], "desc": row[3]}
 
 
+def _mergecompoundxrefs(xrefs):
+    r = dict()
+    for c in xrefs:
+        key = c['lib']+c['desc']+c['evidence']
+        if key not in r:
+            r[key] = {"lib": c['lib'], "id": [c['id']],
+                      "evidence": c['evidence'], "desc": c['desc']}
+        else:
+            r[key]['id'].append(c['id'])
+    return list(r.values())
+
+
 # Parse MetaNetX compo_prop.tsv file which has the following header
 # MNX_ID, Description, Source
 def getcompartmentrecord(row, xrefsmap):
@@ -155,11 +167,12 @@ class Indexer(DBconnection):
 
     def __init__(self, db, index, host, port, doctype):
         self.doctype = doctype
-        if args.db == "Elasticsearch":
+        if db == "Elasticsearch":
             index = doctype
         super(Indexer, self).__init__(db, index, host, port,
                                       recreateindex=True)
-        if db != "Elasticsearch":
+        if db == "MongoDB":
+            self.mdbi.drop_collection(doctype)
             self.mcl = self.mdbi[doctype]
 
     def indexall(self, reader):
@@ -245,6 +258,8 @@ if __name__ == '__main__':
             v[arg] = os.path.join(args.metanetxdatafolder, filename)
 
     xrefsmap_ = getxrefs(args.compoundsxreffile, getcompoundxrefrecord)
+    for cmp in xrefsmap_:
+        xrefsmap_[cmp] = _mergecompoundxrefs(xrefsmap_[cmp])
     indxr = Indexer(args.db, args.index, args.host, args.port,
                     TYPE_COMPOUND)
     indxr.indexall(read_metanetx_mappings(args.compoundsfile,
