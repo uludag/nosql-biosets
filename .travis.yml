@@ -6,7 +6,15 @@ python:
 
 install:
   - pip install -r requirements.txt
-  - python setup.py install
+  - pip install gffutils
+  - python setup.py build
 
 script:
   - pytest tests/test_readers.py
+  - ./nosqlbiosets/uniprot/index.py --help
+  - ./nosqlbiosets/uniprot/query.py --help
+  - ./nosqlbiosets/intenz/index.py --help
+  - ./nosqlbiosets/intenz/query.py --help
+  - ./nosqlbiosets/metanetx/index.py --help
+  - ./hmdb/index.py --help
+  - ./hmdb/drugbank.py --help

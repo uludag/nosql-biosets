@@ -90,23 +90,35 @@ class TestDataReaders(unittest.TestCase):
         parse_hmdb_xmlfile(self.hmdbproteins, self.hmdb_reader_helper)
         self.assertEqual(self.nhmdbentries, 10)
 
-    compoundsxreffile = data + "metanetx/chem_xref-head.tsv"
-    compoundsfile = data + "metanetx/chem_prop-head.tsv"
+    compoundsxreffile = data + "metanetx/chem_xref.tsv"
+    compoundsfile = data + "metanetx/chem_prop.tsv"
 
     @unittest.skipUnless(os.path.exists(compoundsfile) and
                          os.path.exists(compoundsxreffile),
                          "Missing test files")
     def test_metanetx_compound_reader(self):
+        from nosqlbiosets.metanetx.index import _mergecompoundxrefs
         xrefsmap = getxrefs(self.compoundsxreffile, getcompoundxrefrecord)
+        assert "MNXM16" in xrefsmap
+        xrefs = xrefsmap['MNXM16']
+        assert 29 == len(xrefs)
+        for i in xrefsmap:
+            xrefsmap[i] = _mergecompoundxrefs(xrefsmap[i])
+
+        xrefs = xrefsmap['MNXM16']
+        assert 15 == len(xrefs)
         for r in read_metanetx_mappings(self.compoundsfile, getcompoundrecord,
                                         xrefsmap):
             if r['_id'] == 'MNXM1':
                 self.assertEqual(r['inchikey'],
                                  'GPRLSGONYQIRFK-UHFFFAOYSA-N')
+            if r['_id'] == 'MNXM26':
+                self.assertEqual(r['inchikey'],
+                                 'QTBSBXVTEAMEQO-UHFFFAOYSA-M')
                 break
 
-    reactsxreffile = data + "metanetx/reac_xref-head.tsv"
-    reactsfile = data + "metanetx/reac_prop-head.tsv"
+    reactsxreffile = data + "metanetx/reac_xref.tsv"
+    reactsfile = data + "metanetx/reac_prop.tsv"
 
     @unittest.skipUnless(os.path.exists(reactsfile) and
                          os.path.exists(reactsxreffile),
