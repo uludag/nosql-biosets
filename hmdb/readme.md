@@ -69,11 +69,11 @@ mkdir -p data
 wget -P ./data http://www.hmdb.ca/system/downloads/current/hmdb_metabolites.zip
 wget -P ./data http://www.hmdb.ca/system/downloads/current/hmdb_proteins.zip
 
-# Index with Elasticsearch, time for proteins is ~10m, for metabolites ~140m
+# Index with Elasticsearch, time for proteins is ~10m, for metabolites ~ 30m to 140m
 ./hmdb/index.py --infile ./data/hmdb_metabolites.zip --db Elasticsearch --index hmdb_metabolite
 ./hmdb/index.py --infile ./data/hmdb_proteins.zip --db Elasticsearch --index hmdb_protein
 
-# Index with MongoDB, time for proteins is ~8m, for metabolites ~100m
+# Index with MongoDB, time for proteins is ~8m, for metabolites ~ 20m to 100m
 ./hmdb/index.py --infile ./data/hmdb_metabolites.zip --db MongoDB --index biosets
 ./hmdb/index.py --infile ./data/hmdb_proteins.zip --db MongoDB --index biosets
 ```

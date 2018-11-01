@@ -97,7 +97,7 @@ class TestQueryHMDB(unittest.TestCase):
         r = [(c['_id'], c['count']) for c in hits]
         print(r)
         assert (34, 13636) == r[0]  # total number of metabolites is 114400
-        assert (2, 1453) == r[1]
+        assert (2, 1458) == r[1]
         assert (43, 971) == r[2]
 
     def test_ex_query_lookup(self):
@@ -132,12 +132,15 @@ class TestQueryHMDB(unittest.TestCase):
     def test_connected_metabolites(self):
         qry = QueryHMDB()
         tests = [
+            # query, expected results without/with max connections limit
+            ({'$match': {'$text': {'$search': 'methicillin'}}},
+             (125, 1, 2, 72), (0, 0, 0, 0)),
             ({'$match': {'$text': {'$search': 'bilirubin'}}},
              (16688, 7, 37, 2679), (188, 3, 15, 66)),
             ({'$match': {'$text': {'$search': 'albumin'}}},
              (2498, 6, 24, 822), (68, 4, 12, 41)),
             ({'$match': {'$text': {'$search': 'cofactor'}}},
-             (33892, 63, 543, 8808), (5266, 57, 461, 862)),
+             (33898, 63, 543, 8808), (5272, 57, 461, 862)),
             ({'$match': {"taxonomy.class": "Quinolines and derivatives"}},
              (25232, 33, 65, 5595), (954, 24, 30, 282)),
             ({'$match': {"taxonomy.sub_class": "Pyrroloquinolines"}},
@@ -154,7 +157,7 @@ class TestQueryHMDB(unittest.TestCase):
                 u = {i['m1'] for i in r}
                 g = {i['gene'] for i in r}
                 v = {i['m2'] for i in r}
-                assert n == len(r), qc
+                self.assertAlmostEqual(n, len(r), qc, delta=100)
                 assert u_ == len(u), qc
                 assert g_ == len(g), qc
                 assert v_ == len(v), qc

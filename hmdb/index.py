@@ -83,6 +83,7 @@ class Indexer(DBconnection):
         spec = {"_id": docid}
         try:
             self.mcl.update(spec, entry, upsert=True)
+            # TODO: replace update with insert
             self.reportprogress()
             r = True
         except Exception as e:
@@ -98,7 +99,14 @@ def mongodb_indices(mdb, doctype):
             ("taxanomy.description", "text")])
         mdb.create_indexes([index])
         mdb.create_index("accession")
+        mdb.create_index("protein_associations.protein.protein_accession")
+        mdb.create_index("protein_associations.protein.gene_name")
     else:  # Proteins
+        index = IndexModel([
+            ("gene_name", "text"), ("general_function", "text"),
+            ("specific_function", "text")])
+        mdb.create_indexes([index])
+        mdb.create_index("accession")
         mdb.create_index("metabolite_associations.metabolite.accession")
     return
 
