@@ -4,13 +4,46 @@
 import json
 import re
 
-from cobra import Model, Metabolite, Reaction, DictList
-
+import networkx as nx
+from cobrababel.metanetx import metabolite_re
 from nosqlbiosets.dbutils import DBconnection
+from nosqlbiosets.metanetx.index import TYPE_COMPOUND, TYPE_REACTION
 
-# Regular expression for metabolite compartments in reaction equations
-COMPARTEMENT_RE = re.compile(r'@(MNXD[\d]|BOUNDARY)')
-DOCTYPE = "metanetx_compound"
+
+def cobrababel_parse_metanetx_equation(equation):
+    """ Note: Copied from cobrababel project
+              https://github.com/mmundy42/cobrababel
+    """
+    parts = equation.split(' = ')
+    if len(parts) != 2:
+        return None
+
+    # Build a dictionary keyed by metabolite ID with the information needed for
+    # setting the metabolites in a cobra.core.Reaction object.
+    metabolites = dict()
+    reactants = parts[0].split(' + ')
+    for r in reactants:
+        match = re.search(metabolite_re, r)
+        if match is None:
+            return None
+        met_id = '{0}_{1}'.format(match.group(2), match.group(3))
+        metabolites[met_id] = {
+            'mnx_id': match.group(2),
+            'coefficient': -1.0 * float(match.group(1)),
+            'compartment': match.group(3)
+        }
+    products = parts[1].split(' + ')
+    for p in products:
+        match = re.search(metabolite_re, p)
+        if match is None:
+            return None
+        met_id = '{0}_{1}'.format(match.group(2), match.group(3))
+        metabolites[met_id] = {
+            'mnx_id': match.group(2),
+            'coefficient': float(match.group(1)),
+            'compartment': match.group(3)
+        }
+    return metabolites
 
 
 class QueryMetaNetX:
@@ -22,13 +55,12 @@ class QueryMetaNetX:
     # Given MetaNetX compound id return its name
     def getcompoundname(self, dbc, mid, limit=0):
         if dbc.db == 'Elasticsearch':
-            index, doctype = DOCTYPE, "_doc"
+            index, doctype = TYPE_COMPOUND, "_doc"
             qc = {"match": {"_id": mid}}
             hits, n = self.esquery(dbc.es, index, qc, doctype)
         else:  # MongoDB
-            doctype = DOCTYPE
             qc = {"_id": mid}
-            hits = list(dbc.mdbi[doctype].find(qc, limit=limit))
+            hits = list(dbc.mdbi[TYPE_COMPOUND].find(qc, limit=limit))
             n = len(hits)
         assert 1 == n, "%s %s" % (dbc.db, mid)
         c = hits[0]
@@ -38,13 +70,12 @@ class QueryMetaNetX:
     # Given KEGG compound ids find ids for other libraries
     def keggcompoundids2otherids(self, dbc, cids, lib='MetanetX'):
         if dbc.db == 'Elasticsearch':
-            index, doctype = DOCTYPE, "_doc"
+            index, doctype = TYPE_COMPOUND, "_doc"
             qc = {"match": {"xrefs.id": ' '.join(cids)}}
             hits, n = self.esquery(dbc.es, index, qc, doctype, len(cids))
         else:  # MongoDB
-            doctype = DOCTYPE
             qc = {'xrefs.id': {'$in': cids}}
-            hits = list(dbc.mdbi[doctype].find(qc))
+            hits = list(dbc.mdbi[TYPE_COMPOUND].find(qc))
             n = len(hits)
         assert len(cids) == n
         mids = [None] * n
@@ -75,8 +106,7 @@ class QueryMetaNetX:
         assert "MongoDB" == self.dbc.db
         if qc is None:
             qc = {}
-        doctype = DOCTYPE
-        hits = self.dbc.mdbi[doctype].find(qc, **kwargs)
+        hits = self.dbc.mdbi[TYPE_COMPOUND].find(qc, **kwargs)
         r = [c for c in hits]
         return r
 
@@ -93,57 +123,60 @@ class QueryMetaNetX:
     # Query reactions with given query clause
     def query_reactions(self, qc, **kwargs):
         if "MongoDB" == self.dbc.db:
-            doctype = "metanetx_reaction"
-            hits = self.dbc.mdbi[doctype].find(qc, **kwargs)
+            hits = self.dbc.mdbi[TYPE_REACTION].find(qc, **kwargs)
             r = [c for c in hits]
         else:
-            index, doctype = "metanetx_reaction", "_doc"
+            index, doctype = TYPE_REACTION, "_doc"
             r, _ = self.esquery(self.dbc.es, index, qc, doctype, **kwargs)
         return r
 
     # Query reactions and return reactions together with their metabolites
-    def universalmodel_reactionsandmetabolites(self, qc):
-        from cobrababel.metanetx import _parse_metanetx_equation
-        doctype = "metanetx_reaction"
-        hits = self.dbc.mdbi[doctype].find(qc)
-        reacts = [c for c in hits]
+    def reactionswithmetabolites(self, qc, **kwargs):
+        cr = self.dbc.mdbi[TYPE_REACTION].find(qc, **kwargs)
+        reacts = []
         mids = set()
-        for r in reacts:
-            eq = _parse_metanetx_equation(r['equation'])
+        for r in cr:
+            eq = cobrababel_parse_metanetx_equation(r['equation'])
             if eq is None:
                 continue
+            r['reactants'] = set()
+            r['products'] = set()
             for m in eq.items():
                 mid = m[1]['mnx_id']
                 mids.add(mid)
+                if m[1]['coefficient'] < 0:
+                    r['reactants'].add(mid)
+                else:
+                    r['products'].add(mid)
+            reacts.append(r)
         qc = {"_id": {"$in": list(mids)}}
-        metabolites = self.query_metabolites(qc)
+        cr = self.query_metabolites(qc, projection=['desc'])
+        # TODO: option to return metabolite names based on selected library
+        metabolites = {i['_id']: i['desc'] for i in cr}
         return reacts, metabolites
 
-    # Construct universal metabolic models with subset of reactions
-    # specified by the query clause 'qc'
-    def universal_model(self, qc):
-        reacts, metabolites_ = self.universalmodel_reactionsandmetabolites(qc)
-        metabolites = DictList()
-        for m in metabolites_:
-            metabolite = Metabolite(id=m['_id'],
-                                    name=m['desc'],
-                                    formula=m['formula'])
-            metabolites.append(metabolite)
+    def get_metabolite_network(self, qc):
+        """
+        Get network of metabolites,
+        edges refer to the unique set of reactions connecting two metabolites
+        :param qc: specify the subset of reactions
+        :return: metabolites graph as networkX object
+        """
+        reacts, metabolites = self.reactionswithmetabolites(qc)
 
-        um = Model('metanetx_universal')
-        um.notes['source'] = 'MetaNetX %s' % json.dumps(qc).replace('"', '\'')
-        um.add_metabolites(metabolites)
+        mn = nx.DiGraph(name='metanetx',
+                        query=json.dumps(qc).replace('"', '\''))
         for r in reacts:
-            reaction = Reaction(id=r['_id'], name=r['_id'],
-                                lower_bound=-1000.0,
-                                upper_bound=1000.0)
-            um.add_reactions([reaction])
+            for u_ in r['reactants']:
+                u = metabolites[u_]
+                for v in r['products']:
+                    v = metabolites[v]
+                    if mn.has_edge(u, v):
+                        er = mn.get_edge_data(u, v)['reactions']
+                        er.append(r['_id'])
+                    else:
+                        er = [r['_id']]
+                        mn.add_edge(u, v, reactions=er,
+                                    source=r['source']['lib'], ec=r['ecno'])
 
-            # COBRApy compartment_finder doesn't recognize MetaNetX compartments
-            eq = r['equation']
-            if eq.find('n') == -1:
-                eq = COMPARTEMENT_RE.sub("", eq)
-                reaction.build_reaction_from_string(eq,
-                                                    reversible_arrow='=',
-                                                    verbose=True)
-        return um
+        return mn
