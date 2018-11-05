@@ -5,15 +5,20 @@ import json
 import re
 
 import networkx as nx
-from cobrababel.metanetx import metabolite_re
 from nosqlbiosets.dbutils import DBconnection
 from nosqlbiosets.metanetx.index import TYPE_COMPOUND, TYPE_REACTION
 
 
 def cobrababel_parse_metanetx_equation(equation):
-    """ Note: Copied from cobrababel project
+    """ Note: This function is a copy of the _parse_metanetx_equation() function
+              in cobrababel project metanetx.py file:
               https://github.com/mmundy42/cobrababel
+              https://github.com/mmundy42/cobrababel/blob/master/LICENSE.txt
+    Copyright (c) 2017,2017, Mayo Foundation for Medical Education and Research
     """
+    metabolite_re = re.compile(
+        r'(\d*\.\d+|\d+) (MNXM\d+|BIOMASS)@(MNXD[\dX]|BOUNDARY)')
+
     parts = equation.split(' = ')
     if len(parts) != 2:
         return None
