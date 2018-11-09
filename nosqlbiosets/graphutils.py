@@ -140,6 +140,12 @@ def remove_highly_connected_nodes(network, max_degree=10):
     network.remove_nodes_from(to_remove)
 
 
+def remove_least_connected_nodes(network, min_degree=1):
+    to_remove = [node for node, degree in network.degree()
+                 if degree <= min_degree]
+    network.remove_nodes_from(to_remove)
+
+
 def remove_small_subgraphs(ingraph, min_nodes=5):
     """ Remove subgraphs with less than given number of nodes """
     ingraph_ = ingraph.to_undirected()
