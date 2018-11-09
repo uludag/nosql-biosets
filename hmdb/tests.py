@@ -4,11 +4,11 @@ import os
 import unittest
 
 import networkx as nx
-
 from nosqlbiosets.graphutils import neighbors_graph
 from nosqlbiosets.graphutils import remove_highly_connected_nodes
 from nosqlbiosets.graphutils import remove_small_subgraphs
 from nosqlbiosets.graphutils import save_graph
+
 from .queries import DOCTYPE
 from .queries import QueryDrugBank
 
@@ -36,6 +36,22 @@ class TestQueryDrugBank(unittest.TestCase):
         ridrugs = {i for _, _, _, i in r}
         assert all([idr in ridrugs for idr in idrugs])
 
+    def test_autocomplete_drugnames(self):
+        pairs = [  # (query-term, expected-name)
+            ("Gefitinib", "Gefitinib"), ("Wortmannin", "Wortmannin"),
+            ("advil", "Phenylephrine"), ("Reopro", "Abciximab"),
+            ("Eliquis", "Apixaban"), ("7-select Advil PM", "Ibuprofen")
+        ]
+        for qterm, name in pairs:
+            for qterm_ in [qterm.lower(), qterm.upper(), qterm[:4]]:
+                r = self.qry.autocomplete_drugnames(qterm_)
+                assert any(name in i['name'] for i in r), name
+
+        for name in ATdrugs:
+            for qterm in [name.lower(), name.upper(), name[:4]]:
+                r = self.qry.autocomplete_drugnames(qterm)
+                assert any(name in i['name'] for i in r), name
+
     def test_distinct_classes(self):
         key = "classification.class"
         names = self.qry.distinctquery(key)
@@ -55,24 +71,42 @@ class TestQueryDrugBank(unittest.TestCase):
         self.assertIn("lipid transport", names)
         self.assertAlmostEqual(1324, len(names), delta=400)
 
-    def test_distinct_drug_targets(self):
-        key = "targets.name"
-        names = self.qry.distinctquery(key)
+    def test_distinct_targets_features(self):
+
+        # Drugs that have at least one target: ~7400
+        agpl = [
+            {'$match': {'targets': {'$exists': True}
+                        }},
+            {'$group': {
+                '_id': None,
+                "count": {"$sum": 1}
+            }
+            },
+        ]
+        r = list(self.qry.aggregate_query(agpl))
+        self.assertAlmostEqual(7399, r[0]['count'], delta=60)
+
+        # Number of unique target names: ~4360
+        names = self.qry.distinctquery("targets.name")
         self.assertIn("Isoleucine--tRNA ligase", names)
-        self.assertAlmostEqual(4366, len(names), delta=800)
-        key = "targets.polypeptide.gene-name"
-        names = self.qry.distinctquery(key)
+        self.assertAlmostEqual(4366, len(names), delta=60)
+
+        # Number of unique target ids: ~4860
+        ids = self.qry.distinctquery("targets.id")
+        self.assertIn("BE0000198", ids)
+        self.assertAlmostEqual(4865, len(ids), delta=60)
+
+        names = self.qry.distinctquery("targets.polypeptide.gene-name")
         self.assertIn("RNASE4", names)
-        self.assertAlmostEqual(4023, len(names), delta=800)
-        key = "targets.polypeptide.source"
-        names = self.qry.distinctquery(key)
-        self.assertIn("Swiss-Prot", names)
-        assert len(names) == 2
-        key = "targets.actions.action"
-        names = self.qry.distinctquery(key)
+        self.assertAlmostEqual(4023, len(names), delta=60)
+
+        names = self.qry.distinctquery("targets.polypeptide.source")
+        self.assertSetEqual({'TrEMBL', "Swiss-Prot"}, set(names))
+
+        names = self.qry.distinctquery("targets.actions.action")
         actions = "inhibitor antagonist antibody activator binder intercalation"
         assert set(actions.split(' ')).issubset(names)
-        self.assertAlmostEqual(63, len(names), delta=20)
+        self.assertAlmostEqual(63, len(names), delta=4)
 
     def test_distinct_atc_codes(self):
         key = "atc-codes.level.#text"
@@ -166,7 +200,7 @@ class TestQueryDrugBank(unittest.TestCase):
         for kegg, drugbank in kegg_drugbank_pairs:
             assert drugbank == self.qry.kegg_drug_id_to_drugbank_id(kegg)
 
-    def test_kegg_target_id_to_drugbank_entity_id(self):
+    def test_kegg_target_id_to_drugbank_id(self):
         kegg_target_pairs = [
             ("hsa:10", "ARY2_HUMAN", "BE0003607", 'enzymes'),
             ("hsa:100", "ADA_HUMAN", "BE0002214", 'targets'),
@@ -271,20 +305,25 @@ class TestQueryDrugBank(unittest.TestCase):
     def test_drug_targets_graph_merge(self):
         qc = {'$text': {'$search': 'lipid'}}
         g1 = self.qry.get_connections_graph(qc, "targets")
-        self.assertAlmostEqual(3669, g1.number_of_edges(), delta=800)
-        self.assertAlmostEqual(2530, g1.number_of_nodes(), delta=800)
+        self.assertAlmostEqual(3669, g1.number_of_edges(), delta=80)
+        self.assertAlmostEqual(2530, g1.number_of_nodes(), delta=80)
+        target = "Lys-63-specific deubiquitinase BRCC36"
+        assert target in g1.nodes
+        assert "targets" == g1.nodes[target]['type']
         g2 = self.qry.get_connections_graph(qc, "enzymes")
-        self.assertAlmostEqual(808, g2.number_of_edges(), delta=200)
-        self.assertAlmostEqual(290, g2.number_of_nodes(), delta=100)
+        self.assertAlmostEqual(808, g2.number_of_edges(), delta=20)
+        self.assertAlmostEqual(335, g2.number_of_nodes(), delta=10)
         g3 = self.qry.get_connections_graph(qc, "transporters")
-        self.assertAlmostEqual(540, g3.number_of_edges(), delta=100)
-        self.assertAlmostEqual(244, g3.number_of_nodes(), delta=80)
+        self.assertAlmostEqual(581, g3.number_of_edges(), delta=10)
+        self.assertAlmostEqual(244, g3.number_of_nodes(), delta=10)
         g4 = self.qry.get_connections_graph(qc, "carriers")
         self.assertAlmostEqual(144, g4.number_of_edges(), delta=40)
         self.assertAlmostEqual(121, g4.number_of_nodes(), delta=40)
         g = nx.compose_all([g1, g2, g3, g4])
-        self.assertAlmostEqual(5173, g.number_of_edges(), delta=800)
-        self.assertAlmostEqual(2715, g.number_of_nodes(), delta=400)
+        assert target in g.nodes
+        assert "targets" == g1.nodes[target]['type']
+        self.assertAlmostEqual(5173, g.number_of_edges(), delta=80)
+        self.assertAlmostEqual(2715, g.number_of_nodes(), delta=40)
         remove_highly_connected_nodes(g)
         self.assertAlmostEqual(768, g.number_of_edges(), delta=80)
         self.assertAlmostEqual(2525, g.number_of_nodes(), delta=40)
@@ -292,16 +331,16 @@ class TestQueryDrugBank(unittest.TestCase):
         self.assertAlmostEqual(461, g.number_of_edges(), delta=80)
         self.assertAlmostEqual(2093, g.number_of_nodes(), delta=40)
 
-    def test_get_allnetworks(self):
+    def test_get_allgraphs(self):
         tests = [
-            # ({}, 22927, 11376),
+            # ({}, 25624, 12175),
             ({"name": "Acetaminophen"}, 26, 27),
-            ({'$text': {'$search': 'lipid'}}, 5094, 2715)
+            ({'$text': {'$search': 'lipid'}}, 5173, 2715)
         ]
         for qc, nedges, nnodes in tests:
-            g = self.qry.get_allnetworks(qc)
-            self.assertAlmostEqual(nedges, g.number_of_edges(), delta=800)
-            self.assertAlmostEqual(nnodes, g.number_of_nodes(), delta=800)
+            g = self.qry.get_allgraphs(qc)
+            self.assertAlmostEqual(nedges, g.number_of_edges(), delta=10)
+            self.assertAlmostEqual(nnodes, g.number_of_nodes(), delta=10)
 
     def test_drug_enzymes_graph(self):
         qc = {"affected-organisms": {

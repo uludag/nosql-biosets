@@ -3,13 +3,12 @@
 
 import argparse
 
-from pivottablejs import pivot_ui
-
 from hmdb.index import DOCTYPE_METABOLITE, DOCTYPE_PROTEIN
 from nosqlbiosets.dbutils import DBconnection
 from nosqlbiosets.graphutils import *
 from nosqlbiosets.uniprot.query import QueryUniProt
-from .drugbank import DOCTYPE  # Default collection for MongoDB DrugBank data
+
+from .drugbank import DOCTYPE  # Default collection for DrugBank MongoDB store
 
 index = "biosets"
 db = "MongoDB"
@@ -31,6 +30,23 @@ class QueryDrugBank:
     def distinctquery(self, key, qc=None, sort=None):
         r = self.dbc.mdbi[DOCTYPE].distinct(key, filter=qc, sort=sort)
         return r
+
+    def autocomplete_drugnames(self, qterm, **kwargs):
+        """
+        Given partial drug names return possible names
+        :param qterm: partial drug name
+        :return: list of possible names
+        """
+        qc = {"$or": [
+            {"name": {
+                "$regex": "^%s" % qterm, "$options": "i"}},
+            {"abbreviation": {
+                "$regex": "^%s" % qterm, "$options": "i"}},
+            {"products.name": {
+                "$regex": "^%s" % qterm, "$options": "i"}}
+        ]}
+        cr = self.mdb[DOCTYPE].find(qc, projection=['name'], **kwargs)
+        return cr
 
     # Target genes and interacted drugs
     def get_target_genes_interacted_drugs(self, qc, limit=1600):
@@ -126,7 +142,7 @@ class QueryDrugBank:
         }
         _type = 'drug' if connections == 'drug-interactions' else connections
         for u, v in interactions:
-            graph.add_node(u, type='drug', viz_color='yellowgreen')
+            graph.add_node(u, type='drug', viz_color='green')
             graph.add_node(v,
                            type=_type,
                            viz_color=colors[_type])
@@ -136,15 +152,13 @@ class QueryDrugBank:
             save_graph(graph, outfile)
         return graph
 
-    def get_allnetworks(self, qc):
-        # TODO: type and color data as in get_connections_graph
+    def get_allgraphs(self, qc):
         connections = ["targets", "enzymes", "transporters", "carriers"]
-        interactions = set()
+        graphs = []
         for connection in connections:
-            interactions = interactions.union(
-                set(self.get_connections(qc, connection)))
-        graph = nx.MultiDiGraph(list(interactions), name="allnetworks")
-        return graph
+            graphs.append(self.get_connections_graph(qc, connection))
+        r = nx.compose_all(graphs)
+        return r
 
 
 class QueryHMDB:
