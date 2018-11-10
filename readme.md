@@ -2,16 +2,15 @@
 
 NoSQL-biosets project includes scripts for indexing and querying
 selected free bioinformatics datasets. In adition to datasets, project aims
-to include index/query scripts for common bioinformatics data types
-and formats, such as SBML and GFF.
-
-In the early stages of the project only Elasticsearch was supported.
-Later MongoDB support was implemented for most of the datasets already included
-in the project.
-Neo4j and PostgreSQL support was implemented for few datasets
-as the third database option, namely IntEnz, PubTator and HGNC.
+to support common bioinformatics data types
+and formats, such as GFF. Elasticsearch and MongoDB are two primary databases
+supported for most datasets included in the project.
+Neo4j and PostgreSQL support was implemented as the third database option
+for few datasets, namely for IntEnz, PubTator and HGNC.
 
 ## Datasets supported
+
+Datasets that had more attention and have more stable support: 
 
 * UniProtKB [datasets](
   ftp://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/knowledgebase/complete
@@ -31,10 +30,10 @@ as the third database option, namely IntEnz, PubTator and HGNC.
   ): [`./nosqlbiosets/metanetx`](./nosqlbiosets/metanetx)
 
 * HMDB [proteins, metabolites datasets](http://www.hmdb.ca/downloads):
-  [`./hmdb`](./hmdb/readme.md)
+  [`./hmdb#index-hmdb`](./hmdb#index-hmdb)
 
 * DrugBank [drugs and drug targets dataset](https://www.drugbank.ca/releases/latest):
-  [`./hmdb`](./hmdb/drugbank.py)
+  [`./hmdb#index-drugbank`](./hmdb#index-drugbank)
 
 * HGNC, [genenames.org](http://www.genenames.org/cgi-bin/statistics),
  [data files in json format](
@@ -42,12 +41,14 @@ as the third database option, namely IntEnz, PubTator and HGNC.
   from EMBL-EBI: [`./geneinfo/hgnc_geneinfo.py`](geneinfo/hgnc_geneinfo.py)
   (_tests made with [complete HGNC dataset](
   ftp://ftp.ebi.ac.uk/pub/databases/genenames/new/json/hgnc_complete_set.json)_)
+  
+Datasets that had less attention after the initial support added to the project:
 
 * Metabolic network files in [SBML](http://sbml.org) format or
  [PSAMM project](https://github.com/zhanglab/psamm-model-collection)'s
   yaml format: [`./nosqlbiosets/pathways/index_metabolic_networks.py`](
   nosqlbiosets/pathways/index_metabolic_networks.py)
-   (_recent work, tests made with [BiGG](http://bigg.ucsd.edu)
+   (_tests made with [BiGG](http://bigg.ucsd.edu)
     and PSAMM collections_)
 
 * PubChem [BioAssay](http://ftp.ncbi.nlm.nih.gov/pubchem/Bioassay) json files:
@@ -66,7 +67,7 @@ http://www.wikipathways.org/index.php/Download_Pathways):
 * Ensembl regulatory build [GFF files](
 http://ftp.ensemblorg.ebi.ac.uk/pub/current_regulation/homo_sapiens):
   [`./geneinfo/ensembl_regbuild.py`](geneinfo/ensembl_regbuild.py)
-  _at its early stages of development_
+  _at early stages of development_
 
 * PubTator [gene2pub and disease2pub mappings](
 http://ftp.ncbi.nlm.nih.gov/pub/lu/PubTator):
@@ -83,21 +84,20 @@ http://www.kegg.jp/kegg/download/Readme/README.kgml):
   (_KEGG data distribution policy lets us think twice when spending
    time on KEGG data_)
 
-We want to connect above datasets as much as possible
+Project aims to connect above datasets as much as possible
 and aim to implement query APIs for common query patterns with individual indexes
 as well as connected data.
-We are also working on saving selected networks from IntEnz and DrugBank
-datasets as  graph files;
-either the complete datasets, by parsing the dataset source files,
-or selected subsets, after the datasets has been indexed.
+It also includes intial work on saving query results of IntEnz, DrugBank, HMDB,
+ModelSEEDdb, and MetaNetX datasets as  graph files.
 
-We want to implement automated tests as early as
-possible, this should help us to understand where we are in minimal time.
-
-In a separate [project](https://github.com/uludag/hspsdb-indexer)
-we have been developing index scripts for sequence
+A sister [project](https://github.com/uludag/hspsdb-indexer)
+aims to develop index scripts for sequence
 similarity search results, either in NCBI-BLAST json format
-or in BLAST tabular format
+or in BLAST tabular format which is used by other search programs as well
+such as [LAMBDA](https://github.com/seqan/lambda) and
+[DIAMOND](https://github.com/bbuchfink/diamond).
+HSPsDB project aims to link the indexed search results
+to the datasets indexed with this project, nosqlbiosets.
 
 ## Installation
 
@@ -108,7 +108,7 @@ cd nosql-biosets
 pip install -r requirements.txt --user
 ```
 
-Since we are yet in early stages you may need to check and modify
+Since this project is yet in early stages you may need to check and modify
 source code of the scripts time to time, for this reason _light install_
 nosqlbiosets project to your local Python library/package folders
 using the `setup.py` `develop` and `--user` options
@@ -138,20 +138,17 @@ https://www.elastic.co/downloads/elasticsearch) with the TAR option (~32M).
 After extracting the tar file just `cd` to your Elasticsearch folder
 and run `./bin/elasticsearch` command.
 
-Now we can index downloaded UniProt xml file by running the following command
+Now downloaded UniProt xml file can be indexed by running the following command
 from nosqlbiosets project root folder,
-typically requires 7 to 8 hours with Elasticsearch,
-and between 4 and 5 hours with MongoDB
+typically requires 2 to 8 hours with Elasticsearch,
+and between 1 and 5 hours with MongoDB
 
 ```bash
 ./nosqlbiosets/uniprot/index.py ./uniprot_sprot.xml.gz\
    --host localhost --db Elasticsearch --index uniprot
 ```
 
-We can query indexed portion of the dataset without waiting the termination
-of whole indexing process.
-
-Query most mentioned gene names:
+Example query: list most mentioned gene names
 
 ```bash
 curl -XGET "http://localhost:9200/uniprot/_search?pretty=true"\
