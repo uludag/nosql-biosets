@@ -1,0 +1,38 @@
+#!/usr/bin/env python
+from geneinfo.hgnc_geneinfo import main as geneinfo_index
+
+"""
+Command line interface for nosql-biosets project index/query scripts
+
+Project scripts are not easily reachable when a package installation made
+for example using pip
+
+This script is added to user PATH when a package installation made
+and could be used to call functions in the index/query scripts
+"""
+
+import argh
+from argh import arg
+
+datasets_help = '''
+Dataset to index: only HGNC dataset is supported,
+support for more datasets to be implemented soon
+'''
+
+
+@arg('dataset', help=datasets_help)
+@arg('db', help='MongoDB or Elasticsearch')
+@arg('infile', help='Input file to index')
+@arg('--database', help='MongoDB database name')
+def index(dataset, db, infile, database='biosets'):
+    """
+    Index given input file of the dataset selected
+    """
+    if dataset == 'hgnc':
+        geneinfo_index(db, infile, database)
+
+
+if __name__ == "__main__":
+    argh.dispatch_commands([
+        index
+    ])
