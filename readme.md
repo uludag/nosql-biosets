@@ -84,11 +84,10 @@ http://www.kegg.jp/kegg/download/Readme/README.kgml):
   (_KEGG data distribution policy lets us think twice when spending
    time on KEGG data_)
 
-Project aims to connect above datasets as much as possible
-and aim to implement query APIs for common query patterns with individual indexes
-as well as connected data.
-It also includes intial work on saving query results of IntEnz, DrugBank, HMDB,
-ModelSEEDdb, and MetaNetX datasets as  graph files.
+Project aims to connect above datasets by implementing query APIs
+for common query patterns with individual and multiple indexes.
+It also includes intial work on returning query results of IntEnz, DrugBank, HMDB,
+ModelSEEDdb, and MetaNetX datasets as graphs.
 
 A sister [project](https://github.com/uludag/hspsdb-indexer)
 aims to develop index scripts for sequence
