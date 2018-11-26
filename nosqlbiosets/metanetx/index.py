@@ -7,6 +7,7 @@ import argparse
 import csv
 import os
 import time
+from pymongo import IndexModel
 
 from elasticsearch.helpers import streaming_bulk
 
@@ -210,6 +211,15 @@ class Indexer(DBconnection):
                 print(e)
         return i
 
+    def mongodb_indices(self):
+        index = IndexModel([
+            ("desc", "text"),
+            ("xrefs.desc", "text")])
+        self.mdbi[TYPE_COMPOUND].create_indexes([index])
+        indx_fields = ["xrefs.id"]
+        for field in indx_fields:
+            self.mdbi[TYPE_COMPOUND].create_index(field)
+
 
 if __name__ == '__main__':
     d = os.path.dirname(os.path.abspath(__file__))
@@ -258,12 +268,14 @@ if __name__ == '__main__':
             v[arg] = os.path.join(args.metanetxdatafolder, filename)
 
     xrefsmap_ = getxrefs(args.compoundsxreffile, getcompoundxrefrecord)
-    for cmp in xrefsmap_:
-        xrefsmap_[cmp] = _mergecompoundxrefs(xrefsmap_[cmp])
+    for refs in xrefsmap_:
+        xrefsmap_[refs] = _mergecompoundxrefs(xrefsmap_[refs])
     indxr = Indexer(args.db, args.index, args.host, args.port,
                     TYPE_COMPOUND)
     indxr.indexall(read_metanetx_mappings(args.compoundsfile,
                                           getcompoundrecord, xrefsmap_))
+    if args.db == "MongoDB":
+        indxr.mongodb_indices()
 
     xrefsmap_ = getxrefs(args.compartmentsxreffile, getcompartmentxrefrecord)
     indxr = Indexer(args.db, args.index, args.host, args.port,

@@ -17,7 +17,7 @@ class TestQueryMetanetx(unittest.TestCase):
     d = os.path.dirname(os.path.abspath(__file__))
     index = "biosets"
 
-    def test_compoundnames(self, db="MongoDB"):
+    def test_getcompoundname(self, db="MongoDB"):
         dbc = DBconnection(db, self.index)
         mids = ['MNXM244', 'MNXM39', 'MNXM89612', 'MNXM2000']
         descs = ['3-oxopropanoate', 'formate', 'glycerol', 'alpha-carotene']
@@ -99,8 +99,27 @@ class TestQueryMetanetx(unittest.TestCase):
     def test_query_metabolites(self):
         mids = ['MNXM39', 'MNXM89612']
         qc = {"_id": {"$in": mids}}
-        metabolites = qrymtntx.query_metabolites(qc)
+        metabolites = list(qrymtntx.query_metabolites(qc))
         assert len(metabolites) == len(mids)
+        cids = ['C00082']
+        qc = {'xrefs.id': cids}
+        metabolites = list(qrymtntx.query_metabolites(qc))
+        assert 0 == len(metabolites)
+        qc = {'xrefs.id': {"$elemMatch": {'$in': cids}}}
+        metabolites = list(qrymtntx.query_metabolites(qc))
+        assert 1 == len(metabolites)
+        qc = {'xrefs.id': {'$in': cids}}
+        metabolites = list(qrymtntx.query_metabolites(qc))
+        assert 1 == len(metabolites)
+
+    def test_autocomplete_metabolitenames(self):
+        names = ['xylitol', '3-oxopropanoate', 'formate', 'squalene',
+                 'glycerol', 'D-xylose']
+        for name in names:
+            for qterm in [name.lower(), name.upper(), name[:4]]:
+                r = qrymtntx.autocomplete_metabolitenames(qterm, limit=10)
+                print([i['desc'] for i in r])
+                assert any(name in i['desc'] for i in r), name
 
     def test_query_compartments(self):
         compartments = qrymtntx.query_compartments()
@@ -118,15 +137,15 @@ class TestQueryMetanetx(unittest.TestCase):
         eids = ["1.1.4.13", "2.3.1"]
         qc = {"ecno": {"$in": eids}}
         m = qrymtntx.get_metabolite_network(qc)
-        self.assertAlmostEqual(563, len(m.nodes), delta=20)
-        self.assertAlmostEqual(1356, len(m.edges), delta=20)
+        self.assertAlmostEqual(563, len(m.nodes()), delta=20)
+        self.assertAlmostEqual(1356, len(m.edges()), delta=20)
 
     def test_metabolite_network_reactome(self):
         qc = {"source.lib": "reactome", "balance": "true"}
         mn = qrymtntx.get_metabolite_network(qc)
-        self.assertAlmostEqual(458, len(mn.nodes), delta=20)
-        self.assertAlmostEqual(1250, len(mn.edges), delta=20)
-        assert "L-serine" in mn.nodes
+        self.assertAlmostEqual(458, len(mn.nodes()), delta=20)
+        self.assertAlmostEqual(1250, len(mn.edges()), delta=20)
+        assert "L-serine" in mn.nodes()
         r = neighbors_graph(mn, "acetyl-CoA", beamwidth=5, maxnodes=100)
         # number of nodes differ based on selected search branches
         self.assertAlmostEqual(50, r.number_of_nodes(), delta=10)
@@ -137,9 +156,9 @@ class TestQueryMetanetx(unittest.TestCase):
     def test_metabolite_network_bigg(self):
         qc = {"source.lib": "bigg", "balance": "true"}
         mn = qrymtntx.get_metabolite_network(qc)
-        self.assertAlmostEqual(3239, len(mn.nodes), delta=20)
-        self.assertAlmostEqual(15042, len(mn.edges), delta=20)
-        assert "L-alanine" in mn.nodes
+        self.assertAlmostEqual(3239, len(mn.nodes()), delta=20)
+        self.assertAlmostEqual(15042, len(mn.edges()), delta=20)
+        assert "L-alanine" in mn.nodes()
         r = neighbors_graph(mn, "L-ascorbate", beamwidth=5, maxnodes=100)
         self.assertAlmostEqual(8, r.number_of_nodes(), delta=2)
 

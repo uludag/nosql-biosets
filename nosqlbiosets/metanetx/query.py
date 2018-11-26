@@ -72,6 +72,26 @@ class QueryMetaNetX:
         desc = c['desc'] if 'desc' in c else c['_source']['desc']
         return desc
 
+    def autocomplete_metabolitenames(self, qterm, **kwargs):
+        """
+        Given query term find possible metabolite names that match query term
+        :param qterm: query term
+        """
+        qc = {"desc": {"$regex": "^%s" % qterm, "$options": "i"}}
+        r = self.query_metabolites(qc, projection=['desc'], **kwargs)
+        return list(r)
+
+    # Text search metabolites with given query term
+    def textsearch_metabolites(self, queryterm):
+        assert "MongoDB" == self.dbc.db
+        doctype = TYPE_COMPOUND
+        qc = {'$text': {'$search': queryterm}}
+        hits = self.dbc.mdbi[doctype].find(qc, projection={
+            'score': {'$meta': "textScore"}})
+        r = [c for c in hits]
+        r.sort(key=lambda x: x['score'])
+        return r
+
     # Given KEGG compound ids find ids for other libraries
     def keggcompoundids2otherids(self, dbc, cids, lib='MetanetX'):
         if dbc.db == 'Elasticsearch':
@@ -111,8 +131,14 @@ class QueryMetaNetX:
         assert "MongoDB" == self.dbc.db
         if qc is None:
             qc = {}
-        hits = self.dbc.mdbi[TYPE_COMPOUND].find(qc, **kwargs)
-        r = [c for c in hits]
+        r = self.dbc.mdbi[TYPE_COMPOUND].find(qc, **kwargs)
+        return r
+
+    # Query metabolites with given query clause
+    def aggregatequery_metabolites(self, qc, **kwargs):
+        assert "MongoDB" == self.dbc.db
+        assert qc is not None
+        r = self.dbc.mdbi[TYPE_COMPOUND].aggregate(qc, **kwargs)
         return r
 
     # Query compartments with given query clause
