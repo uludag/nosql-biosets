@@ -5,15 +5,15 @@ import re
 
 from nosqlbiosets.dbutils import DBconnection
 
-# MongoDB collection names or Elasticsearch index names
-# for compounds and reactions
+# MongoDB collection names or Elasticsearch index names:
 COMPOUNDSTYPE = "modelseed_compound"
 REACTIONSTYPE = "modelseed_reaction"
 
 
 def modelseeddb_parse_equation(equation, delimiter=' '):
-    """ Copied from ModelSEEDDatabase Biochem_Helper.py:parseEquation()
-https://github.com/ModelSEED/ModelSEEDDatabase/Scripts/Biochem_Helper.py
+    """
+    This function is a copy of ModelSEEDDatabase Biochem_Helper.py:parseEquation
+    https://github.com/ModelSEED/ModelSEEDDatabase/Scripts/Biochem_Helper.py
     """
     # Build search strings using specified delimiter.
     bidirectional = delimiter + '<=>' + delimiter
@@ -52,9 +52,8 @@ https://github.com/ModelSEED/ModelSEEDDatabase/Scripts/Biochem_Helper.py
 
 class QueryModelSEED:
 
-    def __init__(self):
-        self.index = "biosets"
-        self.dbc = DBconnection("MongoDB", self.index)
+    def __init__(self, db="MongoDB", index="biosets"):
+        self.dbc = DBconnection(db, index)
 
     # Given ModelSEED compound id return its name
     def getcompoundname(self, dbc, mid, limit=0):
@@ -84,8 +83,7 @@ class QueryModelSEED:
     def query_metabolites(self, qc, **kwargs):
         assert "MongoDB" == self.dbc.db
         doctype = COMPOUNDSTYPE
-        hits = self.dbc.mdbi[doctype].find(qc, **kwargs)
-        r = [c for c in hits]
+        r = self.dbc.mdbi[doctype].find(qc, **kwargs)
         return r
 
     # Text search metabolites with given query term
@@ -99,11 +97,25 @@ class QueryModelSEED:
         r.sort(key=lambda x: x['score'])
         return r
 
+    def autocomplete_metabolitenames(self, qterm, **kwargs):
+        """
+        Given query term find possible metabolite names that match query term
+        :param qterm: query term
+        """
+        qc = {"$or": [
+            {"name": {
+                "$regex": "^%s" % qterm, "$options": "i"}},
+            {"abbreviation": {
+                "$regex": "^%s" % qterm, "$options": "i"}}
+        ]}
+        r = self.query_metabolites(qc, projection=['name'], **kwargs)
+        return list(r)
+
     # Get network of metabolites,
     # edges refer to the unique set of reactions connecting two metabolites
     def get_metabolite_network(self, qc, **kwargs):
         import networkx as nx
-        graph = nx.DiGraph(name='metanetx', query=json.dumps(qc))
+        graph = nx.DiGraph(name='modelseeddb', query=json.dumps(qc))
         reacts = self.dbc.mdbi[REACTIONSTYPE].find(qc, **kwargs)
         mre = re.compile(r'\((\d*\.*\d*(e-\d+)?)\) (cpd\d+)\[(\d+)\]')
         r = self.query_metabolites({}, projection=['name'])

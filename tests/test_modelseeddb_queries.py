@@ -114,6 +114,14 @@ class TestQueryModelSEEDDatabase(unittest.TestCase):
                 assert 1 <= len(r)
                 assert mid in [i['_id'] for i in r]
 
+    def test_autocomplete_metabolitenames(self):
+        names = ['Xylitol', '3-Oxopropanoate', 'Formate', 'Squalene',
+                 'Glycerol', 'D-Xylose']
+        for name in names:
+            for qterm in [name.lower(), name.upper(), name[:4]]:
+                r = qry.autocomplete_metabolitenames(qterm)
+                assert any(name in i['name'] for i in r), name
+
     def test_metabolite_networks(self):
         qc = {
             '$text': {'$search': 'glycerol'},
