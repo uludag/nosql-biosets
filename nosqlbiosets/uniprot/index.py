@@ -16,8 +16,8 @@ import xmltodict
 from pymongo import IndexModel
 
 from nosqlbiosets.dbutils import DBconnection
-
-pool = ThreadPool(4)  # threads for index calls, parsing is in the main thread
+pool = ThreadPool(14)   # Threads for index calls, parsing is in the main thread
+MAX_QUEUED_JOBS = 1400  # Maximum number of index jobs in queue
 DOCTYPE = 'uniprot'
 
 
@@ -75,6 +75,10 @@ class Indexer(DBconnection):
         if isinstance(entry, string_types):  # Assume <copyright> notice
             print("\nUniProt copyright notice: %s " % entry.strip())
         else:
+            if pool._inqueue.qsize() > MAX_QUEUED_JOBS:
+                from time import sleep
+                print('sleeping 1 sec')
+                sleep(1)
             pool.apply_async(index, ())
         return True
 
