@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" Test queries with UniProt data indexed with MongoDB or Elasticsearch """
+""" Test queries with UniProt data indexed with MongoDB and Elasticsearch """
 
 import unittest
 
@@ -58,7 +58,7 @@ class TestQueryUniProt(unittest.TestCase):
         ecodes = {  # http://www.uniprot.org/help/evidences
             255: 3840,  # match to sequence model evidence, manual assertion
             269: 5575,  # experimental evidence used in manual assertion
-            305: 4010,  # curator inference used in manual assertion
+            305: 4130,  # curator inference used in manual assertion
             250: 2960,  # sequence similarity evidence used in manual assertion
             303: 1360,  # non-traceable author statement, manual assertion
             244: 790,   # combinatorial evidence used in manual assertion
@@ -82,6 +82,40 @@ class TestQueryUniProt(unittest.TestCase):
             self.assertAlmostEqual(ecodes[int(i['_id'][8:])], i['sum'],
                                    delta=100)
 
+    # Distribution of GO annotations
+    def test_GO_annotations(self):
+        tests = [
+            ('Rice', 2734, 25153),
+            ('Human', 17887, 258593),
+            ('Arabidopsis thaliana', 6690, 98433),
+            ('Danio rerio', 5038, 22387)
+        ]
+        for org, uniqgo, nall in tests:
+            qc = {'organism.name.#text': org}
+            aggqc = [
+                {"$match": qc},
+                {"$unwind": "$dbReference"},
+                {"$match": {"dbReference.type": "GO"}},
+                {'$group': {
+                    '_id': {
+                        'id': '$dbReference.id',
+                        'name': {"$arrayElemAt": ['$dbReference.property', 0]}
+                    },
+                    "abundance": {"$sum": 1}
+                }},
+                {"$sort": {"abundance": -1}},
+                {'$project': {
+                    "abundance": 1,
+                    "id": "$_id.id",
+                    "name": "$_id.name.value",
+                    "_id": 0
+                }}
+            ]
+            hits = qryuniprot.aggregate_query(aggqc)
+            r = [c for c in hits]
+            assert uniqgo == len(r)
+            assert nall == sum([c['abundance'] for c in r])
+
     def test_getenzymedata(self):
         enzys = [
             ('2.2.1.11', {'Q58980'}, ("ordered locus", 'MJ1585', 1),
@@ -89,11 +123,11 @@ class TestQueryUniProt(unittest.TestCase):
              'D-fructose 1,6-bisphosphate = glycerone phosphate'
              ' + D-glyceraldehyde 3-phosphate.',
              'Methanococcus jannaschii', 'common', 1, 1),
-            ('2.5.1.-', {'Q3J5F9'}, ("primary", 'ctaB', 331),
+            ('2.5.1.-', {'Q5AR51'}, ("primary", 'ubiA', 224),
              "Cofactor biosynthesis; ubiquinone biosynthesis.",
              '2,5-dichlorohydroquinone + 2 glutathione ='
              ' chloride + chlorohydroquinone + glutathione disulfide.',
-             'Arabidopsis thaliana', 'scientific', 19, 724),
+             'Arabidopsis thaliana', 'scientific', 18, 500),
             ('5.4.2.2', {'P93804'}, ("primary", 'PGM1', 10),
              "Glycolipid metabolism;"
              " diglucosyl-diacylglycerol biosynthesis.",
@@ -101,10 +135,11 @@ class TestQueryUniProt(unittest.TestCase):
              'Baker\'s yeast', 'common', 2, 25)
         ]
         for ecn, accs, gene, pathway, reaction, org, nametype, n, orgs in enzys:
+            genetype, genename, abundance = gene
             r = qryuniprot_es.getgenes(ecn)
-            assert gene[2] == r[gene[0]][gene[1]]
+            assert gene[2] == r[gene[0]][gene[1]], r
             r = qryuniprot.getgenes(ecn)
-            assert gene[2] == r[gene[0]][gene[1]]
+            assert abundance == r[genetype][genename]
             assert accs.issubset(qryuniprot.getaccs(ecn))
             r = list(qryuniprot.getpathways(ecn))
             assert pathway in [pw['_id'] for pw in r]
@@ -112,8 +147,8 @@ class TestQueryUniProt(unittest.TestCase):
             assert reaction in [rc['_id'] for rc in r]
             for organisms in [qryuniprot_es.getorganisms(ecn, limit=2000),
                               qryuniprot.getorganisms(ecn, limit=2000)]:
-                assert n == organisms[nametype][org]
-                self.assertAlmostEqual(orgs, len(organisms[nametype]), delta=5)
+                assert n == organisms[nametype][org], organisms
+                self.assertAlmostEqual(orgs, len(organisms[nametype]), delta=30)
 
 
 if __name__ == '__main__':
