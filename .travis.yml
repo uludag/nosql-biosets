@@ -5,8 +5,7 @@ python:
   - "3.4"
 
 install:
-  - pip install -r requirements.txt
-  - pip install gffutils
+  - pip install pytz
   - python setup.py install
 
 script:
@@ -18,3 +17,5 @@ script:
   - ./nosqlbiosets/metanetx/index.py --help
   - ./hmdb/index.py --help
   - ./hmdb/drugbank.py --help
+  - ./scripts/nosqlbiosets --help
+  - ./scripts/nosqlbiosets index --help
