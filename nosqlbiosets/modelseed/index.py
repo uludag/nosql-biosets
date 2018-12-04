@@ -66,7 +66,7 @@ def updatereactionrecord(row, _):
 
 def read_modelseed_datafile(infile, lineparser):
     i = 0
-    print(infile)
+    print("Reading from %s" % infile)
     with open(infile) as csvfile:
         reader = csv.DictReader(csvfile, delimiter='\t', quotechar='"')
         for row in reader:
@@ -76,7 +76,6 @@ def read_modelseed_datafile(infile, lineparser):
 
 
 def es_index(dbc, infile, typetuner):
-    print("Reading from %s" % infile)
     i = 0
     t1 = time.time()
     for ok, result in streaming_bulk(
@@ -108,12 +107,13 @@ def mongodb_indices(mdb):
             mdb.create_index(field)
     else:
         index = IndexModel([
+            ("name", "text"),
+            ("abbreviation", "text"),
             ("definition", "text")])
         mdb.create_indexes([index])
 
 
 def mongodb_index(mdbc, infile, typetuner):
-    print("Reading from %s" % infile)
     i = 0
     t1 = time.time()
     for entry in read_modelseed_datafile(infile, typetuner):

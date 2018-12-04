@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" Test queries with ModelSEEDDatabase reactions data """
+""" Test queries with ModelSEEDDatabase compounds/reactions data """
 import unittest
 
 from nosqlbiosets.dbutils import DBconnection
@@ -129,8 +129,8 @@ class TestQueryModelSEEDDatabase(unittest.TestCase):
         }
         mn = qry.get_metabolite_network(qc)
         assert "Glycerol" in mn.nodes
-        assert 194 == len(mn.edges)
-        assert 58 == len(mn.nodes)
+        assert len(mn.edges) == 230
+        assert len(mn.nodes) == 64
 
         qc = {"_id": "rxn36327"}
         mn = qry.get_metabolite_network(qc)
