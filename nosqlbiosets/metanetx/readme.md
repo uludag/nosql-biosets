@@ -16,7 +16,7 @@ http://www.metanetx.org/mnxdoc/mnxref.html
 ```bash
 # Download MetaNetX csv files
 mkdir -p data/metanetx
-wget -P data/metanetx -r ftp://ftp.vital-it.ch/databases/metanetx/MNXref/latest/ --no-directories
+wget -nc -P data/metanetx -r ftp://ftp.vital-it.ch/databases/metanetx/MNXref/latest/ --no-directories
 ```
 
 

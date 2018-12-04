@@ -150,7 +150,6 @@ def getreactionrecord(row, xrefsmap):
         'source': {'lib': sourcelib, 'id': sourceid},
         'xrefs': xrefsmap[id_] if id_ in xrefsmap else None
     }
-    # TODO: get metabolite_info as in cobrababel
     return r
 
 
@@ -183,6 +182,11 @@ class Indexer(DBconnection):
             i = self.es_index(reader)
         else:
             i = self.mongodb_index(reader)
+            if reader != getcompartmentrecord:
+                collection = TYPE_COMPOUND if reader == getcompoundrecord \
+                    else TYPE_REACTION
+                self.mongodb_indices(collection)
+
         t2 = time.time()
         print("-- Processed %d entries, in %d sec"
               % (i, (t2 - t1)))
@@ -211,14 +215,17 @@ class Indexer(DBconnection):
                 print(e)
         return i
 
-    def mongodb_indices(self):
+    def mongodb_indices(self, collection):
         index = IndexModel([
             ("desc", "text"),
-            ("xrefs.desc", "text")])
-        self.mdbi[TYPE_COMPOUND].create_indexes([index])
+            ("xrefs.desc" if collection == TYPE_COMPOUND else "xrefs.id",
+             "text")
+        ])
+        self.mdbi[collection].drop_indexes()
+        self.mdbi[collection].create_indexes([index])
         indx_fields = ["xrefs.id"]
         for field in indx_fields:
-            self.mdbi[TYPE_COMPOUND].create_index(field)
+            self.mdbi[collection].create_index(field)
 
 
 if __name__ == '__main__':
@@ -270,22 +277,17 @@ if __name__ == '__main__':
     xrefsmap_ = getxrefs(args.compoundsxreffile, getcompoundxrefrecord)
     for refs in xrefsmap_:
         xrefsmap_[refs] = _mergecompoundxrefs(xrefsmap_[refs])
-    indxr = Indexer(args.db, args.index, args.host, args.port,
-                    TYPE_COMPOUND)
+    indxr = Indexer(args.db, args.index, args.host, args.port, TYPE_COMPOUND)
     indxr.indexall(read_metanetx_mappings(args.compoundsfile,
                                           getcompoundrecord, xrefsmap_))
-    if args.db == "MongoDB":
-        indxr.mongodb_indices()
 
     xrefsmap_ = getxrefs(args.compartmentsxreffile, getcompartmentxrefrecord)
-    indxr = Indexer(args.db, args.index, args.host, args.port,
-                    TYPE_COMPARTMENT)
+    indxr = Indexer(args.db, args.index, args.host, args.port, TYPE_COMPARTMENT)
     indxr.indexall(read_metanetx_mappings(args.compartmentsfile,
                                           getcompartmentrecord, xrefsmap_))
 
     xrefsmap_ = getxrefs(args.reactionsxreffile, getreactionxrefrecord)
-    indxr = Indexer(args.db, args.index, args.host, args.port,
-                    TYPE_REACTION)
+    indxr = Indexer(args.db, args.index, args.host, args.port, TYPE_REACTION)
     indxr.indexall(read_metanetx_mappings(args.reactionsfile,
                                           getreactionrecord, xrefsmap_))
     indxr.close()

@@ -141,6 +141,13 @@ class QueryMetaNetX:
         r = self.dbc.mdbi[TYPE_COMPOUND].aggregate(qc, **kwargs)
         return r
 
+    # Query metabolites with given query clause
+    def aggregatequery_reactions(self, qc, **kwargs):
+        assert "MongoDB" == self.dbc.db
+        assert qc is not None
+        r = self.dbc.mdbi[TYPE_REACTION].aggregate(qc, **kwargs)
+        return r
+
     # Query compartments with given query clause
     def query_compartments(self, qc=None):
         assert "MongoDB" == self.dbc.db
