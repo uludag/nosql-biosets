@@ -78,8 +78,8 @@ class Indexer(DBconnection):
                                   filter_path=['hits.hits._id'],
                                   id=docid, body=entry)
                 elif self.db == "MongoDB":
-                    spec = {"_id": docid}
-                    self.mcl.update(spec, entry, upsert=True)
+                    entry["_id"] = docid
+                    self.mcl.insert(entry)
                 else:  # Neo4j
                     self.updatereactionsandelements_sets(entry)
             except Exception as e:

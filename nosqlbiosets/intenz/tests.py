@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 """ Test queries with IntEnz data indexed with MongoDB and Neo4j"""
-
 import unittest
 
 from nosqlbiosets.dbutils import DBconnection
-from nosqlbiosets.graphutils import save_graph
 from .query import QueryIntEnz
 
 qryintenz = QueryIntEnz()
@@ -14,7 +12,7 @@ class TestQueryIntEnz(unittest.TestCase):
 
     def test_getreactant_product_names(self):
         re = qryintenz.getreactantnames()
-        self.assertAlmostEqual(4200, len(re), delta=100,
+        self.assertAlmostEqual(4319, len(re), delta=100,
                                msg="Number of reactant names")
         pr = qryintenz.getproductnames()
         self.assertAlmostEqual(4931, len(pr), delta=200,
@@ -37,7 +35,7 @@ class TestQueryIntEnz(unittest.TestCase):
     def test_enzymeswithreactant(self):
         tests = [
             # reactant, name of one expected enzyme, # of expected enzymes
-            ("2-oxoglutarate", "Thymine dioxygenase", 130),
+            ("2-oxoglutarate", "Thymine dioxygenase", 135),
             ("L-glutamate", "Glutamate--tRNA(Gln) ligase", 37),
             ("3-oxopropanoate", "Malonate-semialdehyde dehydrogenase", 5),
             ("glycerol", "D/L-glyceraldehyde reductase", 8),
@@ -63,7 +61,7 @@ class TestQueryIntEnz(unittest.TestCase):
     def test_enzymeswithproduct_chebiid(self):
         tests = [
             # ChEBI id, id and name of one enzyme, # of enzymes
-            (32682, "3.6.3.21", "Polar-amino-acid-transporting ATPase", 5),
+            (32682, "7.4.2.1", "ABC-type polar-amino-acid transporter", 5),
             (15361, "4.1.2.20", "2-dehydro-3-deoxyglucarate aldolase", 100),
             (33019, "2.7.7.19", "Polynucleotide adenylyltransferase", 474)
         ]
@@ -125,7 +123,7 @@ class TestQueryIntEnz(unittest.TestCase):
              "1.1.1.286")
         ]
         r = qryintenz.get_connections({})
-        self.assertAlmostEqual(38620, len(r), delta=200)
+        self.assertAlmostEqual(39005, len(r), delta=200)
         r = {(e['reactant'], e['product'], e['enzyme']) for e in r}
         for c in tests:
             assert c in r
@@ -140,7 +138,6 @@ class TestQueryIntEnz(unittest.TestCase):
         g = qryintenz.get_connections_graph(qc, limit=40000)
         self.assertAlmostEqual(76, g.number_of_edges(), delta=8)
         self.assertAlmostEqual(41,  g.number_of_nodes(), delta=4)
-        save_graph(g, '../docs/example-graphs/cofactors.json')
 
     def test_lookup_connected_metabolites(self):
         tests = [
@@ -175,7 +172,9 @@ class TestQueryIntEnz(unittest.TestCase):
             break  # let usual tests return faster
 
     def test_neo4j_graphsearch_connected_metabolites(self):
-        tests = [("2-oxoglutarate", "glyoxylate", 1)]
+        tests = [
+            ("2-oxoglutarate", "glyoxylate", 1)
+        ]
         dbc = DBconnection("Neo4j", "")
         q = 'MATCH ({id:{source}})-[]->(r)-[]->({id:{target}})' \
             ' RETURN r.name'
@@ -187,9 +186,10 @@ class TestQueryIntEnz(unittest.TestCase):
 
     def test_neo4j_shortestpathsearch_connected_metabolites(self):
         nqry = QueryIntEnz("Neo4j")
-        tests = [("2-oxoglutarate", "glyoxylate", 1),
-                 ("malonate", "malonyl-CoA", 2)
-                 ]
+        tests = [
+            ("2-oxoglutarate", "glyoxylate", 1),
+            ("malonate", "malonyl-CoA", 2)
+        ]
         for source, target, n in tests:
             r = nqry.neo4j_shortestpathsearch_connected_metabolites(source,
                                                                     target)
@@ -208,7 +208,7 @@ class TestQueryIntEnz(unittest.TestCase):
     def test_neo4j_getreactions(self):
         nqry = QueryIntEnz("Neo4j")
         r = list(nqry.getreactions())
-        self.assertAlmostEqual(6250, len(r), delta=200)
+        self.assertAlmostEqual(6484, len(r), delta=200)
 
     def test_mdb_getreactions(self):
         qc = {'$text': {'$search': '"poly(A)"'}}
