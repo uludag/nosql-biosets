@@ -3,7 +3,7 @@
 
 * [index.py](index.py): Index UniProtKB xml files
   
-  _Tested with Swiss-Prot dataset only, (Nov 2018 release)_
+  _Tested with Swiss-Prot dataset only, (Dec 2018 release)_
   
     ```
     ./nosqlbiosets/uniprot/index.py --help
@@ -94,5 +94,5 @@ wget -P ./data http://cbdm-01.zdv.uni-mainz.de/~mschaefer/hippie/HIPPIE-current.
 ./nosqlbiosets/uniprot/index_mitab.py --infile ./data/HIPPIE-current.mitab.txt\
  --db MongoDB
 ```
- HIPPIE indexing takes ~8m with MongoDB, ~2m with Elasticsearch
+HIPPIE indexing takes ~8m with MongoDB, ~2m with Elasticsearch
  

@@ -57,7 +57,7 @@ class TestQueryUniProt(unittest.TestCase):
     def test_evidence_codes(self):
         ecodes = {  # http://www.uniprot.org/help/evidences
             255: 3840,  # match to sequence model evidence, manual assertion
-            269: 5575,  # experimental evidence used in manual assertion
+            269: 5732,  # experimental evidence used in manual assertion
             305: 4130,  # curator inference used in manual assertion
             250: 2960,  # sequence similarity evidence used in manual assertion
             303: 1360,  # non-traceable author statement, manual assertion
@@ -84,11 +84,11 @@ class TestQueryUniProt(unittest.TestCase):
 
     # Distribution of GO annotations
     def test_GO_annotations(self):
-        tests = [
-            ('Rice', 2734, 25153),
-            ('Human', 17887, 258593),
-            ('Arabidopsis thaliana', 6690, 98433),
-            ('Danio rerio', 5038, 22387)
+        tests = [  # species, unique annotations, all annotations
+            ('Rice', 2755, 25047),
+            ('Human', 17903, 258719),
+            ('Arabidopsis thaliana', 6716, 98433),
+            ('Danio rerio', 5073, 22491)
         ]
         for org, uniqgo, nall in tests:
             qc = {'organism.name.#text': org}
@@ -113,25 +113,25 @@ class TestQueryUniProt(unittest.TestCase):
             ]
             hits = qryuniprot.aggregate_query(aggqc)
             r = [c for c in hits]
-            assert uniqgo == len(r)
-            assert nall == sum([c['abundance'] for c in r])
+            self.assertAlmostEqual(uniqgo, len(r), delta=10)
+            self.assertAlmostEqual(nall, sum([c['abundance'] for c in r]),
+                                   delta=100)
 
     def test_getenzymedata(self):
         enzys = [
             ('2.2.1.11', {'Q58980'}, ("ordered locus", 'MJ1585', 1),
              "Aromatic compound metabolism.",
-             'D-fructose 1,6-bisphosphate = glycerone phosphate'
-             ' + D-glyceraldehyde 3-phosphate.',
+             'beta-D-fructose 1,6-bisphosphate = D-glyceraldehyde 3-phosphate'
+             ' + dihydroxyacetone phosphate',
              'Methanococcus jannaschii', 'common', 1, 1),
             ('2.5.1.-', {'Q5AR51'}, ("primary", 'ubiA', 224),
              "Cofactor biosynthesis; ubiquinone biosynthesis.",
-             '2,5-dichlorohydroquinone + 2 glutathione ='
-             ' chloride + chlorohydroquinone + glutathione disulfide.',
+             'hydrogen sulfide + O-acetyl-L-serine = acetate + L-cysteine',
              'Arabidopsis thaliana', 'scientific', 18, 500),
             ('5.4.2.2', {'P93804'}, ("primary", 'PGM1', 10),
              "Glycolipid metabolism;"
              " diglucosyl-diacylglycerol biosynthesis.",
-             'Alpha-D-ribose 1-phosphate = D-ribose 5-phosphate.',
+             'alpha-D-ribose 1-phosphate = D-ribose 5-phosphate',
              'Baker\'s yeast', 'common', 2, 25)
         ]
         for ecn, accs, gene, pathway, reaction, org, nametype, n, orgs in enzys:
@@ -144,7 +144,7 @@ class TestQueryUniProt(unittest.TestCase):
             r = list(qryuniprot.getpathways(ecn))
             assert pathway in [pw['_id'] for pw in r]
             r = qryuniprot.getcatalyticactivity(ecn)
-            assert reaction in [rc['_id'] for rc in r]
+            assert reaction in [rc['_id'] for rc in r], ecn
             for organisms in [qryuniprot_es.getorganisms(ecn, limit=2000),
                               qryuniprot.getorganisms(ecn, limit=2000)]:
                 assert n == organisms[nametype][org], organisms

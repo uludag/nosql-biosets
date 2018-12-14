@@ -221,7 +221,7 @@ class QueryUniProt:
             {"$unwind": "$comment"},
             {"$match": {"comment.type": "catalytic activity"}},
             {"$group": {
-                "_id": "$comment.text.#text", "total": {"$sum": 1}}},
+                "_id": "$comment.reaction.text", "total": {"$sum": 1}}},
             {"$sort": {"total": -1}},
             {"$limit": limit}
         ]
