@@ -110,9 +110,11 @@ def shortest_paths(dg, source, target, k=None, cutoff=7):
     else:
         i, r = 0, []
         for path in gr:
+            if len(path) > cutoff:
+                break
             r.append(path)
             i += 1
-            if i >= k or len(path) > cutoff:
+            if i >= k:
                 break
         return r
 
@@ -120,7 +122,7 @@ def shortest_paths(dg, source, target, k=None, cutoff=7):
 def neighbors_graph(ingraph, source, beamwidth=4, maxnodes=10):
     """ Neighbors of source node in ingraph """
     assert ingraph.is_directed(), "not implemented for undirected graphs"
-    centrality = nx.eigenvector_centrality_numpy(ingraph, max_iter=10, tol=0.1)
+    centrality = nx.eigenvector_centrality_numpy(ingraph)  # max_iter=10 tol=0.1
     outgraph = nx.MultiDiGraph()
     for u, v in nx.bfs_beam_edges(ingraph, source, centrality.get, beamwidth):
         if isinstance(ingraph, nx.MultiDiGraph):

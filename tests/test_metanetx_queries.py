@@ -18,25 +18,27 @@ class TestQueryMetanetx(unittest.TestCase):
     index = "biosets"
 
     def test_getcompoundname(self, db="MongoDB"):
-        dbc = DBconnection(db, self.index)
+        qry = QueryMetaNetX(db, self.index)
         mids = ['MNXM244', 'MNXM39', 'MNXM89612', 'MNXM2000']
         descs = ['3-oxopropanoate', 'formate', 'glycerol', 'alpha-carotene']
         for mid in mids:
             desc = descs.pop(0)
-            assert desc == qrymtntx.getcompoundname(dbc, mid)
+            assert desc == qry.getcompoundname(mid)
+
+    def test_getcompoundname_es(self):
+        self.test_getcompoundname('Elasticsearch')
 
     def test_id_queries(self, db="MongoDB"):
         keggcids = ['C00222', 'C00116', 'C05433']
         mids = ['MNXM244', 'MNXM89612', 'MNXM2000']
         chebiids = ['17960', '17754', '28425']
-        dbc = DBconnection(db, self.index)
-        mids_ = qrymtntx.keggcompoundids2otherids(dbc, keggcids)
+        qry = QueryMetaNetX(db, self.index)
+        mids_ = qry.keggcompoundids2otherids(keggcids)
         all(mids[i] in mids_[i] for i in [0, 1, 2])
-        chebiids_ = qrymtntx.keggcompoundids2otherids(dbc, keggcids, 'chebi')
+        chebiids_ = qrymtntx.keggcompoundids2otherids(keggcids, 'chebi')
         all(chebiids[i] in chebiids_[i] for i in [0, 1, 2])
-        self.assertEqual([['cpd00536']],
-                         qrymtntx.keggcompoundids2otherids(dbc, ['C00712'],
-                                                           'seed'))
+        self.assertEqual(['cpd00536'],
+                         qrymtntx.keggcompoundids2otherids(['C00712'], 'seed'))
 
     def test_id_queries_es(self):
         self.test_id_queries("Elasticsearch")
@@ -118,7 +120,6 @@ class TestQueryMetanetx(unittest.TestCase):
         for name in names:
             for qterm in [name.lower(), name.upper(), name[:4]]:
                 r = qrymtntx.autocomplete_metabolitenames(qterm, limit=10)
-                print([i['desc'] for i in r])
                 assert any(name in i['desc'] for i in r), name
 
     def test_query_compartments(self):
@@ -138,29 +139,64 @@ class TestQueryMetanetx(unittest.TestCase):
         qc = {"ecno": {"$in": eids}}
         m = qrymtntx.get_metabolite_network(qc)
         self.assertAlmostEqual(563, len(m.nodes()), delta=20)
-        self.assertAlmostEqual(1356, len(m.edges()), delta=20)
+        self.assertAlmostEqual(640, len(m.edges()), delta=20)
 
     def test_metabolite_network_reactome(self):
         qc = {"source.lib": "reactome", "balance": "true"}
-        mn = qrymtntx.get_metabolite_network(qc)
-        self.assertAlmostEqual(458, len(mn.nodes()), delta=20)
-        self.assertAlmostEqual(1250, len(mn.edges()), delta=20)
+        mn = qrymtntx.get_metabolite_network(qc, max_degree=400)
+        self.assertAlmostEqual(430, len(mn.nodes()), delta=60)
+        self.assertAlmostEqual(1157, len(mn.edges()), delta=120)
         assert "L-serine" in mn.nodes()
-        r = neighbors_graph(mn, "acetyl-CoA", beamwidth=5, maxnodes=100)
+        r = neighbors_graph(mn, "acetyl-CoA", beamwidth=10, maxnodes=100)
         # number of nodes differ based on selected search branches
-        self.assertAlmostEqual(50, r.number_of_nodes(), delta=10)
+        self.assertAlmostEqual(60, r.number_of_nodes(), delta=30)
         paths = shortest_paths(mn, 'L-serine', 'acetyl-CoA', 10)
         assert 10 == len(paths)
         assert ['L-serine', 'H2O', 'acetyl-CoA'] == paths[0]
 
     def test_metabolite_network_bigg(self):
-        qc = {"source.lib": "bigg", "balance": "true"}
+        qc = {"$or": [{"source.lib": 'bigg'}, {"xrefs.lib": 'bigg'}]}
+        mn = qrymtntx.get_metabolite_network(qc, max_degree=140)
+        cmpnds = {'xylitol', "L-xylulose", "L-arabinitol"}
+        assert len(cmpnds.intersection(mn.nodes())) == 3
+        assert mn.degree("L-arabinitol") >= 2
+        assert mn.degree("L-xylulose") >= 5
+        r = neighbors_graph(mn, "L-arabinitol", beamwidth=5, maxnodes=160)
+        assert len(r) == 0  # L-arabinitol is product, not reactant
+        paths = shortest_paths(mn, 'alpha-L-arabinan', 'L-arabinitol', 10)
+        assert 1 == len(paths)
+        assert 'L-arabinose' == paths[0][1]
+
+        qc = {"source.lib": "bigg", "xrefs.lib": 'bigg', "balance": "true"}
         mn = qrymtntx.get_metabolite_network(qc)
-        self.assertAlmostEqual(3239, len(mn.nodes()), delta=20)
-        self.assertAlmostEqual(15042, len(mn.edges()), delta=20)
-        assert "L-alanine" in mn.nodes()
+        self.assertAlmostEqual(2815, len(mn.nodes()), delta=200)
+        self.assertAlmostEqual(3741, len(mn.edges()), delta=200)
+        assert 'L-xylulose' not in mn.nodes()
+        assert "xylitol" in mn.nodes()
+        assert len(cmpnds.intersection(mn.nodes())) == 1
+        assert mn.degree("xylitol") >= 1
         r = neighbors_graph(mn, "L-ascorbate", beamwidth=5, maxnodes=100)
-        self.assertAlmostEqual(8, r.number_of_nodes(), delta=2)
+        self.assertAlmostEqual(7, r.number_of_nodes(), delta=4)
+
+    def test_metabolite_network_rhea(self):
+        qc = {"source.lib": "rhea", "balance": "true"}
+        mn = qrymtntx.get_metabolite_network(qc, max_degree=660)
+
+        paths = shortest_paths(mn, 'L-serine', 'acetyl-CoA', 100, cutoff=3)
+        assert 1 == len(paths)
+        assert ['L-serine', 'phosphate', 'acetyl-CoA'] in paths
+
+        self.assertAlmostEqual(7806, len(mn.nodes()), delta=400)
+        self.assertAlmostEqual(17698, len(mn.edges()), delta=1200)
+
+        r = neighbors_graph(mn, "L-ascorbate", beamwidth=5, maxnodes=100)
+        self.assertAlmostEqual(100, r.number_of_nodes(), delta=12)
+        assert 5 == mn.in_degree('L-ascorbate')
+        cofactors = ['FMNH2', 'L-ascorbate', 'Cu(+)', 'Cu(2+)', 'Fe(3+)', 'FMN',
+                     '5,10-methenyltetrahydrofolate', 'NH4(+)', 'Fe(2+)',
+                     'Mn(2+)', "riboflavin", "heme b", "Zn(2+)", "Mg(2+)"]
+        for i in cofactors:
+            assert i in mn.nodes(), i
 
     # Find different 'balance' values for reactions referring to KEGG
     def test_reaction_balances(self):
@@ -196,6 +232,23 @@ class TestQueryMetanetx(unittest.TestCase):
         for i in r:
             self.assertAlmostEqual(balance[i['_id']], len(i['reactions']),
                                    delta=20)
+
+    def test_source_libraries(self):
+        libs = {"seed": 9088, "rhea": 9692, "sabiork": 4790, "reactome": 1457,
+                "bigg": 8040, "metacyc": 9116, "kegg": 2135}
+
+        aggpl = [
+            {"$project": {"source": 1, "balance": 1}},
+            {"$group": {
+                "_id": "$source.lib",
+                "c": {'$sum': 1}
+            }},
+            {"$sort": {"c": -1}},
+        ]
+        r = qrymtntx.dbc.mdbi["metanetx_reaction"].aggregate(aggpl)
+        r = {i['_id']: i['c'] for i in r}
+        for lib in libs:
+            self.assertAlmostEqual(libs[lib], r[lib], delta=10)
 
 
 if __name__ == '__main__':

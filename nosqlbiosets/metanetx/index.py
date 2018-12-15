@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-""" Index MetaNetX compounds, reactions, and compartment files (version 3.0)
- with Elasticsearch or MongoDB"""
+""" Index MetaNetX compounds, reactions, and compartment files
+    with Elasticsearch or MongoDB (tested with version 3.1)"""
 from __future__ import print_function
 
 import argparse

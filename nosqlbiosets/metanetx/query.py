@@ -7,6 +7,7 @@ import re
 import networkx as nx
 from nosqlbiosets.dbutils import DBconnection
 from nosqlbiosets.metanetx.index import TYPE_COMPOUND, TYPE_REACTION
+from nosqlbiosets.graphutils import remove_highly_connected_nodes
 
 
 def cobrababel_parse_metanetx_equation(equation):
@@ -53,21 +54,20 @@ def cobrababel_parse_metanetx_equation(equation):
 
 class QueryMetaNetX:
 
-    def __init__(self, db="MongoDB"):
-        self.index = "biosets"
-        self.dbc = DBconnection(db, self.index)
+    def __init__(self, db="MongoDB", index='biosets'):
+        self.dbc = DBconnection(db, index)
 
     # Given MetaNetX compound id return its name
-    def getcompoundname(self, dbc, mid, limit=0):
-        if dbc.db == 'Elasticsearch':
+    def getcompoundname(self, mid, limit=0):
+        if self.dbc.db == 'Elasticsearch':
             index, doctype = TYPE_COMPOUND, "_doc"
             qc = {"match": {"_id": mid}}
-            hits, n = self.esquery(dbc.es, index, qc, doctype)
+            hits, n = self.esquery(self.dbc.es, index, qc, doctype)
         else:  # MongoDB
             qc = {"_id": mid}
-            hits = list(dbc.mdbi[TYPE_COMPOUND].find(qc, limit=limit))
+            hits = list(self.dbc.mdbi[TYPE_COMPOUND].find(qc, limit=limit))
             n = len(hits)
-        assert 1 == n, "%s %s" % (dbc.db, mid)
+        assert 1 == n, "%s %s" % (self.dbc.db, mid)
         c = hits[0]
         desc = c['desc'] if 'desc' in c else c['_source']['desc']
         return desc
@@ -93,14 +93,14 @@ class QueryMetaNetX:
         return r
 
     # Given KEGG compound ids find ids for other libraries
-    def keggcompoundids2otherids(self, dbc, cids, lib='MetanetX'):
-        if dbc.db == 'Elasticsearch':
+    def keggcompoundids2otherids(self, cids, lib='MetanetX'):
+        if self.dbc.db == 'Elasticsearch':
             index, doctype = TYPE_COMPOUND, "_doc"
             qc = {"match": {"xrefs.id": ' '.join(cids)}}
-            hits, n = self.esquery(dbc.es, index, qc, doctype, len(cids))
+            hits, n = self.esquery(self.dbc.es, index, qc, doctype, len(cids))
         else:  # MongoDB
             qc = {'xrefs.id': {'$in': cids}}
-            hits = list(dbc.mdbi[TYPE_COMPOUND].find(qc))
+            hits = list(self.dbc.mdbi[TYPE_COMPOUND].find(qc))
             n = len(hits)
         assert len(cids) == n
         mids = [None] * n
@@ -108,14 +108,18 @@ class QueryMetaNetX:
             i, libids = None, []
             for xref in (c['xrefs'] if 'xrefs' in c else c['_source']['xrefs']):
                 if i is None and xref['lib'] == 'kegg':
-                    i = cids.index(xref['id'][0])
+                    for id_ in xref['id']:
+                        if id_ in cids:
+                            i = cids.index(id_)
+                            break
                 if xref['lib'] == lib:
                     if libids is []:
                         libids = xref['id']
                     else:
                         libids += xref['id']
             if i is not None:
-                mids[i] = libids
+                assert len(libids) >= 1
+                mids[i] = libids[0]  # TODO: check me
         return mids
 
     @staticmethod
@@ -193,21 +197,34 @@ class QueryMetaNetX:
         metabolites = {i['_id']: i['desc'] for i in cr}
         return reacts, metabolites
 
-    def get_metabolite_network(self, qc):
+    def get_metabolite_network(self, qc, sidec=None, selfloops=False,
+                               max_degree=40):
         """
         Get network of metabolites,
         edges refer to the unique set of reactions connecting two metabolites
-        :param qc: specify the subset of reactions
-        :return: metabolites graph as networkX object
+        :param qc: specify the subset of reactions in MetaNetX
+        :param sidec: metabolites not to include in the graph returned
+        :param selfloops: include self loops,
+           metabolites are often on both sides of reactions
+        :param max_degree: nodes with connections more than max_degree
+           are not included in the result graph
+        :return: metabolites graph as NetworkX object
         """
         reacts, metabolites = self.reactionswithmetabolites(qc)
-
+        if sidec is not None:
+            sidec = " ".join(sidec)
         mn = nx.DiGraph(name='metanetx',
                         query=json.dumps(qc).replace('"', '\''))
         for r in reacts:
             for u_ in r['reactants']:
+                if sidec is not None and u_ in sidec:
+                    continue
                 u = metabolites[u_]
                 for v in r['products']:
+                    if not selfloops and v == u_:
+                        continue
+                    if sidec is not None and v in sidec:
+                        continue
                     v = metabolites[v]
                     if mn.has_edge(u, v):
                         er = mn.get_edge_data(u, v)['reactions']
@@ -215,6 +232,6 @@ class QueryMetaNetX:
                     else:
                         er = [r['_id']]
                         mn.add_edge(u, v, reactions=er,
-                                    source=r['source']['lib'], ec=r['ecno'])
-
+                                    sourcelib=r['source']['lib'], ec=r['ecno'])
+        remove_highly_connected_nodes(mn, max_degree=max_degree)
         return mn
