@@ -16,8 +16,8 @@ class TestQueryModelSEEDDatabase(unittest.TestCase):
     # Finds ModelSEEDdb 'status' values for KEGG reactions
     # https://github.com/ModelSEED/ModelSEEDDatabase/tree/master/Biochemistry#reaction-status-values
     def test_kegg_reactions_in_modelseeddb(self):
-        rstatus = {"OK": 6768, "CI:1": 27, "CI:2": 181,  "CI:4": 19,
-                   "CI:-2": 141,  "CI:-4": 16,
+        rstatus = {"OK": 6823, "CI:1": 27, "CI:2": 175,  "CI:4": 19,
+                   "CI:-2": 137,  "CI:-4": 16,
                    "MI:O:1": 118, "MI:O:-1": 16, "MI:H:2/N:1/R:1": 54,
                    "MI:C:1/H:2": 32,
                    "MI:H:-1/O:1|CI:-1": 22,
@@ -38,7 +38,8 @@ class TestQueryModelSEEDDatabase(unittest.TestCase):
         for i in r:
             # 769 different status values, check only frequent values
             if len(i['kegg_ids']) > 15:
-                assert rstatus[i['_id']] == len(i['kegg_ids'])
+                self.assertAlmostEqual(len(i['kegg_ids']), rstatus[i['_id']],
+                                       delta=10), i['_id']
 
     def test_comparewithMetaNetX_reactions(self):
         aggpl = [
@@ -48,7 +49,7 @@ class TestQueryModelSEEDDatabase(unittest.TestCase):
         ]
         r = dbc.mdbi["modelseed_reaction"].aggregate(aggpl)
         inmodelseeddb = {i['abbreviation'] for i in r}
-        self.assertAlmostEqual(6768, len(inmodelseeddb), delta=30)
+        self.assertAlmostEqual(6823, len(inmodelseeddb), delta=30)
         aggpl = [
             {"$match": {"balance": "true"}},
             {"$project": {"xrefs": 1}},
@@ -58,11 +59,12 @@ class TestQueryModelSEEDDatabase(unittest.TestCase):
         r = dbc.mdbi["metanetx_reaction"].aggregate(aggpl)
         inmetanetx = {i['xrefs']['id'] for i in r}
         assert 7785 == len(inmetanetx)
-        assert 657 == len(inmodelseeddb - inmetanetx)
-        assert 8442 == len(inmodelseeddb.union(inmetanetx))
-        self.assertAlmostEqual(6100,
+        self.assertAlmostEqual(len(inmodelseeddb - inmetanetx), 668, delta=80)
+        self.assertAlmostEqual(len(inmodelseeddb.union(inmetanetx)), 8453,
+                               delta=100)
+        self.assertAlmostEqual(6155,
                                len(inmodelseeddb.intersection(inmetanetx)),
-                               delta=30)
+                               delta=100)
 
     def test_comparewithMetaNetX_inchikeys(self):
         r = dbc.mdbi["modelseed_compound"].distinct("inchikey")
@@ -85,13 +87,10 @@ class TestQueryModelSEEDDatabase(unittest.TestCase):
         from nosqlbiosets.modelseed.query import modelseeddb_parse_equation
         eq = "(1) cpd00003[0] + (1) cpd19024[0] <=>" \
              " (1) cpd00004[0] + (3) cpd00067[0] + (1) cpd00428[0]"
-        r = modelseeddb_parse_equation(eq)
-        print()
-        print(r)
-        print()
-        st = "-1:cpd02570:0:0:\"Parapyruvate\";2:cpd00020:0:0:\"Pyruvate\""
-        a = st.split(':')
-        print(a)
+        reactants, products, direction = modelseeddb_parse_equation(eq)
+        assert len(reactants) == 2
+        assert len(products) == 3
+        assert direction == '='
 
     def test_compoundnames(self):
         mids = ['cpd00191', 'cpd00047', 'cpd00100']
@@ -138,11 +137,11 @@ class TestQueryModelSEEDDatabase(unittest.TestCase):
 
         qc = {"status": "OK", "reversibility": "<"}
         mn = qry.get_metabolite_network(qc)
-        assert 3571 == len(mn.edges)
-        assert 1467 == len(mn.nodes)
+        self.assertAlmostEqual(len(mn.edges), 3743, delta=100)
+        self.assertAlmostEqual(len(mn.nodes), 1558, delta=100)
         assert 'Phosphate' in mn.nodes
         r = neighbors_graph(mn, "Phosphate", beamwidth=8, maxnodes=100)
-        assert 87 == r.number_of_nodes()
+        assert 88 == r.number_of_nodes()
         r = neighbors_graph(mn, "Phosphate", beamwidth=6, maxnodes=20)
         assert 20 == r.number_of_nodes()
         r = neighbors_graph(mn, "Phosphate", beamwidth=4, maxnodes=20)
@@ -159,12 +158,13 @@ class TestQueryModelSEEDDatabase(unittest.TestCase):
         assert 4 == len(paths[0])
 
         assert mn.has_edge('Parapyruvate', 'Pyruvate')
-        assert 'rxn00004' in\
+        assert '4-hydroxy-4-methyl-2-oxoglutarate pyruvate-lyase' \
+               ' (pyruvate-forming)' in\
                mn.get_edge_data('Parapyruvate', 'Pyruvate')['reactions']
         paths = shortest_paths(mn, 'Parapyruvate', 'Pyruvate', 10)
         assert 10 == len(paths)
         assert 2 == len(paths[0])
-        assert 72427 == len(mn.edges)
+        self.assertAlmostEqual(len(mn.edges), 72456, delta=100)
         assert 15672 == len(mn.nodes)
         assert 'Glycerol' in mn.nodes
 

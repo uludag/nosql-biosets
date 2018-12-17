@@ -116,7 +116,8 @@ class QueryModelSEED:
     def get_metabolite_network(self, qc, **kwargs):
         import networkx as nx
         graph = nx.DiGraph(name='modelseeddb', query=json.dumps(qc))
-        reacts = self.dbc.mdbi[REACTIONSTYPE].find(qc, **kwargs)
+        reacts = self.dbc.mdbi[REACTIONSTYPE].\
+            find(qc, projection=['name', 'equation'], **kwargs)
         mre = re.compile(r'\((\d*\.*\d*(e-\d+)?)\) (cpd\d+)\[(\d+)\]')
         r = self.query_metabolites({}, projection=['name'])
         id2name = {i['_id']: i['name'] for i in r}
@@ -138,8 +139,9 @@ class QueryModelSEED:
                         graph.add_node(v)
                     if graph.has_edge(u, v):
                         er = graph.get_edge_data(u, v)['reactions']
-                        er.append(r['_id'])
+                        er.add(r['name'])
                     else:
-                        er = [r['_id']]
+                        er = set()
+                        er.add(r['name'])
                         graph.add_edge(u, v, reactions=er)
         return graph

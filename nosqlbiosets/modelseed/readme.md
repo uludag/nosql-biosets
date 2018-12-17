@@ -4,7 +4,7 @@
 * [index.py](index.py) Index ModelSEEDDatabase compounds/reactions
  data with MongoDB or Elasticsearch
  
-  _Last tested in Oct 2018_
+  _Last tested in Dec 2018_
 
 ## Source
 
@@ -19,10 +19,10 @@ mkdir -p data
 wget -O ./data/compounds.tsv https://github.com/ModelSEED/ModelSEEDDatabase/blob/master/Biochemistry/compounds.tsv?raw=true
 wget -O ./data/reactions.tsv https://github.com/ModelSEED/ModelSEEDDatabase/blob/master/Biochemistry/reactions.tsv?raw=true
 
-# Index compounds with MongoDB, requires ~15s
+# Index compounds with MongoDB, requires ~40s
 ./nosqlbiosets/modelseed/index.py --db MongoDB --index biosets --compoundsfile data/compounds.tsv
 
-# Index reactions with MongoDB, requires ~20s
+# Index reactions with MongoDB, requires ~50s
 ./nosqlbiosets/modelseed/index.py --db MongoDB --index biosets --reactionsfile data/reactions.tsv
 
 # Index compounds with Elasticsearch, requires ~10s
