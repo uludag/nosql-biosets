@@ -87,9 +87,8 @@ class QueryDrugBank:
         key = 'name'
         uniprotid = qryuniprot.dbc.mdbi['uniprot'].distinct(key, filter=qc)
         assert 1 == len(uniprotid)
-        qc = {etype+".polypeptide.external-identifiers."
-              "external-identifier.identifier": uniprotid[0]}
-
+        qc = {
+            etype+".polypeptide.external-identifiers.identifier": uniprotid[0]}
         aggq = [
             {"$match": qc},
             {'$unwind': "$"+etype},

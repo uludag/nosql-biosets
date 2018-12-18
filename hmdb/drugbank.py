@@ -42,15 +42,18 @@ def update_entry_forindexing(e, slim=True):
             for i in e[att]:
                 if 'position' in i:
                     i['position'] = int(i['position'])
-                if slim is True and 'polypeptide' in i:
-                    # Delete sequence attributes
-                    if not (isinstance(i['polypeptide'], list)):
-                        del i['polypeptide']['amino-acid-sequence']
-                        del i['polypeptide']['gene-sequence']
+                if 'polypeptide' in i:
+                    if isinstance(i['polypeptide'], list):
+                        for pp in i['polypeptide']:
+                            if slim is True:
+                                del pp['amino-acid-sequence']
+                                del pp['gene-sequence']
+                            unifylistattributes(pp, LIST_ATTRS)
                     else:
-                        for j in i['polypeptide']:
-                            del j['amino-acid-sequence']
-                            del j['gene-sequence']
+                        if slim is True:
+                            del i['polypeptide']['amino-acid-sequence']
+                            del i['polypeptide']['gene-sequence']
+                        unifylistattributes(i['polypeptide'], LIST_ATTRS)
     if slim is True:
         if 'sequences' in e:
             del e['sequences']
@@ -159,6 +162,8 @@ TEXT_FIELDS = ["description", "atc-codes.level.#text",
                "mechanism-of-action",
                "general-references.references.articles.article.citation",
                "targets.references.articles.article.citation",
+               "targets.polypeptide.gene-name",
+               "drug interactions.description",
                "targets.polypeptide.general-function",
                "targets.polypeptide.specific-function"]
 

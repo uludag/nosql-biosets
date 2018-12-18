@@ -65,14 +65,12 @@ class TestQueryDrugBank(unittest.TestCase):
         self.assertAlmostEqual(113, len(names), delta=40)
 
     def test_distinct_go_classes(self):
-        key = "transporters.polypeptide.go-classifiers." \
-              "go-classifier.description"
+        key = "transporters.polypeptide.go-classifiers.description"
         names = self.qry.distinctquery(key)
         self.assertIn("lipid transport", names)
         self.assertAlmostEqual(1324, len(names), delta=400)
 
     def test_distinct_targets_features(self):
-
         # Drugs that have at least one target: ~7400
         agpl = [
             {'$match': {'targets': {'$exists': True}
@@ -80,9 +78,7 @@ class TestQueryDrugBank(unittest.TestCase):
             {'$group': {
                 '_id': None,
                 "count": {"$sum": 1}
-            }
-            },
-        ]
+            }}]
         r = list(self.qry.aggregate_query(agpl))
         self.assertAlmostEqual(7399, r[0]['count'], delta=60)
 
@@ -218,8 +214,17 @@ class TestQueryDrugBank(unittest.TestCase):
         r = list(self.qry.query(qc, projection=project))
         assert 1 == len(r)
         interactions = r[0]["drug-interactions"]
-        assert 'DB01357' in [i["drugbank-id"] for i in interactions]
-        assert 'Mestranol' in [i["name"] for i in interactions]
+        assert 398 == len(interactions)
+
+        qc = {"_id": "DB00072"}
+        r = list(self.qry.query(qc, projection=project))
+        assert 1 == len(r)
+        interactions = r[0]["drug-interactions"]
+        assert 568 == len(interactions)
+        assert 'DB08879' in [i["drugbank-id"] for i in interactions]
+        names = [i["name"] for i in interactions]
+        assert 'Begelomab' in names
+
         key = "drug-interactions.name"
         names = self.qry.distinctquery(key)
         self.assertIn("Calcium Acetate", names)
@@ -248,12 +253,12 @@ class TestQueryDrugBank(unittest.TestCase):
 
     def test_example_text_queries(self):
         for qterm, n in [
+            ('coronavirus', 5), ('MERS-CoV', 5), ('mrsa', 11),
             ('methicillin', 23), ('meticillin', 1), ('defensin', 15)
         ]:
             qc = {'$text': {'$search': qterm}}
-            g = self.qry.query(qc)
-            g = list(g)
-            assert n == len(g)
+            g = self.qry.query(qc, projection={"_id": 1})
+            assert len(list(g)) == n, qterm
 
     def test_example_graph(self):
         qc = {'$text': {'$search': 'methicillin'}}
