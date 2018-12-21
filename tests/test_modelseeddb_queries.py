@@ -141,11 +141,11 @@ class TestQueryModelSEEDDatabase(unittest.TestCase):
         self.assertAlmostEqual(len(mn.nodes), 1558, delta=100)
         assert 'Phosphate' in mn.nodes
         r = neighbors_graph(mn, "Phosphate", beamwidth=8, maxnodes=100)
-        assert 88 == r.number_of_nodes()
+        assert 100 == r.number_of_nodes() == 100
         r = neighbors_graph(mn, "Phosphate", beamwidth=6, maxnodes=20)
-        assert 20 == r.number_of_nodes()
+        assert r.number_of_nodes() == 20
         r = neighbors_graph(mn, "Phosphate", beamwidth=4, maxnodes=20)
-        assert 12 == r.number_of_nodes()
+        assert r.number_of_nodes() == 20
 
         qc = {}
         mn = qry.get_metabolite_network(qc)

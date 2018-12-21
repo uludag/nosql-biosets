@@ -1,8 +1,10 @@
 #!/usr/bin/env python
-""" Queries with ModelSEEDDatabase data indexed with MongoDB """
+""" Queries with ModelSEEDDatabase data indexed with MongoDB,
+    few queries with Elasticsearch """
 import json
 import re
 
+import networkx as nx
 from nosqlbiosets.dbutils import DBconnection
 
 # MongoDB collection names or Elasticsearch index names:
@@ -111,11 +113,11 @@ class QueryModelSEED:
         r = self.query_metabolites(qc, projection=['name'], **kwargs)
         return list(r)
 
-    # Get network of metabolites,
-    # edges refer to the unique set of reactions connecting two metabolites
     def get_metabolite_network(self, qc, **kwargs):
-        import networkx as nx
-        graph = nx.DiGraph(name='modelseeddb', query=json.dumps(qc))
+        """ Get graph of metabolites for given reaction query,
+        edges data include the set of reactions connecting two metabolites
+        """
+        graph = nx.DiGraph(name='ModelSEEDdb', query=json.dumps(qc))
         reacts = self.dbc.mdbi[REACTIONSTYPE].\
             find(qc, projection=['name', 'equation'], **kwargs)
         mre = re.compile(r'\((\d*\.*\d*(e-\d+)?)\) (cpd\d+)\[(\d+)\]')
@@ -139,9 +141,27 @@ class QueryModelSEED:
                         graph.add_node(v)
                     if graph.has_edge(u, v):
                         er = graph.get_edge_data(u, v)['reactions']
-                        er.add(r['name'])
+                        if r['name'] not in er:
+                            er.append(r['name'])
                     else:
-                        er = set()
-                        er.add(r['name'])
+                        er = list([r['name']])
                         graph.add_edge(u, v, reactions=er)
         return graph
+
+
+def cyview(query):
+    """ See metabolite networks with Cytoscape runing on your local machine """
+    from py2cytoscape.data.cyrest_client import CyRestClient
+    from nosqlbiosets import parseinputquery
+    qc = parseinputquery(query)
+    qry = QueryModelSEED()
+    mn = qry.get_metabolite_network(qc)
+    client = CyRestClient()
+    client.network.create_from_networkx(mn)
+
+
+if __name__ == '__main__':
+    import argh
+    argh.dispatch_commands([
+        cyview
+    ])

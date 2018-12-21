@@ -213,7 +213,7 @@ class QueryMetaNetX:
         reacts, metabolites = self.reactionswithmetabolites(qc)
         if sidec is not None:
             sidec = " ".join(sidec)
-        mn = nx.DiGraph(name='metanetx',
+        mn = nx.DiGraph(name='MetaNetX',
                         query=json.dumps(qc).replace('"', '\''))
         for r in reacts:
             for u_ in r['reactants']:
@@ -228,10 +228,29 @@ class QueryMetaNetX:
                     v = metabolites[v]
                     if mn.has_edge(u, v):
                         er = mn.get_edge_data(u, v)['reactions']
-                        er.append(r['_id'])
+                        if r['_id'] not in er:
+                            er.append(r['_id'])
                     else:
-                        er = [r['_id']]
+                        er = list([r['_id']])
                         mn.add_edge(u, v, reactions=er,
                                     sourcelib=r['source']['lib'], ec=r['ecno'])
         remove_highly_connected_nodes(mn, max_degree=max_degree)
         return mn
+
+
+def cyview(query):
+    """ See metabolite networks with Cytoscape runing on your local machine """
+    from py2cytoscape.data.cyrest_client import CyRestClient
+    from nosqlbiosets import parseinputquery
+    qc = parseinputquery(query)
+    qry = QueryMetaNetX()
+    mn = qry.get_metabolite_network(qc)
+    client = CyRestClient()
+    client.network.create_from_networkx(mn)
+
+
+if __name__ == '__main__':
+    import argh
+    argh.dispatch_commands([
+        cyview
+    ])

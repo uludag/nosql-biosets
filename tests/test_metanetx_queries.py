@@ -149,7 +149,7 @@ class TestQueryMetanetx(unittest.TestCase):
         assert "L-serine" in mn.nodes()
         r = neighbors_graph(mn, "acetyl-CoA", beamwidth=10, maxnodes=100)
         # number of nodes differ based on selected search branches
-        self.assertAlmostEqual(60, r.number_of_nodes(), delta=30)
+        self.assertAlmostEqual(100, r.number_of_nodes(), delta=30)
         paths = shortest_paths(mn, 'L-serine', 'acetyl-CoA', 10)
         assert 10 == len(paths)
         assert ['L-serine', 'H2O', 'acetyl-CoA'] == paths[0]
