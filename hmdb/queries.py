@@ -1,14 +1,11 @@
 #!/usr/bin/env python
 """ Queries with HMDB and DrugBank data indexed with MongoDB """
 
-import argparse
-
+from hmdb.drugbank import DOCTYPE  # Default MongoDB collection name
 from hmdb.index import DOCTYPE_METABOLITE, DOCTYPE_PROTEIN
 from nosqlbiosets.dbutils import DBconnection
 from nosqlbiosets.graphutils import *
 from nosqlbiosets.uniprot.query import QueryUniProt
-
-from .drugbank import DOCTYPE  # Default collection for DrugBank MongoDB store
 
 index = "biosets"
 db = "MongoDB"
@@ -131,7 +128,6 @@ class QueryDrugBank:
     def get_connections_graph(self, qc, connections, outfile=None):
         interactions = self.get_connections(qc, connections)
         graph = nx.MultiDiGraph(name=connections, query=json.dumps(qc))
-
         colors = {
             "drug": 'yellowgreen',
             "targets": 'orchid',
@@ -146,7 +142,6 @@ class QueryDrugBank:
                            type=_type,
                            viz_color=colors[_type])
             graph.add_edge(u, v)
-
         if outfile is not None:
             save_graph(graph, outfile)
         return graph
@@ -164,12 +159,12 @@ class QueryHMDB:
     dbc = DBconnection(db, index)
     mdb = dbc.mdbi
 
-    def getconnectedmetabolites(self, qc, beamwidth=-1):
+    def getconnectedmetabolites(self, qc, max_associations=-1):
         # Return pairs of connected metabolites
         # together with associated proteins and their types
         graphlookup = True
         agpl = [
-            qc,
+            {'$match': qc},
             {"$unwind": {
                 "path": "$protein_associations.protein",
                 "preserveNullAndEmptyArrays": False
@@ -178,16 +173,16 @@ class QueryHMDB:
                 'from': DOCTYPE_PROTEIN,
                 'startWith': '$protein_associations.protein.protein_accession',
                 'connectFromField':
-                    'metabolite_associations.metabolite.accession__??',
+                    'metabolite_associations.metabolite.accession',
                 'connectToField':
                     'accession',
                 'maxDepth': 0,
                 'depthField': "depth",
                 'as': 'associated_proteins',
                 "restrictSearchWithMatch": {
-                    "metabolite_associations.metabolite.%d" % beamwidth: {
-                        "$exists": False}
-                } if beamwidth != -1 else {}
+                    "metabolite_associations.metabolite.%d" % max_associations:
+                        {"$exists": False}
+                } if max_associations != -1 else {}
             }} if graphlookup else
             {'$lookup': {
                 'from': DOCTYPE_PROTEIN,
@@ -209,8 +204,8 @@ class QueryHMDB:
              }},
             {'$match': {
                 'associated_proteins.metabolite_associations.'
-                'metabolite.%d' % beamwidth: {
-                    "$exists": False}} if beamwidth != -1 else {}
+                'metabolite.%d' % max_associations: {
+                    "$exists": False}} if max_associations != -1 else {}
              },
             {"$unwind": {
                 "path": "$associated_proteins."
@@ -241,7 +236,7 @@ class QueryHMDB:
         return r
 
     def get_connections_graph(self, connections, query=None, outfile=None):
-        graph = nx.DiGraph(name='test', query=query)
+        graph = nx.DiGraph(name='HMDB', query=query)
 
         for i in connections:
             u = i['m1']
@@ -259,24 +254,42 @@ class QueryHMDB:
         return graph
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(
-        description='Save DrugBank interactions as NetworkX graph files')
-    parser.add_argument('-qc', '--qc',
-                        default='{}',
-                        help='MongoDB query clause to select subsets'
-                             ' of DrugBank entries,'
-                             ' ex: \'{"carriers.name": "Serum albumin"}\'')
-    parser.add_argument('-graphfile', '--graphfile',
-                        help='File name for saving the output graph'
-                             ' in GraphML, GML, Cytoscape.js or d3js formats,'
-                             ' see readme.md for details')
-    parser.add_argument('--connections',
-                        default='targets',
-                        help='"targets", "enzymes", "transporters" or'
-                             ' "carriers"')
-    args = parser.parse_args()
+def savegraph(query, graphfile, connections='targets'):
+    """Save DrugBank interactions as graph files
+    :param query: MongoDB query clause to select subsets of DrugBank entries
+                  ex: \'{"carriers.name": "Serum albumin"}\'
+    :param graphfile: File name for saving the output graph
+                    ' in GraphML, GML, Cytoscape.js or d3js formats,'
+                    ' see readme.md for details'
+    :param connections: "targets", "enzymes", "transporters" or
+                              "carriers
+    """
+    from nosqlbiosets import parseinputquery
     qry = QueryDrugBank()
-    qc_ = json.loads(args.qc)
-    g = qry.get_connections_graph(qc_, args.connections, args.graphfile)
+    qc = parseinputquery(query)
+    g = qry.get_connections_graph(qc, connections, graphfile)
     print(nx.info(g))
+
+
+def cyview(query, dataset='HMDB', connections='targets'):
+    """ See HMDB/DrugBank graphs
+     with Cytoscape runing on your local machine """
+    from py2cytoscape.data.cyrest_client import CyRestClient
+    from nosqlbiosets import parseinputquery
+    qc = parseinputquery(query)
+    if dataset == 'HMDB':
+        qry = QueryHMDB()
+        pairs = qry.getconnectedmetabolites(qc)
+        mn = qry.get_connections_graph(pairs, query)
+    else:  # assume DrugBank
+        qry = QueryDrugBank()
+        mn = qry.get_connections_graph(qc, connections)
+    client = CyRestClient()
+    client.network.create_from_networkx(mn)
+
+
+if __name__ == '__main__':
+    import argh
+    argh.dispatch_commands([
+        savegraph, cyview
+    ])

@@ -121,8 +121,8 @@ class TestQueryHMDB(unittest.TestCase):
         assert {'CYP3A4'} == genes[0].intersection(genes[1])
 
     def test_connected_metabolites__example_graph(self):
-        qc = {'$match': {'$text': {'$search': 'albumin'}}}
-        connections = self.qry.getconnectedmetabolites(qc, beamwidth=10)
+        qc = {'$text': {'$search': 'albumin'}}
+        connections = self.qry.getconnectedmetabolites(qc, max_associations=10)
         r = self.qry.get_connections_graph(connections, json.dumps(qc))
         print(nx.info(r))
         from nosqlbiosets.graphutils import save_graph
@@ -132,32 +132,34 @@ class TestQueryHMDB(unittest.TestCase):
     def test_connected_metabolites(self):
         qry = QueryHMDB()
         tests = [
-            # query, expected results without/with max connections limit
-            ({'$match': {'$text': {'$search': 'methicillin'}}},
+            # query, expected results without/with maximum associations limit
+            ({'$text': {'$search': 'methicillin'}},
              (125, 1, 2, 72), (0, 0, 0, 0)),
-            ({'$match': {'$text': {'$search': 'bilirubin'}}},
-             (16688, 7, 37, 2679), (188, 3, 15, 66)),
-            ({'$match': {'$text': {'$search': 'albumin'}}},
+            ({'$text': {'$search': 'bilirubin'}},
+             (16628, 7, 37, 2664), (188, 3, 15, 66)),
+            ({'$text': {'$search': 'albumin'}},
              (2498, 6, 24, 822), (68, 4, 12, 41)),
-            ({'$match': {'$text': {'$search': 'cofactor'}}},
-             (33898, 63, 543, 8808), (5272, 57, 461, 862)),
-            ({'$match': {"taxonomy.class": "Quinolines and derivatives"}},
-             (25232, 33, 65, 5595), (954, 24, 30, 282)),
-            ({'$match': {"taxonomy.sub_class": "Pyrroloquinolines"}},
+            ({'$text': {'$search': 'cofactor'}},
+             (33838, 63, 543, 8793), (5272, 57, 461, 862)),
+            ({"taxonomy.class": "Quinolines and derivatives"},
+             (25217, 33, 65, 5580), (954, 24, 30, 282)),
+            ({"taxonomy.sub_class": "Pyrroloquinolines"},
              (0, 0, 0, 0), (0, 0, 0, 0)),
-            ({'$match': {'taxonomy.substituents': "Pyrroloquinoline"}},
+            ({'taxonomy.substituents': "Pyrroloquinoline"},
              (8662, 10, 23, 720), (896, 7, 10, 75)),
-            ({'$match': {'accession': 'HMDB0000678'}},
+            ({'accession': 'HMDB0000678'},
              (366, 1, 4, 163), (0, 0, 0, 0))
         ]
         for qc, a, b in tests:
-            for c, beamwidth in [[a, -1], [b, 30]]:
-                n, u_, g_, v_ = c
-                r = list(qry.getconnectedmetabolites(qc, beamwidth=beamwidth))
+            for c, max_associations in [[a, -1], [b, 30]]:
+                # max_associations: -1, 30
+                npairs, u_, g_, v_ = c
+                r = list(qry.getconnectedmetabolites(
+                    qc, max_associations=max_associations))
                 u = {i['m1'] for i in r}
                 g = {i['gene'] for i in r}
                 v = {i['m2'] for i in r}
-                self.assertAlmostEqual(n, len(r), qc, delta=100)
+                self.assertAlmostEqual(npairs, len(r), delta=10)
                 assert u_ == len(u), qc
                 assert g_ == len(g), qc
                 assert v_ == len(v), qc
