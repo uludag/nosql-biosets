@@ -371,6 +371,8 @@ class TestQueryDrugBank(unittest.TestCase):
 
     def test_number_of_interacted_drugs(self):
         tests = [
+            ([(0, 352), (1, 1377)],
+             {'$text': {'$search': "tuberculosis"}}),
             ([(0, 40), (1, 175), (2, 983)],
              {'$text': {'$search': "antitubercular"}}),
             ([(0, 6), (1, 23), (2, 137)],
@@ -404,6 +406,47 @@ class TestQueryDrugBank(unittest.TestCase):
                 r = self.qry.aggregate_query(agpl)
                 r = [c for c in r]
                 self.assertAlmostEqual(nr, len(r), delta=20)
+
+    def test_number_of_target_connected_drugs(self):
+        """"Number of drugs which are neighbors through shared targets"""
+        tests = [
+            ([(0, 0), (1, 0)],
+             {'$text': {'$search': "antitubercular"}}),
+            ([(0, 441), (1, 550)],
+             {'$text': {'$search': "tuberculosis"}}),
+            ([(0, 351), (1, 351), (2, 351)],
+             {"name": "Ribavirin"})
+        ]
+        for test, qc in tests:
+            for maxdepth, nr in test:
+                agpl = [
+                    {'$match': qc},
+                    {'$unwind': '$targets'},
+                    {'$unwind': '$targets.polypeptide'},
+                    {"$graphLookup": {
+                        "from": DOCTYPE,
+                        "startWith": "$targets.polypeptide.gene-name",
+                        "connectToField":
+                            "targets.polypeptide.gene-name",
+                        "connectFromField":
+                            "targets.polypeptide.gene-name",
+                        "as": "neighbors",
+                        "maxDepth": maxdepth,
+                        "depthField": "depth",
+                        "restrictSearchWithMatch": {
+                            "classification.class":
+                                "Carboxylic Acids and Derivatives"
+                        }
+                    }},
+                    {"$unwind": "$neighbors"},
+                    {'$project': {
+                        'name': 1,
+                        'neighbors.name': 1
+                    }}
+                ]
+                r = self.qry.aggregate_query(agpl, allowDiskUse=True)
+                r = [c for c in r]
+                assert len(r) == nr, maxdepth
 
 
 if __name__ == '__main__':
