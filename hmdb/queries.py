@@ -271,21 +271,30 @@ def savegraph(query, graphfile, connections='targets'):
     print(nx.info(g))
 
 
-def cyview(query, dataset='HMDB', connections='targets'):
-    """ See HMDB/DrugBank graphs
-     with Cytoscape runing on your local machine """
+def cyview(query, dataset='HMDB', connections='targets', name=''):
+    """ See HMDB/DrugBank graphs with Cytoscape runing on your local machine
+
+     :param query: Query to select HMDB or DrugBank entries
+     :param dataset: HMDB or DrugBank, not case sensitive
+     :param connections: Connection type for DrugBank entries
+     :param name: Name of the graph on Cytoscape, query is used as default value
+     """
     from py2cytoscape.data.cyrest_client import CyRestClient
     from nosqlbiosets import parseinputquery
+    from py2cytoscape.data.style import Style
     qc = parseinputquery(query)
-    if dataset == 'HMDB':
+    if dataset.upper() == 'HMDB':
         qry = QueryHMDB()
         pairs = qry.getconnectedmetabolites(qc)
         mn = qry.get_connections_graph(pairs, query)
     else:  # assume DrugBank
         qry = QueryDrugBank()
         mn = qry.get_connections_graph(qc, connections)
-    client = CyRestClient()
-    client.network.create_from_networkx(mn)
+    crcl = CyRestClient()
+    mn.name = json.dumps(qc) if name == '' else name
+    cyn = crcl.network.create_from_networkx(mn)
+    crcl.layout.apply('kamada-kawai', network=cyn)
+    crcl.style.apply(Style('default'), network=cyn)
 
 
 if __name__ == '__main__':
