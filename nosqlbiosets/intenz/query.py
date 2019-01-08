@@ -15,7 +15,7 @@ COLLECTION = "intenz"
 
 class QueryIntEnz:
 
-    def __init__(self, db="MongoDB", index="biosets", doctype="intenz"):
+    def __init__(self, db="MongoDB", index="biosets", doctype=COLLECTION):
         self.doctype = doctype
         self.dbc = DBconnection(db, index)
 
@@ -49,9 +49,9 @@ class QueryIntEnz:
             hits = self.dbc.mdbi[self.doctype].find(qc, projection=pr)
             hits = [c for c in hits]
             # TODO: accepted_name is list
-            r = [(c['_id'], c["accepted_name"]["#text"])
+            r = {c['_id']: c["accepted_name"]["#text"]
                  for c in hits if "accepted_name" in c and
-                 not isinstance(c["accepted_name"], list)]
+                 not isinstance(c["accepted_name"], list)}
             return r
 
     # Find enzymes where given chemical is a reactant
