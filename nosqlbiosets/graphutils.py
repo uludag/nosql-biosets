@@ -13,7 +13,10 @@ def networkx2cytoscape_json(networkxgraph):
     for node in networkxgraph.nodes():
         node_ = {'data': {
             'id': node,
-            'label': node}
+            'name': networkxgraph.nodes[node]['name']
+            if 'name' in networkxgraph.nodes[node] else node,
+            'label': networkxgraph.nodes[node]['label']
+            if 'label' in networkxgraph.nodes[node] else node}
         }
         if 'viz_color' in networkxgraph.nodes[node]:
             node_['data']['viz_color'] = networkxgraph.nodes[node]['viz_color']
