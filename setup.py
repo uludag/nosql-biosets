@@ -1,10 +1,9 @@
 from setuptools import setup, find_packages
 
-packages = find_packages()
 
 setup(
        name='nosqlbiosets',
-       version='0.0.4',
+       version='0.0.5',
        description='Index/query scripts '
                    'for selected free bioinformatics datasets',
        author='Mahmut Uludag',
@@ -14,13 +13,18 @@ setup(
        install_requires=[
               'argh',
               'elasticsearch',
-              'neo4j-driver',
               'networkx',
               'pymongo',
               'six',
               'xmltodict'
        ],
        extras_require={
+              'gffutils': (
+                     'gffutils'
+              ),
+              'neo4j': (
+                     'neo4j-driver'
+              ),
               'pivottablejs': (
                      'pivottablejs',
               ),
@@ -31,7 +35,7 @@ setup(
                      'pandas'
               ),
               'py2cytoscape': (
-                     'py2cytoscape', 'jinja2'
+                     'py2cytoscape'
               ),
               'cobra': (
                      'cobra', 'cobrababel', 'psamm'
@@ -39,6 +43,7 @@ setup(
        },
        packages=find_packages(),
        scripts=['scripts/nosqlbiosets'],
+       keywords=['bioinformatics'],
        classifiers=[
               'Intended Audience :: Science/Research',
               'Development Status :: 3 - Alpha'],

@@ -8,22 +8,19 @@ import sys
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import ElasticsearchException
 from pymongo import MongoClient
-from neo4j.v1 import GraphDatabase, basic_auth
 
 logger = logging.getLogger(__name__)
 ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
+ch.setLevel(logging.INFO)
 logger.addHandler(ch)
 
 
 class DBconnection(object):
     i = 0  # counter for the number of objects indexed
 
-    # TODO: rename es_indexsettings as es_settings
-    def __init__(self, db, index, host=None, port=None,
+    def __init__(self, db, index, host=None, port=None, collection=None,
                  user=None, password=None, recreateindex=False,
                  es_indexsettings=None, es_indexmappings=None):
-        d = os.path.dirname(os.path.abspath(__file__))
         assert index is not None
         self.index = index
         self.db = db
@@ -37,6 +34,7 @@ class DBconnection(object):
                     cfgfile = "./conf/dbservers.json"
                 else:
                     cfgfile = "../conf/dbservers.json"
+            logger.info("Servers configuration file: %s" % cfgfile)
             with open(cfgfile, "r") as cfgf:
                 conf = json.load(cfgf)
         except IOError:
@@ -54,6 +52,7 @@ class DBconnection(object):
             self.check_elasticsearch_index(recreateindex, es_indexsettings,
                                            es_indexmappings)
         elif db == 'Neo4j':
+            from neo4j import GraphDatabase, basic_auth
             if host is None:
                 host = conf['neo4j_host']
             if port is None:
@@ -70,11 +69,13 @@ class DBconnection(object):
         elif db == "MongoDB":
             if host is None:
                 host = conf['mongodb_host']
-            if port is None:
+            if port is None and 'mongodb_port' in conf:
                 port = conf['mongodb_port']
             mc = MongoClient(host, port)
             logger.info("New MongoDB connection: '%s:%d'" % (host, port))
             self.mdbi = mc[index]
+            if recreateindex and collection is not None:
+                self.mdbi.drop_collection(collection)
         else:  # Assume PostgreSQL
             from sqlalchemy import create_engine
             if port is None:
