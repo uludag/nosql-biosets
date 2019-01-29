@@ -3,7 +3,7 @@
 
 * [index.py](index.py): Index UniProtKB xml files
   
-  _Tested with Swiss-Prot dataset only, (Dec 2018 release)_
+  _Tested with Swiss-Prot dataset only, (Jan 2019 release)_
   
     ```
     ./nosqlbiosets/uniprot/index.py --help
@@ -41,7 +41,7 @@ Example command lines for downloading `uniprot_sprot.xml` file and for indexing:
 
 ```bash
 mkdir -p data
-# ~700M, ~162 million lines, ~558,600 entries
+# ~720M(compressed), ~165.5 million lines, ~559,100 entries
 wget -P ./data ftp://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/\
 knowledgebase/complete/uniprot_sprot.xml.gz
 ```

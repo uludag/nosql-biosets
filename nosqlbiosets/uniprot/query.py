@@ -50,7 +50,7 @@ class QueryUniProt:
                                     "size": limit
                                 }}}}}}
             hits, n, aggs = self.esquery(
-                self.dbc.es, self.index, qc, self.doctype)
+                self.dbc.es, self.doctype, qc, self.doctype)
             r = dict()
             for i in aggs['genes']['buckets']:
                 nametype = i['key']
@@ -85,7 +85,7 @@ class QueryUniProt:
         return r
 
     # Find related genes for given KEGG reaction id
-    # Finds UniProt ids by querying the IntEnz dataset with given KEGG ids
+    # UniProt ids are found by querying the IntEnz dataset with given KEGG id
     def genes_linkedto_keggreaction(self, keggrid):
         doctype = "intenz"
         if self.dbc.db == 'MongoDB':
@@ -105,7 +105,6 @@ class QueryUniProt:
                 {"$project": {"uniprot.gene.name.#text": 1}},
             ]
             docs = self.dbc.mdbi[doctype].aggregate(agpl)
-            docs = list(docs)
             r = {doc['uniprot']['gene']['name']['#text']
                  for doc in docs}
             return r
@@ -166,6 +165,18 @@ class QueryUniProt:
                 rr[nametype][i['_id']['name']] = i['total']
         return rr
 
+    def getspecies(self, qc):
+        aggq = [
+            {"$match": qc},
+            {"$match": {"organism.lineage.taxon.0": {"$exists": True}}},
+            {"$group": {
+                "_id": {"$arrayElemAt": ['$organism.lineage.taxon', -1]}
+            }}
+        ]
+        r = self.aggregate_query(aggq)
+        r = [i['_id'] for i in r]
+        return r
+
     def get_lca(self, qc):
         """
         Get lowest common ancestor for entries selected by the query clause qc
@@ -182,8 +193,8 @@ class QueryUniProt:
                 lca = i['taxon']
             else:
                 j = 0
-                for taxon in lca:
-                    if taxon != i['taxon'][j]:
+                for s in lca:
+                    if s != i['taxon'][j]:
                         lca = lca[:j]
                         break
                     else:
@@ -234,8 +245,7 @@ class QueryUniProt:
             esc = DBconnection(db, self.index)
             qc = {"terms": {
                 "dbReference.id.keyword": kgids}}
-            hits, _, _ = self.esquery(esc.es, self.index, {"query": qc},
-                                      self.doctype)
+            hits, _, _ = self.esquery(esc.es, self.doctype, {"query": qc})
             r = [xref['_id'] for xref in hits]
         else:
             qc = {"dbReference.id": {'$in': kgids}}
@@ -247,7 +257,7 @@ class QueryUniProt:
     def esquery(es, index, qc, doc_type=None, size=10):
         import json
         print("Querying '%s'  %s" % (doc_type, json.dumps(qc, indent=4)))
-        r = es.search(index=index, doc_type=doc_type, body=qc, size=size)
+        r = es.search(index=index, body=qc, size=size)
         nhits = r['hits']['total']
         aggs = r["aggregations"] if "aggregations" in r else None
         return r['hits']['hits'], nhits, aggs

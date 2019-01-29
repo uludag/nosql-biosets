@@ -6,16 +6,14 @@ import unittest
 from nosqlbiosets.uniprot.query import QueryUniProt
 
 qryuniprot = QueryUniProt("MongoDB", "biosets", "uniprot")
-qryuniprot_es = QueryUniProt("Elasticsearch", "uniprot", "uniprot")
 
 
 class TestQueryUniProt(unittest.TestCase):
 
     def test_kegg_geneid_queries_es(self):
-        db = "Elasticsearch"
-        ids = qryuniprot_es.getnamesforkegg_geneids(
-            ['hsa:7157', 'hsa:121504'], db)
-        self.assertSetEqual({'P53_HUMAN', 'H4_HUMAN'}, set(ids))
+        ids = qryuniprot.getnamesforkegg_geneids(
+            ['hsa:7157', 'hsa:121504'], "Elasticsearch")
+        self.assertListEqual(['H4_HUMAN', 'P53_HUMAN'], sorted(set(ids)))
 
     def test_kegg_geneid_queries_mdb(self):
         db = "MongoDB"
@@ -30,17 +28,36 @@ class TestQueryUniProt(unittest.TestCase):
                                     genes_linkedto_keggreaction(keggid))
 
     def test_get_lca(self):
+        qc = {
+            "dbReference": {"$elemMatch": {
+                "type": "EC",
+                "id": "4.2.1.-"
+            }}}
+        assert len(qryuniprot.get_lca(qc)) == 0
         tests = [
             (['CLPC1_ARATH', 'CLPB_GLOVI', 'CLPC2_ORYSJ', 'CLPB_CHLCV'], None),
             (['RPOB_RHOS1', 'RPOB_RHOS4', 'RPOB_RHOSK', 'RPOB_RHOS5'],
              'Rhodobacter')]
         for ids, taxon in tests:
             r = qryuniprot.get_lca({'_id': {"$in": ids}})
-            r = list(r)
             if taxon is None:
                 assert [] == r
             else:
                 assert taxon == r[-1]
+
+    def test_get_species(self):
+        ecn = "4.2.1.-"
+        qc = {
+            "dbReference": {"$elemMatch": {
+                "type": "EC",
+                "id": {'$regex': '^' + ecn[:-1]}
+            }}}
+        r = qryuniprot.getspecies(qc)
+        n = len(r)
+        qc['dbReference']["$elemMatch"]["id"] = ecn
+        r = qryuniprot.getspecies(qc)
+        m = len(r)
+        assert m < n
 
     def test_getgenes(self):
         tests = [
@@ -57,10 +74,10 @@ class TestQueryUniProt(unittest.TestCase):
     def test_evidence_codes(self):
         ecodes = {  # http://www.uniprot.org/help/evidences
             255: 3840,  # match to sequence model evidence, manual assertion
-            269: 5732,  # experimental evidence used in manual assertion
+            269: 5878,  # experimental evidence used in manual assertion
             305: 4130,  # curator inference used in manual assertion
             250: 2960,  # sequence similarity evidence used in manual assertion
-            303: 1360,  # non-traceable author statement, manual assertion
+            303: 1485,  # non-traceable author statement, manual assertion
             244: 790,   # combinatorial evidence used in manual assertion
             312: 630    # imported information used in manual assertion
         }
@@ -85,10 +102,10 @@ class TestQueryUniProt(unittest.TestCase):
     # Distribution of GO annotations
     def test_GO_annotations(self):
         tests = [  # species, unique annotations, all annotations
-            ('Rice', 2755, 25047),
-            ('Human', 17903, 258719),
-            ('Arabidopsis thaliana', 6716, 98433),
-            ('Danio rerio', 5073, 22491)
+            ('Rice', 2786, 25482),
+            ('Human', 17932, 259569),
+            ('Arabidopsis thaliana', 6741, 99198),
+            ('Danio rerio', 5106, 22491)
         ]
         for org, uniqgo, nall in tests:
             qc = {'organism.name.#text': org}
@@ -113,9 +130,9 @@ class TestQueryUniProt(unittest.TestCase):
             ]
             hits = qryuniprot.aggregate_query(aggqc)
             r = [c for c in hits]
-            self.assertAlmostEqual(uniqgo, len(r), delta=10)
+            self.assertAlmostEqual(uniqgo, len(r), delta=30)
             self.assertAlmostEqual(nall, sum([c['abundance'] for c in r]),
-                                   delta=100)
+                                   delta=300)
 
     def test_getenzymedata(self):
         enzys = [
@@ -134,6 +151,7 @@ class TestQueryUniProt(unittest.TestCase):
              'alpha-D-ribose 1-phosphate = D-ribose 5-phosphate',
              'Baker\'s yeast', 'common', 2, 25)
         ]
+        qryuniprot_es = QueryUniProt("Elasticsearch", "uniprot", "uniprot")
         for ecn, accs, gene, pathway, reaction, org, nametype, n, orgs in enzys:
             genetype, genename, abundance = gene
             r = qryuniprot_es.getgenes(ecn)

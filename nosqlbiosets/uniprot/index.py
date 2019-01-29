@@ -215,7 +215,7 @@ def mongodb_indices(mdb):
     mdb.create_indexes([index])
     indx_fields = ["accession",
                    "dbReference.id", "dbReference.type", "dbReference.property",
-                   "feature.type",
+                   "feature.type", "organism.lineage.taxon",
                    'comment.type', "gene.name.type",
                    "gene.name.#text", "organism.name.#text"]
     for field in indx_fields:
