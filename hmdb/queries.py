@@ -1,19 +1,22 @@
 #!/usr/bin/env python
 """ Queries with HMDB and DrugBank data indexed with MongoDB """
 
+import argh
 from hmdb.drugbank import DOCTYPE  # Default MongoDB collection name
 from hmdb.index import DOCTYPE_METABOLITE, DOCTYPE_PROTEIN
 from nosqlbiosets.dbutils import DBconnection
 from nosqlbiosets.graphutils import *
 from nosqlbiosets.uniprot.query import QueryUniProt
 
-index = "biosets"
 db = "MongoDB"
 
 
 class QueryDrugBank:
-    dbc = DBconnection(db, index)
-    mdb = dbc.mdbi
+
+    def __init__(self, index="biosets", **kwargs):
+        self.index = index
+        self.dbc = DBconnection(db, self.index, **kwargs)
+        self.mdb = self.dbc.mdbi
 
     def query(self, qc, projection=None, limit=0):
         print("Querying with query clause '%s'" % (str(qc)))
@@ -118,7 +121,7 @@ class QueryDrugBank:
             name = d['name']
             if connections in d:
                 for t in d[connections]:
-                    # TODO: return more information
+                    # TO_DO: return more information
                     interactions.append((name, t['name']))
         return interactions
 
@@ -156,8 +159,45 @@ class QueryDrugBank:
 
 
 class QueryHMDB:
-    dbc = DBconnection(db, index)
-    mdb = dbc.mdbi
+
+    def __init__(self, index="biosets", **kwargs):
+        self.index = index
+        self.dbc = DBconnection(db, self.index, **kwargs)
+        self.mdb = self.dbc.mdbi
+
+    def metabolites_protein_functions(self, mq):
+        """
+        Functions of associated proteins for selected set of Metabolites
+        """
+        agpl = [
+            {'$match': mq},
+            {'$unwind':
+                {
+                    'path': '$protein_associations.protein'
+                }},
+            {'$project': {
+                "accession": 1,
+                "protein_associations.protein": 1}},
+            {'$lookup': {
+                'from': DOCTYPE_PROTEIN,
+                'let': {'a': "$protein_associations.protein.protein_accession"},
+                'as': 'proteins',
+                'pipeline': [
+                    {'$match': {
+                            "$expr": {"$eq": ["$accession", "$$a"]}
+                    }},
+                    {'$project': {
+                        "general_function": 1}}
+                ]
+            }},
+            {'$unwind': "$proteins"},
+            {'$group': {
+                "_id": "$proteins.general_function",
+                "count": {'$sum': 1}}},
+            {"$sort": {"count": -1}}
+        ]
+        r = self.mdb[DOCTYPE_METABOLITE].aggregate(agpl)
+        return r
 
     def getconnectedmetabolites(self, qc, max_associations=-1):
         # Return pairs of connected metabolites
@@ -298,7 +338,6 @@ def cyview(query, dataset='HMDB', connections='targets', name=''):
 
 
 if __name__ == '__main__':
-    import argh
     argh.dispatch_commands([
         savegraph, cyview
     ])

@@ -2,15 +2,15 @@
 ## Index/query scripts for HMDB and DrugBank xml datasets
 
 * [index.py](index.py) Index HMDB protein and metabolite datasets.
-  Tests made with HMDB version 4.0; _metabolites_ July 2018 update,
-  _proteins_ July 2018 update
+  Tests made with HMDB version 4.0; _metabolites_ Jan 2019 update,
+  _proteins_ Jan 2019 update
 
 * [../tests/test_hmdb_queries.py](../tests/test_hmdb_queries.py)
   Includes example queries
 
 * [drugbank.py](drugbank.py) Index DrugBank xml dataset with MongoDB,
   or Elasticsearch, or save drug-drug interactions as graph file in GML format.
-  Tests made with DrugBank version 5.1, July 2018 update
+  Tests made with DrugBank version 5.1.2, Dec 2018 update
   
 ```bash
 ./hmdb/drugbank.py --help
@@ -45,21 +45,19 @@ optional arguments:
 
 * [queries.py](queries.py) Query API for DrugBank data indexed with MongoDB,
   _at its early stages_
-  
-  When executed from command line can save DrugBank
-  interaction networks as graph files in four different formats,
-  _example command lines are presented later on this page_ 
-   * `--qc`: MongoDB query clause to select subsets of DrugBank entries
-   * `--connections`: Connection type: "targets", "enzymes", "transporters" or
-    "carriers"
-   * `--graphfile`: File name for saving the output graph;
-    If the file name ends with .xml extension [GraphML](
-    https://en.wikipedia.org/wiki/GraphML) format is selected,
-    if the file name ends with .d3.json extension graph is saved in
-    a form easier to read with [D3js](://d3js.org),
-    if the file name ends with .json extension graph is saved in
-    [Cytoscape.js](://js.cytoscape.org) graph format,
-    otherwise it is saved in GML format
+
+```text
+./hmdb/queries.py --help
+usage: queries.py [-h] {savegraph,cyview} ...
+
+positional arguments:
+  {savegraph,cyview}
+    savegraph         Save DrugBank interactions as graph files
+    cyview            See HMDB/DrugBank graphs with Cytoscape runing on your local machine
+
+./hmdb/queries.py savegraph --help
+./hmdb/queries.py cyview --help
+```
 
 ### Index HMDB
 
@@ -69,11 +67,11 @@ mkdir -p data
 wget -P ./data http://www.hmdb.ca/system/downloads/current/hmdb_metabolites.zip
 wget -P ./data http://www.hmdb.ca/system/downloads/current/hmdb_proteins.zip
 
-# Index with Elasticsearch, time for proteins is ~10m, for metabolites ~ 30m to 140m
+# Index with Elasticsearch, time for proteins is ~15m, for metabolites ~ 30m to 250m
 ./hmdb/index.py --infile ./data/hmdb_metabolites.zip --db Elasticsearch --index hmdb_metabolite
 ./hmdb/index.py --infile ./data/hmdb_proteins.zip --db Elasticsearch --index hmdb_protein
 
-# Index with MongoDB, time for proteins is ~8m, for metabolites ~ 20m to 100m
+# Index with MongoDB, time for proteins is ~ 2m to 8m, for metabolites ~ 20m to 100m
 ./hmdb/index.py --infile ./data/hmdb_metabolites.zip --db MongoDB --index biosets
 ./hmdb/index.py --infile ./data/hmdb_proteins.zip --db MongoDB --index biosets
 ```
@@ -86,11 +84,13 @@ requires registration. Save `drugbank_all_full_database.xml.zip` file to the
 `data` folder
 
 ```bash
-# Index with MongoDB,  takes ~20m, with MongoDB Atlas ~35m
+# Index with MongoDB,  takes ~ 10m to 20m, with MongoDB Atlas ~50m?
 ./hmdb/drugbank.py --infile ./data/drugbank_all_full_database.xml.zip\
  --db MongoDB --index biosets
 
-# Index with Elasticsearch,  takes ~20m
+./scripts/nosqlbiosets index drugbank MongoDB ~/data/drugbank/drugbank-5.1.2.xml.zip
+
+# Index with Elasticsearch,  takes ~30m
 ./hmdb/drugbank.py --infile ./data/drugbank_all_full_database.xml.zip\
  --db Elasticsearch --index drugbank
 
@@ -108,20 +108,27 @@ or for the complete set
 ```bash
 
 # Complete drug-targets graph 
-./hmdb/queries.py --qc='{}' --graphfile targets.xml
+./hmdb/queries.py savegraph '{}' targets.xml
 
 # Complete drug-enzymes graph
-./hmdb/queries.py --qc='{}' --graphfile enzymes.xml --connections=enzymes
+./hmdb/queries.py savegraph '{}' enzymes.xml --connections=enzymes
 
 # Drug-carriers graph for drugs with "Serum albumin" carrier
-./hmdb/queries.py --qc='{"carriers.name": "Serum albumin"}'\
- --graphfile carriers-sa.xml --connections carriers
+./hmdb/queries.py savegraph '{"carriers.name": "Serum albumin"}'\
+     carriers-sa.xml --connections carriers
 
 # Drug-targets graph for drugs with "side effects"
-./hmdb/queries.py --qc='{"$text": {"$search": "side effects"}}'\
- --graphfile carriers-sa.xml --connections targets
+./hmdb/queries.py savegraph '{"$text": {"$search": "side effects"}}'\
+     carriers-se.xml --connections targets
 
 
+```
+
+Example command lines to view graph results with Cytoscape
+
+```bash
+  ./hmdb/queries.py cyview -d HMDB meningitis
+  ./hmdb/queries.py cyview -d drugbank meningitis
 ```
 
 #### Example graphs

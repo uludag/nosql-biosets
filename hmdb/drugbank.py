@@ -90,7 +90,7 @@ class Indexer(DBconnection):
         self.doctype = doctype
         self.index = index
         self.slim = slim
-        super(Indexer, self).__init__(db, index, host, port)
+        super(Indexer, self).__init__(db, index, host, port, recreateindex=True)
         if db == "MongoDB":
             self.mcl = self.mdbi[doctype]
 
@@ -113,7 +113,7 @@ class Indexer(DBconnection):
         try:
             update_entry_forindexing(entry)
             docid = self.getdrugid(entry)
-            entry['drugbank-id'] = docid  # TODO: keep all ids
+            entry['drugbank-id'] = docid
             self.es.index(index=self.index, doc_type=self.doctype,
                           id=docid, body=entry)
             self.reportprogress()
@@ -156,7 +156,7 @@ class Indexer(DBconnection):
         return graph
 
 
-# Fields for text indexing  todo: improve this list
+# Fields for text indexing
 TEXT_FIELDS = ["description", "atc-codes.level.#text",
                "go-classifiers.description",
                "mechanism-of-action",
@@ -181,7 +181,6 @@ def mongodb_indices(mdb):
 def main(infile, db, index, doctype=DOCTYPE, host=None, port=None, slim=True):
     indxr = Indexer(db, index, host, port, doctype, slim)
     if db == 'MongoDB':
-        indxr.mdbi.drop_collection(doctype)
         parse_drugbank_xmlfile(infile, indxr.mongodb_index_entry)
         mongodb_indices(indxr.mdbi[doctype])
     elif db == 'Elasticsearch':
