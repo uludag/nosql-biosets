@@ -6,7 +6,7 @@ LABEL \
   maintainer="mahmut.uludag@kaust.edu.sa"
 
 RUN \
-  pip install pytz
+  pip install pytz pivottablejs
 
 RUN \
   pip install git+https://github.com/uludag/nosql-biosets.git
