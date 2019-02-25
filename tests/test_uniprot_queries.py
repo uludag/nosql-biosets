@@ -103,7 +103,7 @@ class TestQueryUniProt(unittest.TestCase):
     def test_GO_annotations(self):
         tests = [  # species, unique annotations, all annotations
             ('Rice', 2786, 25482),
-            ('Human', 17932, 259569),
+            ('Human', 17982, 260242),
             ('Arabidopsis thaliana', 6741, 99198),
             ('Danio rerio', 5106, 22491)
         ]

@@ -147,22 +147,25 @@ class QueryUniProt:
                 {"$group": {
                     "_id": {
                         "type": "$organism.name.type",
-                        "name": "$organism.name.#text"
+                        "name": "$organism.name.#text",
+                        "taxon": "$organism.linage.taxon",
                     },
                     "total": {
                         "$sum": 1
                     }
                 }},
+                {"$project": {"type": "$_id.type", "name": "$_id.name",
+                              "taxon": "$_id.taxon", "_id": 0, "total": 1}},
                 {"$sort": {"total": -1}},
                 {"$limit": limit}
             ]
             r = self.aggregate_query(aggq)
             rr = dict()
             for i in r:
-                nametype = i['_id']['type']
+                nametype = i['type']
                 if nametype not in rr:
                     rr[nametype] = OrderedDict()
-                rr[nametype][i['_id']['name']] = i['total']
+                rr[nametype][i['name']] = i['total']
         return rr
 
     def getspecies(self, qc):
