@@ -1,7 +1,7 @@
 # Project aim and summary
 
 NoSQL-biosets project includes scripts for indexing and querying
-selected free bioinformatics datasets. In adition to datasets, project aims
+selected free bioinformatics datasets. In addition to datasets, project aims
 to support common bioinformatics data types
 and formats, such as GFF. Elasticsearch and MongoDB are two primary databases
 supported for most datasets included in the project.
@@ -86,7 +86,7 @@ http://www.kegg.jp/kegg/download/Readme/README.kgml):
 
 Project aims to connect above datasets by implementing query APIs
 for common query patterns with individual and multiple indexes.
-It also includes intial work on returning query results of IntEnz, DrugBank, HMDB,
+It also includes initial work on returning query results of IntEnz, DrugBank, HMDB,
 ModelSEEDdb, and MetaNetX datasets as graphs.
 
 A sister [project](https://github.com/uludag/hspsdb-indexer)
@@ -134,10 +134,10 @@ Make sure your Elasticsearch server is running in your localhost.
 If you are new to Elasticsearch and  you are using Linux
 the easiest way is to [download Elasticsearch](
 https://www.elastic.co/downloads/elasticsearch) with the TAR option (~32M).
-After extracting the tar file just `cd` to your Elasticsearch folder
+After extracting the tar file `cd` to your Elasticsearch folder
 and run `./bin/elasticsearch` command.
 
-Now downloaded UniProt xml file can be indexed by running the following command
+Downloaded UniProt xml file can be indexed by running the following command
 from nosqlbiosets project root folder,
 typically requires 2 to 8 hours with Elasticsearch,
 and between 1 and 5 hours with MongoDB
@@ -198,14 +198,10 @@ at King Abdullah University of Science and Technology,
 
 NoSQL-biosets project is licensed with MIT license.
 If you would like to support the project
-with selecting a different license please let us know by creating an issue
-on github project page.
-We will help you with contacting the relavant bodies of KAUST.
+with selecting a different license you can discuss this
+by contacting the [relevant offices of KAUST](https://osr.kaust.edu.sa/Pages/ContactUs.aspx).
 
 ## Acknowledgements
 
-- Computers and file systems used in developing this work has been maintained
-  by John Hanks
-- At early stages of the project we tried few xml libraries then settled with
-  [xmltodict](https://github.com/martinblech/xmltodict) library
-  which helped us in parsing xml files without worry
+- Computers and systems used in developing this work has been maintained
+  by John Hanks and Arnaud Hungler
