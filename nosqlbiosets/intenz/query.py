@@ -2,11 +2,10 @@
 """ Query IntEnz data indexed with MongoDB or Neo4j """
 # Server connection details are read from file conf/dbservers.json
 
-import argparse
 import json
-
+import argh
 import networkx as nx
-
+from nosqlbiosets import parseinputquery
 from nosqlbiosets.dbutils import DBconnection
 from nosqlbiosets.graphutils import save_graph
 
@@ -271,8 +270,7 @@ class QueryIntEnz:
             r = [i for i in hits]
             return r
 
-    # connections are either from reactants to reactions
-    # or from reactions to products
+    # Connections are from reactants to products, reactions are edges
     def get_connections(self, filterc, limit=40000):
         assert self.dbc.db == 'MongoDB'
         agpl = [
@@ -285,52 +283,71 @@ class QueryIntEnz:
             {"$unwind": "$reactions.products"},
             {"$group": {
                 "_id": {
-                    "enzyme": "$_id",
                     "reactant":
                         "$reactions.reactants.title",
                     "product": "$reactions.products.title"
                 },
+                "enzymes": {"$addToSet": "$_id"},
+                "count": {"$sum": 1}
             }},
             {"$limit": limit}
         ]
         r = self.dbc.mdbi[self.doctype].aggregate(agpl)
-        connections = list()
-        for i in r:
-            connections.append(i['_id'])
-        return connections
+        return r
 
-    def get_connections_graph(self, qc, limit):
+    def get_connections_graph(self, qc, limit=4000):
         connections = self.get_connections(qc, limit)
         graph = nx.MultiDiGraph(name="IntEnz query %s" % json.dumps(qc))
         # Set enzymes as edge attributes
-        for c in connections:
+        for c_ in connections:
+            c = c_['_id']
+            # TODO: edged graph mean no need to say reactant product
             graph.add_node(c['reactant'], type='reactant', viz_color='brown')
             graph.add_node(c['product'], type='product', viz_color='orange')
-            graph.add_edge(c['reactant'], c['product'], ec=c['enzyme'])
+            graph.add_edge(c['reactant'], c['product'], ec=c_['enzymes'])
         return graph
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(
-        description='Save IntEnz reaction connections as graph files')
-    parser.add_argument('qc',
-                        help='MongoDB query clause to select subsets'
-                             ' of IntEnz entries,'
-                             ' e.g.: \'{"reactions.label.value": '
-                             '"Chemically balanced"}\'')
-    parser.add_argument('outfile',
-                        help='File name for saving the output graph. '
-                             'Format is selected based on the file extension'
-                             ' of the given output file;'
-                             ' .xml for GraphML, .gml for GML,'
-                             ' .json for Cytoscape.js,'
-                             ' or .d3js.json for d3js format')
-    parser.add_argument('--limit',
-                        default=3000, type=int,
-                        help='Maximum number of enzyme-metabolite connections')
-    args = parser.parse_args()
+def savegraph(query, outfile, limit=4000):
+    """Save IntEnz reaction connections as graph files
+
+    param: qc: MongoDB query clause to select subsets of IntEnz entries,
+               e.g.: \'{"reactions.label.value": ' '"Chemically balanced"}\'
+    param: outfile: File name for saving the output graph
+                    Format is selected based on the file extension
+                    of the given output file;
+                             .xml for GraphML, .gml for GML,
+                             .json for Cytoscape.js
+    param: --limit: Maximum number of enzyme-metabolite connections
+    """
     qry = QueryIntEnz()
-    qc_ = json.loads(args.qc)
-    cgraph = qry.get_connections_graph(qc_, args.limit/2)
+    qc = parseinputquery(query)
+    cgraph = qry.get_connections_graph(qc, int(limit/2))
     print(nx.info(cgraph))
-    save_graph(cgraph, args.outfile)
+    save_graph(cgraph, outfile)
+
+
+def cyview(query, name='', limit=4000):
+    """ See IntEnz enzyme graphs with Cytoscape runing on your local machine
+
+     :param query: Query to select IntEnz entries
+     :param name: Name of the graph on Cytoscape, query is used as default value
+     :param limit
+     """
+    from py2cytoscape.data.cyrest_client import CyRestClient
+    from nosqlbiosets import parseinputquery
+    from py2cytoscape.data.style import Style
+    qc = parseinputquery(query)
+    qry = QueryIntEnz()
+    mn = qry.get_connections_graph(qc, limit)
+    crcl = CyRestClient()
+    mn.name = json.dumps(qc) if name == '' else name
+    cyn = crcl.network.create_from_networkx(mn)
+    crcl.layout.apply('kamada-kawai', network=cyn)
+    crcl.style.apply(Style('default'), network=cyn)
+
+
+if __name__ == '__main__':
+    argh.dispatch_commands([
+        savegraph, cyview
+    ])

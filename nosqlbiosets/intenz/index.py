@@ -21,10 +21,10 @@ class Indexer(DBconnection):
         self.doctype = doctype
         self.index = index
         self.db = db
-        super(Indexer, self).__init__(db, index, host, port, recreateindex=True)
+        super(Indexer, self).__init__(db, index, host, port,
+                                      collection=doctype, recreateindex=True)
         if db == "MongoDB":
             self.mcl = self.mdbi[doctype]
-            self.mcl.drop()
         elif db == "Neo4j":
             self.reactions = dict()
             self.reactants = set()

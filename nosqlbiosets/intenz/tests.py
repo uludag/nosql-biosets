@@ -3,12 +3,17 @@
 import unittest
 
 from nosqlbiosets.dbutils import DBconnection
-from .query import QueryIntEnz
+from .query import QueryIntEnz, COLLECTION
 
-qryintenz = QueryIntEnz()
+qryintenz = QueryIntEnz(index='biosets')
 
 
 class TestQueryIntEnz(unittest.TestCase):
+
+    def test_reactiondirections(self):
+        key = "reactions.convention"
+        r = qryintenz.dbc.mdbi[COLLECTION].distinct(key)
+        assert r == ['rhea:direction.UN']
 
     def test_getreactant_product_names(self):
         re = qryintenz.getreactantnames()
@@ -44,7 +49,7 @@ class TestQueryIntEnz(unittest.TestCase):
         ]
         for r, e, n in tests:
             enzymes = qryintenz.getenzymeswithreactant(r)
-            assert e in [e[1] for e in enzymes]
+            assert e in enzymes.values()
             self.assertAlmostEqual(n, len(enzymes), delta=3)
 
     def test_enzymeswithreactant_chebiid(self):
@@ -55,7 +60,8 @@ class TestQueryIntEnz(unittest.TestCase):
         ]
         for chebiid, ecn, ename, n in tests:
             enzymes = qryintenz.getenzymeswithreactant_chebiid(chebiid)
-            assert (ecn, ename) in enzymes
+            assert ecn in enzymes
+            assert enzymes[ecn] == ename
             assert n == len(enzymes)
 
     def test_enzymeswithproduct_chebiid(self):
@@ -67,7 +73,8 @@ class TestQueryIntEnz(unittest.TestCase):
         ]
         for chebiid, ecn, ename, n in tests:
             enzymes = qryintenz.getenzymeswithproduct_chebiid(chebiid)
-            assert (ecn, ename) in enzymes
+            assert ecn in enzymes
+            assert enzymes[ecn] == ename
             self.assertAlmostEqual(n, len(enzymes), delta=10)
 
     def test_query_products(self):
@@ -80,22 +87,20 @@ class TestQueryIntEnz(unittest.TestCase):
                 e["accepted_name"]["#text"] for e in enzymes]
 
     def test_enzyme_names(self):
-        enzyms = [("2.7.7.19", "Polynucleotide adenylyltransferase"),
-                  ("4.2.1.30", "Glycerol dehydratase"),
-                  ("1.1.1.202", "1,3-propanediol dehydrogenase")]
+        tests = [("2.7.7.19", "Polynucleotide adenylyltransferase"),
+                 ("4.2.1.30", "Glycerol dehydratase"),
+                 ("1.1.1.202", "1,3-propanediol dehydrogenase")]
 
-        eids = qryintenz.getenzymeswithids([eid for eid, _ in enzyms])
-        assert len(eids) == 3
-        for enzym in eids:
-            assert enzym in enzyms
-
-        for eid, enz in enzyms:
+        enzyms = qryintenz.getenzymeswithids([eid for eid, _ in tests])
+        assert len(enzyms) == 3
+        for eid, enz in tests:
+            assert eid in enzyms
             eids = qryintenz.enzyme_name2id([enz])
             assert len(eids) == 1 and eids[0] == eid
             e = qryintenz.getenzymebyid(eid)
             assert e is not None and e["accepted_name"]["#text"] == enz
             eids = qryintenz.getenzymeswithids([eid])
-            assert len(eids) == 1 and eids[0][1] == enz
+            assert len(eids) == 1 and eids[eid] == enz
 
     def test_query_reactantandproduct(self):
         ste = [
@@ -123,21 +128,25 @@ class TestQueryIntEnz(unittest.TestCase):
              "1.1.1.286")
         ]
         r = qryintenz.get_connections({})
-        self.assertAlmostEqual(39005, len(r), delta=200)
-        r = {(e['reactant'], e['product'], e['enzyme']) for e in r}
-        for c in tests:
-            assert c in r
+        r = {(e['_id']['reactant'], e['_id']['product']): e['enzymes']
+             for e in r}
+        self.assertAlmostEqual(24312, len(r), delta=200)
+        for re, pr, ecn in tests:
+            assert (re, pr) in r
+            assert ecn in r[(re, pr)]
 
     def test_getconnections_graph(self):
         qc = {'reactions.label.value': "Chemically balanced"}
         g = qryintenz.get_connections_graph(qc, limit=40000)
-        self.assertAlmostEqual(38540, g.number_of_edges(), delta=800)
+        self.assertAlmostEqual(24000, g.number_of_edges(), delta=800)
         self.assertAlmostEqual(7030,  g.number_of_nodes(), delta=200)
+        assert '2 H(+)' in g.nodes
+        self.assertAlmostEqual(573, g.degree('2 H(+)'), delta=20)
 
         qc = {'cofactors.#text': "Pyrroloquinoline quinone"}
         g = qryintenz.get_connections_graph(qc, limit=40000)
-        self.assertAlmostEqual(76, g.number_of_edges(), delta=8)
-        self.assertAlmostEqual(41,  g.number_of_nodes(), delta=4)
+        self.assertAlmostEqual(65, g.number_of_edges(), delta=8)
+        self.assertAlmostEqual(40,  g.number_of_nodes(), delta=4)
 
     def test_lookup_connected_metabolites(self):
         tests = [
