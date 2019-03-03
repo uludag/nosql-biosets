@@ -104,10 +104,26 @@ def save_graph(graph, outfile):
     print('Network file saved: ' + outfile)
 
 
-def shortest_paths(dg, source, target, k=None, cutoff=7):
-    # NetworkX shortest_simple_paths function return paths generator
+def set_degree_as_weight(g):
+    """Set degree of connected nodes as weight.
+       For metabolite graphs it is often desirable to see the routes with
+       less connected metabolites
+    """
+    for u, v in g.edges():
+        degree = g.degree(v)
+        g[u][v]['weight'] = degree
+
+
+def shortest_paths(dg, source, target, k=None, cutoff=10,
+                   weight=None, degreeasweight=False):
+    # NetworkX shortest_simple_paths function returns paths generator
     # for the input graph from source to target starting from shortest ones
-    gr = nx.shortest_simple_paths(dg, source=source, target=target)
+    if degreeasweight:
+        dg = dg.copy()
+        set_degree_as_weight(dg)
+        weight = 'weight'
+    gr = nx.shortest_simple_paths(dg, source=source, target=target,
+                                  weight=weight)
     if k is None:
         return gr
     else:
