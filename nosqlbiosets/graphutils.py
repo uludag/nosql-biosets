@@ -109,9 +109,9 @@ def set_degree_as_weight(g):
        For metabolite graphs it is often desirable to see the routes with
        less connected metabolites
     """
+    d = nx.degree_centrality(g)
     for u, v in g.edges():
-        degree = g.degree(v)
-        g[u][v]['weight'] = degree
+        g[u][v]['weight'] = d[v]
 
 
 def shortest_paths(dg, source, target, k=None, cutoff=10,

@@ -3,12 +3,11 @@
 import unittest
 
 from nosqlbiosets.dbutils import DBconnection
-from nosqlbiosets.graphutils import neighbors_graph
-from nosqlbiosets.graphutils import shortest_paths
+from nosqlbiosets.graphutils import neighbors_graph, shortest_paths,\
+    set_degree_as_weight
 from nosqlbiosets.modelseed.query import QueryModelSEED
 
-dbc = DBconnection("MongoDB", "biosets")
-qry = QueryModelSEED()
+qry = QueryModelSEED(db="MongoDB", index="biosets")
 
 
 class TestQueryModelSEEDDatabase(unittest.TestCase):
@@ -34,7 +33,7 @@ class TestQueryModelSEEDDatabase(unittest.TestCase):
                 "kegg_ids": {"$addToSet": "$abbreviation"}
             }}
         ]
-        r = dbc.mdbi["modelseed_reaction"].aggregate(aggpl)
+        r = qry.dbc.mdbi["modelseed_reaction"].aggregate(aggpl)
         for i in r:
             # 769 different status values, check only frequent values
             if len(i['kegg_ids']) > 15:
@@ -47,7 +46,7 @@ class TestQueryModelSEEDDatabase(unittest.TestCase):
             {"$project": {"abbreviation": 1}},
             {"$match": {"abbreviation": {"$regex": "^R[0-9]*$"}}}
         ]
-        r = dbc.mdbi["modelseed_reaction"].aggregate(aggpl)
+        r = qry.dbc.mdbi["modelseed_reaction"].aggregate(aggpl)
         inmodelseeddb = {i['abbreviation'] for i in r}
         self.assertAlmostEqual(6823, len(inmodelseeddb), delta=30)
         aggpl = [
@@ -56,7 +55,7 @@ class TestQueryModelSEEDDatabase(unittest.TestCase):
             {"$unwind": "$xrefs"},
             {"$match": {"xrefs.lib": "kegg"}}
         ]
-        r = dbc.mdbi["metanetx_reaction"].aggregate(aggpl)
+        r = qry.dbc.mdbi["metanetx_reaction"].aggregate(aggpl)
         inmetanetx = {i['xrefs']['id'] for i in r}
         assert 7785 == len(inmetanetx)
         self.assertAlmostEqual(len(inmodelseeddb - inmetanetx), 668, delta=80)
@@ -67,14 +66,14 @@ class TestQueryModelSEEDDatabase(unittest.TestCase):
                                delta=100)
 
     def test_comparewithMetaNetX_inchikeys(self):
-        r = dbc.mdbi["modelseed_compound"].distinct("inchikey")
+        r = qry.dbc.mdbi["modelseed_compound"].distinct("inchikey")
         inmodelseeddb = {i for i in r}
         self.assertAlmostEqual(18193, len(inmodelseeddb), delta=30)
         aggpl = [
             {"$match": {"source.lib": "seed"}},
             {"$group": {"_id": "$inchikey"}}
         ]
-        r = dbc.mdbi["metanetx_compound"].aggregate(aggpl)
+        r = qry.dbc.mdbi["metanetx_compound"].aggregate(aggpl)
         inmetanetx = {i['_id'] for i in r}
         self.assertAlmostEqual(3248, len(inmetanetx), delta=100)
         assert 16016 == len(inmodelseeddb - inmetanetx)
@@ -99,7 +98,7 @@ class TestQueryModelSEEDDatabase(unittest.TestCase):
         for mid in mids:
             desc = descs.pop(0)
             assert desc == qry.getcompoundname(esdbc, mid)
-            assert desc == qry.getcompoundname(dbc, mid)
+            assert desc == qry.getcompoundname(qry.dbc, mid)
 
     def test_textsearch_metabolites(self):
         mids = ['cpd00306', 'cpd00191', 'cpd00047', 'cpd00776',
@@ -121,7 +120,15 @@ class TestQueryModelSEEDDatabase(unittest.TestCase):
                 r = qry.autocomplete_metabolitenames(qterm)
                 assert any(name in i['name'] for i in r), name
 
-    def test_metabolite_networks(self):
+    def test_metabolite_networks_neighbors(self):
+        qc = {
+            '$text': {'$search': 'glycerol'}
+        }
+        mn = qry.get_metabolite_network(qc, limit=1440)
+        assert "Glycerol" in mn.nodes
+        assert len(mn.edges) == 2762
+        assert len(mn.nodes) == 779
+
         qc = {
             '$text': {'$search': 'glycerol'},
             'is_transport': True
@@ -141,32 +148,43 @@ class TestQueryModelSEEDDatabase(unittest.TestCase):
         self.assertAlmostEqual(len(mn.nodes), 1558, delta=100)
         assert 'Phosphate' in mn.nodes
         r = neighbors_graph(mn, "Phosphate", beamwidth=8, maxnodes=100)
-        assert 100 == r.number_of_nodes() == 100
+        assert r.number_of_nodes() == 88
         r = neighbors_graph(mn, "Phosphate", beamwidth=6, maxnodes=20)
         assert r.number_of_nodes() == 20
         r = neighbors_graph(mn, "Phosphate", beamwidth=4, maxnodes=20)
-        assert r.number_of_nodes() == 20
+        assert r.number_of_nodes() == 12
 
+    def test_metabolite_networks_shortespaths(self):
         qc = {}
         mn = qry.get_metabolite_network(qc)
         assert "(S)-Propane-1,2-diol" in mn.nodes
         assert "3-Hydroxypropanal" in mn.nodes
         assert mn.has_node('D-Xylose')
         assert mn.has_node('Xylitol')
-        paths = shortest_paths(mn, 'D-Xylose', 'Xylitol', 10)
-        assert 10 == len(paths)
-        assert 4 == len(paths[0])
-
         assert mn.has_edge('Parapyruvate', 'Pyruvate')
         assert '4-hydroxy-4-methyl-2-oxoglutarate pyruvate-lyase' \
                ' (pyruvate-forming)' in\
                mn.get_edge_data('Parapyruvate', 'Pyruvate')['reactions']
-        paths = shortest_paths(mn, 'Parapyruvate', 'Pyruvate', 10)
-        assert 10 == len(paths)
-        assert 2 == len(paths[0])
         self.assertAlmostEqual(len(mn.edges), 72456, delta=100)
         assert 15672 == len(mn.nodes)
         assert 'Glycerol' in mn.nodes
+
+        paths = shortest_paths(mn, 'D-Xylose', 'Xylitol', 40)
+        assert len(paths) == 40
+        assert len(paths[0]) == 4
+        paths = shortest_paths(mn, 'Parapyruvate', 'Pyruvate', 40)
+        assert len(paths) == 40
+        assert len(paths[0]) == 2
+
+        set_degree_as_weight(mn)
+        paths = shortest_paths(mn, 'D-Xylose', 'Xylitol', 10,
+                               cutoff=8, weight='weight')
+        assert len(paths) == 4
+        assert 8 == len(paths[0])
+        paths = shortest_paths(mn, 'Parapyruvate', 'Pyruvate', 20,
+                               weight='weight')
+        assert 17 == len(paths)
+        assert 2 == len(paths[0])
 
 
 if __name__ == '__main__':

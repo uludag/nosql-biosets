@@ -4,13 +4,14 @@ import os
 import unittest
 
 from nosqlbiosets.dbutils import DBconnection
-from nosqlbiosets.graphutils import neighbors_graph
+from nosqlbiosets.graphutils import neighbors_graph, set_degree_as_weight
 from nosqlbiosets.graphutils import shortest_paths
 from nosqlbiosets.metanetx.query import QueryMetaNetX
 from nosqlbiosets.uniprot.query import QueryUniProt
 
-qrymtntx = QueryMetaNetX()
-qryuniprot = QueryUniProt("MongoDB", "biosets", "uniprot")
+DB = 'biosets'
+qrymtntx = QueryMetaNetX(index=DB)
+qryuniprot = QueryUniProt("MongoDB", DB, "uniprot")
 
 
 class TestQueryMetanetx(unittest.TestCase):
@@ -43,8 +44,8 @@ class TestQueryMetanetx(unittest.TestCase):
     def test_id_queries_es(self):
         self.test_id_queries("Elasticsearch")
 
-    # First queries metanetx_reactions for given KEGG ids
-    # Then links metanetx_reaction.ecno to uniprot.dbReference.id
+    # First query MetaNetX_reactions for given KEGG ids
+    # Then links MetaNetX_reaction.ecno's to uniprot.dbReference.id
     #     where uniprot.dbReference.type = EC,  to get gene names
     def test_keggrid2ecno2gene(self, db='Elasticsearch'):
         dbc = DBconnection(db, self.index)
@@ -140,6 +141,9 @@ class TestQueryMetanetx(unittest.TestCase):
         m = qrymtntx.get_metabolite_network(qc)
         self.assertAlmostEqual(563, len(m.nodes()), delta=20)
         self.assertAlmostEqual(640, len(m.edges()), delta=20)
+        import networkx as nx
+        r = nx.single_target_shortest_path_length(m, "Betanin", cutoff=4)
+        assert ('celosianin I', 3) in list(r)
 
     def test_metabolite_network_reactome(self):
         qc = {"source.lib": "reactome", "balance": "true"}
@@ -150,21 +154,33 @@ class TestQueryMetanetx(unittest.TestCase):
         r = neighbors_graph(mn, "acetyl-CoA", beamwidth=10, maxnodes=100)
         # number of nodes differ based on selected search branches
         self.assertAlmostEqual(100, r.number_of_nodes(), delta=30)
-        paths = shortest_paths(mn, 'L-serine', 'acetyl-CoA', 10)
-        assert 10 == len(paths)
+        paths = shortest_paths(mn, 'L-serine', 'acetyl-CoA', 30)
+        assert 30 == len(paths)
         assert ['L-serine', 'H2O', 'acetyl-CoA'] == paths[0]
+
+        set_degree_as_weight(mn)
+        paths = shortest_paths(mn, 'L-serine', 'acetyl-CoA', 30,
+                               weight='weight')
+        assert 24 == len(paths)
+        assert ['L-serine', 'glycine', 'CoA', 'acetyl-CoA'] == paths[0]
 
     def test_metabolite_network_bigg(self):
         qc = {"$or": [{"source.lib": 'bigg'}, {"xrefs.lib": 'bigg'}]}
-        mn = qrymtntx.get_metabolite_network(qc, max_degree=140)
-        cmpnds = {'xylitol', "L-xylulose", "L-arabinitol"}
-        assert len(cmpnds.intersection(mn.nodes())) == 3
+        mn = qrymtntx.get_metabolite_network(qc, max_degree=1400)
+        cmpnds = {'carboxyacetyl-[acyl-carrier protein]', 'acetate',
+                  'hexadecanoate', 'xylitol', "L-xylulose", "L-arabinitol"}
+        assert len(cmpnds.intersection(mn.nodes())) == 6
         assert mn.degree("L-arabinitol") >= 2
         assert mn.degree("L-xylulose") >= 5
         r = neighbors_graph(mn, "L-arabinitol", beamwidth=5, maxnodes=160)
         assert len(r) == 0  # L-arabinitol is product, not reactant
         paths = shortest_paths(mn, 'alpha-L-arabinan', 'L-arabinitol', 10)
-        assert 1 == len(paths)
+        assert len(paths) == 10
+        assert 'L-arabinose' == paths[0][1]
+        set_degree_as_weight(mn)
+        paths = shortest_paths(mn, 'alpha-L-arabinan', 'L-arabinitol', 10,
+                               weight='weight')
+        assert len(paths) == 1
         assert 'L-arabinose' == paths[0][1]
 
         qc = {"source.lib": "bigg", "xrefs.lib": 'bigg', "balance": "true"}
@@ -173,8 +189,8 @@ class TestQueryMetanetx(unittest.TestCase):
         self.assertAlmostEqual(3741, len(mn.edges()), delta=200)
         assert 'L-xylulose' not in mn.nodes()
         assert "xylitol" in mn.nodes()
-        assert len(cmpnds.intersection(mn.nodes())) == 1
-        assert mn.degree("xylitol") >= 1
+        assert len(cmpnds.intersection(mn.nodes())) == 3
+        assert mn.degree("xylitol") == 1
         r = neighbors_graph(mn, "L-ascorbate", beamwidth=5, maxnodes=100)
         self.assertAlmostEqual(7, r.number_of_nodes(), delta=4)
 
@@ -182,9 +198,15 @@ class TestQueryMetanetx(unittest.TestCase):
         qc = {"source.lib": "rhea", "balance": "true"}
         mn = qrymtntx.get_metabolite_network(qc, max_degree=660)
 
-        paths = shortest_paths(mn, 'L-serine', 'acetyl-CoA', 100, cutoff=3)
-        assert 1 == len(paths)
+        paths = shortest_paths(mn, 'L-serine', 'acetyl-CoA', 1600, cutoff=5)
+        assert 223 == len(paths)
         assert ['L-serine', 'phosphate', 'acetyl-CoA'] in paths
+        set_degree_as_weight(mn)
+        paths = shortest_paths(mn, 'L-serine', 'acetyl-CoA', 1600, cutoff=5,
+                               weight='weight')
+        assert 2 == len(paths)
+        assert ['L-serine', '3-(pyrazol-1-yl)-L-alanine', 'O-acetyl-L-serine',
+                'acetyl-CoA'] in paths
 
         self.assertAlmostEqual(7806, len(mn.nodes()), delta=400)
         self.assertAlmostEqual(17698, len(mn.edges()), delta=1200)
