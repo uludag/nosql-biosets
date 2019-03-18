@@ -74,6 +74,13 @@ wget -P ./data http://www.hmdb.ca/system/downloads/current/hmdb_proteins.zip
 # Index with MongoDB, time for proteins is ~ 2m to 8m, for metabolites ~ 20m to 100m
 ./hmdb/index.py --infile ./data/hmdb_metabolites.zip --db MongoDB --index biosets
 ./hmdb/index.py --infile ./data/hmdb_proteins.zip --db MongoDB --index biosets
+
+# Index with project's main index script
+./scripts/nosqlbiosets index hmdb MongoDB ~/data/hmdb/hmdb_proteins.zip
+./scripts/nosqlbiosets index hmdb MongoDB ~/data/hmdb/hmdb_metabolites.zip
+
+./scripts/nosqlbiosets index hmdb Elasticsearch ~/data/hmdb/hmdb_proteins.zip --index hmdb_protein
+
 ```
 
 
@@ -127,8 +134,9 @@ or for the complete set
 Example command lines to view graph results with Cytoscape
 
 ```bash
-  ./hmdb/queries.py cyview -d HMDB meningitis
-  ./hmdb/queries.py cyview -d drugbank meningitis
+  ./hmdb/queries.py cyview --help
+  ./hmdb/queries.py cyview --dataset HMDB meningitis
+  ./hmdb/queries.py cyview --dataset drugbank meningitis
 ```
 
 #### Example graphs

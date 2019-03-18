@@ -19,7 +19,7 @@ class TestQueryHMDB(unittest.TestCase):
     db = "MongoDB"
     dbc = DBconnection(db, index)
     mdb = dbc.mdbi
-    qry = QueryHMDB()
+    qry = QueryHMDB(index=index)
 
     def query(self, qc, doctype=None, size=20):
         print(self.db)
@@ -63,8 +63,9 @@ class TestQueryHMDB(unittest.TestCase):
         # (1279, 12), (24, 11), (2618, 10), (44, 9), (124, 9), (36, 8), (40, 8)
         agpl = [
             {'$match': {
-                'metabolite_associations.metabolite': {
-                    '$type': 'array'}}},
+                'metabolite_associations.metabolite.0': {"$exists": True}
+                # '$type': 'array'
+            }},
             {'$group': {
                 '_id': {'$size': '$metabolite_associations.metabolite'},
                 "count": {"$sum": 1}
@@ -130,7 +131,6 @@ class TestQueryHMDB(unittest.TestCase):
         assert 49 == len(r)
 
     def test_connected_metabolites(self):
-        qry = QueryHMDB()
         tests = [
             # query, expected results with/out maximum associations limit
             ({'$text': {'$search': 'methicillin'}},
@@ -154,15 +154,15 @@ class TestQueryHMDB(unittest.TestCase):
             for c, max_associations in [[a, -1], [b, 30]]:
                 # max_associations: -1, 30
                 npairs, u_, g_, v_ = c
-                r = list(qry.getconnectedmetabolites(
+                r = list(self.qry.getconnectedmetabolites(
                     qc, max_associations=max_associations))
                 u = {i['m1'] for i in r}
                 g = {i['gene'] for i in r}
                 v = {i['m2'] for i in r}
-                self.assertAlmostEqual(npairs, len(r), delta=30, msg=qc)
-                self.assertAlmostEqual(len(u), u_, delta=3, msg=qc)
-                self.assertAlmostEqual(len(g), g_, delta=3, msg=qc)
-                self.assertAlmostEqual(len(v), v_, delta=3, msg=qc)
+                self.assertAlmostEqual(npairs, len(r), delta=300, msg=qc)
+                self.assertAlmostEqual(len(u), u_, delta=30, msg=qc)
+                self.assertAlmostEqual(len(g), g_, delta=30, msg=qc)
+                self.assertAlmostEqual(len(v), v_, delta=30, msg=qc)
 
     def test_metabolites_protein_functions(self):
         # Functions of associated proteins for selected set of Metabolites

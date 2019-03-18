@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 from geneinfo.hgnc_geneinfo import main as geneinfo_index
+from hmdb.drugbank import main as drugbank_index
+from hmdb.index import main as hmdb_index
 
 """
 Command line interface for nosql-biosets project index/query scripts
@@ -15,8 +17,8 @@ import argh
 from argh import arg
 
 datasets_help = '''
-Dataset to index: only HGNC dataset is supported,
-support for more datasets to be implemented soon
+Dataset to index: only HGNC, HMDB and DrugBank datasets are supported,
+support for more datasets to be implemented
 '''
 
 
@@ -24,12 +26,19 @@ support for more datasets to be implemented soon
 @arg('db', help='MongoDB or Elasticsearch')
 @arg('infile', help='Input file to index')
 @arg('--database', help='MongoDB database name')
-def index(dataset, db, infile, database='biosets'):
+@arg('--collection', help='MongoDB collection name, if undefined'
+                          ' default names in index scripts are used')
+def index(dataset, db, infile, database='biosets', collection=None):
     """
     Index given input file of the dataset selected
     """
+    print("%s   %s  %s" % (db, infile, database))
     if dataset == 'hgnc':
         geneinfo_index(db, infile, database)
+    elif dataset == 'hmdb':
+        hmdb_index(infile, database, collection, db)
+    elif dataset == 'drugbank':
+        drugbank_index(infile, db, database)
 
 
 if __name__ == "__main__":

@@ -8,12 +8,13 @@ from nosqlbiosets.dbutils import DBconnection
 from nosqlbiosets.graphutils import *
 from nosqlbiosets.uniprot.query import QueryUniProt
 
-db = "MongoDB"
+db = "MongoDB"        # Elasticsearch support has not been implemented
+DATABASE = "biosets"  # MongoDB database
 
 
 class QueryDrugBank:
 
-    def __init__(self, index="biosets", **kwargs):
+    def __init__(self, index=DATABASE, **kwargs):
         self.index = index
         self.dbc = DBconnection(db, self.index, **kwargs)
         self.mdb = self.dbc.mdbi
@@ -82,7 +83,7 @@ class QueryDrugBank:
         :param etype: Drugbank entity type, 'targets' or 'enzymes'
         :return: Drugbank target id
         """
-        qryuniprot = QueryUniProt("MongoDB", "biosets", "uniprot")
+        qryuniprot = QueryUniProt("MongoDB", DATABASE, "uniprot")
         qc = {"dbReference.id": keggtid}
         key = 'name'
         uniprotid = qryuniprot.dbc.mdbi['uniprot'].distinct(key, filter=qc)
@@ -160,7 +161,7 @@ class QueryDrugBank:
 
 class QueryHMDB:
 
-    def __init__(self, index="biosets", **kwargs):
+    def __init__(self, index=DATABASE, **kwargs):
         self.index = index
         self.dbc = DBconnection(db, self.index, **kwargs)
         self.mdb = self.dbc.mdbi
@@ -311,20 +312,22 @@ def savegraph(query, graphfile, connections='targets'):
     print(nx.info(g))
 
 
-def cyview(query, dataset='HMDB', connections='targets', name=''):
+def cyview(query, dataset='HMDB', connections='targets', name='',
+           database=DATABASE):
     """ See HMDB/DrugBank graphs with Cytoscape runing on your local machine
-
+`
      :param query: Query to select HMDB or DrugBank entries
      :param dataset: HMDB or DrugBank, not case sensitive
      :param connections: Connection type for DrugBank entries
      :param name: Name of the graph on Cytoscape, query is used as default value
+     :param database: Name of the MongoDB database to connect
      """
     from py2cytoscape.data.cyrest_client import CyRestClient
     from nosqlbiosets import parseinputquery
     from py2cytoscape.data.style import Style
     qc = parseinputquery(query)
     if dataset.upper() == 'HMDB':
-        qry = QueryHMDB()
+        qry = QueryHMDB(index=database)
         pairs = qry.getconnectedmetabolites(qc)
         mn = qry.get_connections_graph(pairs, query)
     else:  # assume DrugBank
