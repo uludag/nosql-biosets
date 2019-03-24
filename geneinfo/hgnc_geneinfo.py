@@ -65,7 +65,7 @@ def es_index_genes(dbc, genes):
             dbc.es,
             read_genes(genes),
             index=dbc.index,
-            doc_type=DOCTYPE,
+            doc_type='_doc',
             chunk_size=CHUNKSIZE
     ):
         action, result = result.popitem()
@@ -77,16 +77,15 @@ def es_index_genes(dbc, genes):
     return r
 
 
-def mongodb_index_genes(mdbi, genes):
+def mongodb_index_genes(mdbc, genes):
     entries = list()
-    mdbi[DOCTYPE].delete_many({})
     try:
         for entry in read_genes(genes):
             entries.append(entry)
             if len(entries) == CHUNKSIZE:
-                mdbi[DOCTYPE].insert_many(entries)
+                mdbc.insert_many(entries)
                 entries = list()
-        mdbi[DOCTYPE].insert_many(entries)
+        mdbc.insert_many(entries)
     except BulkWriteError as bwe:
         pprint(bwe.details)
     return
@@ -122,6 +121,9 @@ class GeneInfo(Base):
     entrez_id = Column(Integer)
     enzyme_id = Column(ARRAY(Text))
     gene_family_id = Column(Text)
+    gene_group = Column(ARRAY(Text))
+    gene_group_id = Column(ARRAY(Integer))
+    gtrnadb = Column(Text)
     hgnc_id = Column(Text)
     imgt = Column(Text)
     iuphar = Column(Text)
@@ -136,7 +138,7 @@ class GeneInfo(Base):
     pubmed_id = Column(Text)
     refseq_accession = Column(Text)
     rgd_id = Column(Text)
-    rna_central_ids = Column(ARRAY(Text))
+    rna_central_id = Column(ARRAY(Text))
     ucsc_id = Column(Text)
     uniprot_ids = Column(ARRAY(Text))
     vega_id = Column(Text)
@@ -169,15 +171,17 @@ def pgsql_index_genes(session, genes):
     session.commit()
 
 
-def main(db, infile, index, user=None, password=None, host=None, port=None):
+def main(db, infile, index, doctype,
+         user=None, password=None, host=None, port=None):
     if db in ["Elasticsearch",  "MongoDB"]:
-        dbc = DBconnection(db, index, host=host, port=port, recreateindex=True)
+        dbc = DBconnection(db, index, collection=doctype, host=host, port=port,
+                           recreateindex=True)
         if dbc.db == "Elasticsearch":
             read_and_index_hgnc_file(infile, dbc, es_index_genes)
             dbc.es.indices.refresh(index=index)
         elif dbc.db == "MongoDB":
-            dbc.mdbi.drop_collection(DOCTYPE)
-            read_and_index_hgnc_file(infile, dbc.mdbi, mongodb_index_genes)
+            read_and_index_hgnc_file(infile, dbc.mdbi[doctype],
+                                     mongodb_index_genes)
     else:
         session = pgsql_connect(host, port, user, password, index)
         session.query(GeneInfo).delete()
@@ -194,6 +198,9 @@ if __name__ == '__main__':
     parser.add_argument('--index', default=INDEX,
                         help='Index name for Elasticsearch, '
                              'database name for MongoDB and PostgreSQL')
+    parser.add_argument('--doctype', default=DOCTYPE,
+                        help='Collection name for MongoDB, '
+                             'table name for PostgreSQL')
     parser.add_argument('--host',
                         help='Hostname for the database server')
     parser.add_argument('--port',
@@ -208,5 +215,5 @@ if __name__ == '__main__':
                         help="Password for the database user, "
                              " supported with PostgreSQL option only")
     args = parser.parse_args()
-    main(args.db, args.infile, args.index,
+    main(args.db, args.infile, args.index, args.doctype,
          args.user, args.password, args.host, args.port)

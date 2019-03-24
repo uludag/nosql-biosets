@@ -2,13 +2,13 @@
 ## HGNC gene info
 
 [hgnc_geneinfo.py](hgnc_geneinfo.py); Index HGNC data using Elasticsearch,
- MongoDB or PostgreSQL
+ MongoDB or PostgreSQL(naive)
  
- Tested with June 2018 release
+ Tested with Mar 2019 release
 
 ```bash
 # ~30M
-wget -P ./data http://ftp.ebi.ac.uk/pub/databases/genenames/new/json/hgnc_complete_set.json
+wget -nc -P ./data http://ftp.ebi.ac.uk/pub/databases/genenames/new/json/hgnc_complete_set.json
 
 # Requires ~1m
 ./geneinfo/hgnc_geneinfo.py --infile ./data/hgnc_complete_set.json --db Elasticsearch
@@ -19,17 +19,14 @@ wget -P ./data http://ftp.ebi.ac.uk/pub/databases/genenames/new/json/hgnc_comple
 
 # Requires ~1m
 # Assume PostgreSQL database with name geneinfo has already been created
-# and the user `tests` have access to the database with password 'tests'
+# and the user `geneinfo` have access to the database with password 'geneinfo'
 # Use --hosts and  --port options if the database host is different than localhost
 # or if its port number is different than 5432
 ./geneinfo/hgnc_geneinfo.py --infile ./data/hgnc_complete_set.json\
- --db PostgreSQL --index geneinfo --user tests --password tests
+ --db PostgreSQL --index geneinfo --user geneinfo --password geneinfo
 ```
-PostgreSQL support is based on [SQLAlchemy](http://www.sqlalchemy.org) library
-
-Note: A command line option to change MongoDB collection name and PostgreSQL table name
-has not been implemented yet, it is defined with constant `DOCTYPE = 'hgncgeneinfo'`
-in hgnc_geneinfo.py
+PostgreSQL support is based on [SQLAlchemy](http://www.sqlalchemy.org) library,
+table name is defined with constant `DOCTYPE` ('hgncgeneinfo')
 
 ### Similar work
 
