@@ -177,6 +177,8 @@ def remove_small_subgraphs(ingraph, min_nodes=5):
             for u, v in nx.dfs_edges(ingraph_, node, min_nodes):
                 r.add(u)
                 r.add(v)
+                if len(r) >= min_nodes:
+                    break
             if len(r) < min_nodes:
                 to_remove = to_remove.union(r)
     ingraph.remove_nodes_from(to_remove)
