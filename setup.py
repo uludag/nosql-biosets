@@ -1,5 +1,8 @@
+import sys
+
 from setuptools import setup, find_packages
 
+py35 = (sys.version_info[0] == 3 and sys.version_info[1] >= 5)
 
 setup(
        name='nosqlbiosets',
@@ -11,12 +14,12 @@ setup(
        url='https://bitbucket.org/hspsdb/nosql-biosets',
        license='MIT License',
        install_requires=[
-              'argh',
-              'elasticsearch',
-              'networkx',
-              'pymongo',
-              'six',
-              'xmltodict'
+           'argh',
+           'elasticsearch',
+           'networkx' if py35 else 'networkx==2.2',
+           'pymongo',
+           'six',
+           'xmltodict'
        ],
        extras_require={
               'gffutils': (
