@@ -23,7 +23,7 @@ EX_GRAPHS = os.path.dirname(os.path.abspath(__file__)) + \
 
 
 class TestQueryDrugBank(unittest.TestCase):
-    qry = QueryDrugBank()
+    qry = QueryDrugBank(index='biosets')
 
     def test_target_genes_interacted_drugs(self):
         genes = ['gyrA', 'katG', 'inhA', 'rpoC', 'rpsL']
@@ -58,6 +58,13 @@ class TestQueryDrugBank(unittest.TestCase):
         self.assertIn("Carboxylic Acids and Derivatives", names)
         self.assertAlmostEqual(290, len(names), delta=10)
 
+    def test_distinct_groups(self):
+        key = "groups"
+        names = self.qry.distinctquery(key)
+        self.assertIn("withdrawn", names)
+        self.assertIn("investigational", names)
+        self.assertAlmostEqual(7, len(names), delta=0)
+
     def test_distinct_pfam_classes(self):
         key = "transporters.polypeptide.pfams.pfam.name"
         names = self.qry.distinctquery(key)
@@ -80,7 +87,7 @@ class TestQueryDrugBank(unittest.TestCase):
                 "count": {"$sum": 1}
             }}]
         r = list(self.qry.aggregate_query(agpl))
-        self.assertAlmostEqual(7399, r[0]['count'], delta=60)
+        self.assertAlmostEqual(7500, r[0]['count'], delta=60)
 
         # Number of unique target names: ~4360
         names = self.qry.distinctquery("targets.name")
@@ -108,11 +115,11 @@ class TestQueryDrugBank(unittest.TestCase):
         key = "atc-codes.level.#text"
         atc_codes = self.qry.distinctquery(key)
         self.assertIn("Direct thrombin inhibitors", atc_codes)
-        self.assertAlmostEqual(950, len(atc_codes), delta=10)
+        self.assertAlmostEqual(964, len(atc_codes), delta=10)
         key = "atc-codes.code"
         atc_codes = self.qry.distinctquery(key)
         self.assertIn("A10AC04", atc_codes)
-        self.assertAlmostEqual(3600, len(atc_codes), delta=100)
+        self.assertAlmostEqual(3918, len(atc_codes), delta=100)
 
     def test_distinct_ahfs_codes(self):
         key = "ahfs-codes.ahfs-code"
@@ -131,13 +138,13 @@ class TestQueryDrugBank(unittest.TestCase):
             {"$sort": {"count": -1}},
         ])
         naprroved = list(naprroved)
-        self.assertAlmostEqual(69229, naprroved[0]['count'], delta=8000)
-        self.assertAlmostEqual(3395, naprroved[1]['count'], delta=800)
+        self.assertAlmostEqual(44693, naprroved[0]['count'], delta=8000)
+        self.assertAlmostEqual(36078, naprroved[1]['count'], delta=800)
         project = {"_id": 1}
         # Drugs with at least one approved product
         qc = {"products.approved": True}
         r = list(self.qry.query(qc, projection=project))
-        self.assertAlmostEqual(2800, len(r), delta=100)
+        self.assertAlmostEqual(3220, len(r), delta=100)
         agpl = [
             {'$unwind': '$products'},
             {'$match': qc},
@@ -148,8 +155,8 @@ class TestQueryDrugBank(unittest.TestCase):
             {'$limit': 1}
         ]
         r = list(self.qry.aggregate_query(agpl))
-        assert 'Ibuprofen' == r[0]['_id']
-        self.assertAlmostEqual(780, r[0]['count'], delta=100)
+        assert 'Hydrocodone Bitartrate and Acetaminophen' == r[0]['_id']
+        self.assertAlmostEqual(1063, r[0]['count'], delta=100)
         agpl = [
             {'$project': {
                 'products': 1,
@@ -163,7 +170,7 @@ class TestQueryDrugBank(unittest.TestCase):
             }},
         ]
         r = list(self.qry.aggregate_query(agpl))
-        self.assertAlmostEqual(11332, r[0]['max'], delta=800)
+        self.assertAlmostEqual(12751, r[0]['max'], delta=800)
         agpl = [
             {'$project': {
                 'name': 1,
@@ -179,7 +186,7 @@ class TestQueryDrugBank(unittest.TestCase):
         assert 'Octinoxate' == r[0]['name']
         qc = {"products.approved": False}
         r = list(self.qry.query(qc, projection=project))
-        self.assertAlmostEqual(550, len(r), delta=100)
+        self.assertAlmostEqual(1124, len(r), delta=100)
 
     def test_query_atc_codes(self):
         project = {"atc-codes": 1}
@@ -214,47 +221,47 @@ class TestQueryDrugBank(unittest.TestCase):
         r = list(self.qry.query(qc, projection=project))
         assert 1 == len(r)
         interactions = r[0]["drug-interactions"]
-        assert 398 == len(interactions)
+        assert 637 == len(interactions)
 
         qc = {"_id": "DB00072"}
         r = list(self.qry.query(qc, projection=project))
         assert 1 == len(r)
         interactions = r[0]["drug-interactions"]
-        assert 568 == len(interactions)
+        assert 518 == len(interactions)
         assert 'DB08879' in [i["drugbank-id"] for i in interactions]
         names = [i["name"] for i in interactions]
         assert 'Begelomab' in names
 
         key = "drug-interactions.name"
         names = self.qry.distinctquery(key)
-        self.assertIn("Calcium Acetate", names)
-        self.assertAlmostEqual(3300, len(names), delta=100)
+        self.assertIn("Salmeterol", names)
+        self.assertAlmostEqual(3814, len(names), delta=100)
 
         key = "drug-interactions.drugbank-id"
         idids = self.qry.distinctquery(key)
         self.assertIn("DB00048", idids)
-        self.assertAlmostEqual(3300, len(idids), delta=100)
+        self.assertAlmostEqual(3814, len(idids), delta=100)
         # list of approved drugs that interacts with at least one other drug
         dids = self.qry.distinctquery('_id',
                                       qc={"products.approved": True,
                                           "drug-interactions":
                                               {"$not": {"$size": 0}}})
         self.assertIn("DB00048", dids)
-        self.assertAlmostEqual(2810, len(dids), delta=100)
+        self.assertAlmostEqual(3220, len(dids), delta=100)
 
     def test_drug_interactions_graph(self):
         qc = {"affected-organisms": {
             "$in": ["Hepatitis B virus"]}}
         g = self.qry.get_connections_graph(qc, "drug-interactions")
-        self.assertAlmostEqual(440, g.number_of_edges(), delta=10)
-        self.assertAlmostEqual(430, g.number_of_nodes(), delta=10)
-        assert 'Pregnenolone' in g.nodes
+        self.assertAlmostEqual(3556, g.number_of_edges(), delta=100)
+        self.assertAlmostEqual(1609, g.number_of_nodes(), delta=100)
+        assert 'Metampicillin' in g.nodes
         assert g.number_of_selfloops() == 0
 
     def test_example_text_queries(self):
         for qterm, n in [
-            ('coronavirus', 5), ('MERS-CoV', 5), ('mrsa', 11),
-            ('methicillin', 23), ('meticillin', 1), ('defensin', 15)
+            ('coronavirus', 5), ('MERS-CoV', 6), ('mrsa', 12),
+            ('methicillin', 24), ('meticillin', 1), ('defensin', 15)
         ]:
             qc = {'$text': {'$search': qterm}}
             g = self.qry.query(qc, projection={"_id": 1})
@@ -263,20 +270,20 @@ class TestQueryDrugBank(unittest.TestCase):
     def test_example_graph(self):
         qc = {'$text': {'$search': 'methicillin'}}
         g1 = self.qry.get_connections_graph(qc, "targets")
-        self.assertAlmostEqual(72, g1.number_of_edges(), delta=8)
-        self.assertAlmostEqual(62, g1.number_of_nodes(), delta=8)
+        self.assertAlmostEqual(82, g1.number_of_edges(), delta=10)
+        self.assertAlmostEqual(73, g1.number_of_nodes(), delta=10)
         g2 = self.qry.get_connections_graph(qc, "enzymes")
         self.assertAlmostEqual(15, g2.number_of_edges(), delta=2)
         self.assertAlmostEqual(14, g2.number_of_nodes(), delta=1)
         g3 = self.qry.get_connections_graph(qc, "transporters")
-        self.assertAlmostEqual(16, g3.number_of_edges(), delta=1)
-        self.assertAlmostEqual(16, g3.number_of_nodes(), delta=1)
+        self.assertAlmostEqual(22, g3.number_of_edges(), delta=4)
+        self.assertAlmostEqual(22, g3.number_of_nodes(), delta=4)
         g4 = self.qry.get_connections_graph(qc, "carriers")
         self.assertAlmostEqual(7, g4.number_of_edges(), delta=4)
         self.assertAlmostEqual(8, g4.number_of_nodes(), delta=4)
         r = nx.compose_all([g1, g2, g3, g4])
-        self.assertAlmostEqual(108, r.number_of_edges(), delta=8)
-        self.assertAlmostEqual(79, r.number_of_nodes(), delta=4)
+        self.assertAlmostEqual(125, r.number_of_edges(), delta=20)
+        self.assertAlmostEqual(94, r.number_of_nodes(), delta=14)
         remove_small_subgraphs(r)
         save_graph(r, EX_GRAPHS + 'drugbank-methicillin.json')
         r = neighbors_graph(r, "Ticarcillin", beamwidth=8, maxnodes=100)
@@ -285,8 +292,8 @@ class TestQueryDrugBank(unittest.TestCase):
     def test_drug_targets_graph(self):
         qc = {'$text': {'$search': '\"side effects\"'}}
         g = self.qry.get_connections_graph(qc, "targets")
-        assert g.number_of_edges() == 580
-        assert g.number_of_nodes() == 335
+        assert g.number_of_edges() == 573
+        assert g.number_of_nodes() == 330
         assert "Olanzapine" in g.nodes
         assert "CCX915" in g.nodes
         r = neighbors_graph(g, "Olanzapine")
@@ -310,7 +317,7 @@ class TestQueryDrugBank(unittest.TestCase):
     def test_drug_targets_graph_merge(self):
         qc = {'$text': {'$search': 'lipid'}}
         g1 = self.qry.get_connections_graph(qc, "targets")
-        self.assertAlmostEqual(3669, g1.number_of_edges(), delta=80)
+        self.assertAlmostEqual(4000, g1.number_of_edges(), delta=80)
         self.assertAlmostEqual(2530, g1.number_of_nodes(), delta=80)
         target = "Lys-63-specific deubiquitinase BRCC36"
         assert target in g1.nodes
@@ -319,15 +326,15 @@ class TestQueryDrugBank(unittest.TestCase):
         self.assertAlmostEqual(808, g2.number_of_edges(), delta=20)
         self.assertAlmostEqual(335, g2.number_of_nodes(), delta=10)
         g3 = self.qry.get_connections_graph(qc, "transporters")
-        self.assertAlmostEqual(581, g3.number_of_edges(), delta=10)
-        self.assertAlmostEqual(244, g3.number_of_nodes(), delta=10)
+        self.assertAlmostEqual(665, g3.number_of_edges(), delta=10)
+        self.assertAlmostEqual(260, g3.number_of_nodes(), delta=30)
         g4 = self.qry.get_connections_graph(qc, "carriers")
         self.assertAlmostEqual(144, g4.number_of_edges(), delta=40)
         self.assertAlmostEqual(121, g4.number_of_nodes(), delta=40)
         g = nx.compose_all([g1, g2, g3, g4])
         assert target in g.nodes
         assert "targets" == g1.nodes[target]['type']
-        self.assertAlmostEqual(5173, g.number_of_edges(), delta=80)
+        self.assertAlmostEqual(5578, g.number_of_edges(), delta=80)
         self.assertAlmostEqual(2715, g.number_of_nodes(), delta=40)
         remove_highly_connected_nodes(g)
         self.assertAlmostEqual(768, g.number_of_edges(), delta=80)
@@ -340,7 +347,7 @@ class TestQueryDrugBank(unittest.TestCase):
         tests = [
             # ({}, 25624, 12175),
             ({"name": "Acetaminophen"}, 26, 27),
-            ({'$text': {'$search': 'lipid'}}, 5173, 2715)
+            ({'$text': {'$search': 'lipid'}}, 5578, 2751)
         ]
         for qc, nedges, nnodes in tests:
             g = self.qry.get_allgraphs(qc)
@@ -371,11 +378,11 @@ class TestQueryDrugBank(unittest.TestCase):
 
     def test_number_of_interacted_drugs(self):
         tests = [
-            ([(0, 352), (1, 1377)],
-             {'$text': {'$search': "tuberculosis"}}),
-            ([(0, 40), (1, 175), (2, 983)],
-             {'$text': {'$search': "antitubercular"}}),
-            ([(0, 6), (1, 23), (2, 137)],
+            ([(0, 321), (1, 723)],
+             {'$text': {'$search': "\"treatment of Tuberculosis\""}}),
+            ([(0, 41), (1, 131), (2, 187)],
+             {'$text': {'$search': "\"antitubercular agent\""}}),
+            ([(0, 6), (1, 43), (2, 50)],
              {"name": "Ribavirin"})
         ]
         for test, qc in tests:
@@ -394,7 +401,7 @@ class TestQueryDrugBank(unittest.TestCase):
                         "depthField": "depth",
                         "restrictSearchWithMatch": {
                             "classification.class":
-                                "Carboxylic Acids and Derivatives"
+                                "Diazines"
                         }
                     }},
                     {"$unwind": "$neighbors"},
@@ -405,16 +412,16 @@ class TestQueryDrugBank(unittest.TestCase):
                 ]
                 r = self.qry.aggregate_query(agpl)
                 r = [c for c in r]
-                self.assertAlmostEqual(nr, len(r), delta=20)
+                self.assertAlmostEqual(nr, len(r), delta=30)
 
     def test_number_of_target_connected_drugs(self):
         """"Number of drugs which are neighbors through shared targets"""
         tests = [
             ([(0, 0), (1, 0)],
              {'$text': {'$search': "antitubercular"}}),
-            ([(0, 441), (1, 550)],
+            ([(0, 453), (1, 574)],
              {'$text': {'$search': "tuberculosis"}}),
-            ([(0, 351), (1, 351), (2, 351)],
+            ([(0, 361), (1, 361), (2, 361)],
              {"name": "Ribavirin"})
         ]
         for test, qc in tests:

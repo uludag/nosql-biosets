@@ -10,7 +10,7 @@
 
 * [drugbank.py](drugbank.py) Index DrugBank xml dataset with MongoDB,
   or Elasticsearch, or save drug-drug interactions as graph file in GML format.
-  Tests made with DrugBank version 5.1.2, Dec 2018 update
+  Tests made with DrugBank version 5.1.3, Apr 2019 update
   
 ```bash
 ./hmdb/drugbank.py --help
@@ -18,9 +18,8 @@ usage: drugbank.py [-h] -infile INFILE [--index INDEX] [--doctype DOCTYPE]
                    [--host HOST] [--port PORT] [--db DB]
                    [--graphfile GRAPHFILE] [--allfields]
 
-Index DrugBank xml dataset with MongoDB or Elasticsearch, downloaded from
-https://www.drugbank.ca/releases/latest, can also save drug interactions as
-NetworkX graph file
+Index DrugBank entries in xml format, with MongoDB or Elasticsearch, downloaded from
+https://www.drugbank.ca/releases/latest
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -91,7 +90,7 @@ requires registration. Save `drugbank_all_full_database.xml.zip` file to the
 `data` folder
 
 ```bash
-# Index with MongoDB,  takes ~ 10m to 20m, with MongoDB Atlas ~50m?
+# Index with MongoDB,  takes ~ 10m to 30m, with MongoDB Atlas ~50m?
 ./hmdb/drugbank.py --infile ./data/drugbank_all_full_database.xml.zip\
  --db MongoDB --index biosets
 
@@ -102,6 +101,8 @@ requires registration. Save `drugbank_all_full_database.xml.zip` file to the
  --db Elasticsearch --index drugbank
 
 # Save drug-drug interactions as graph file in GML format
+# (not a mature feature: queries.py have better response time
+#                        and is the preferred way for building interaction graphs)
 # takes ~15m,  #edges ~ 660 000, #nodes ~ 3140
 ./hmdb/drugbank.py --infile ./data/drugbank_all_full_database.xml.zip --db NetworkX
 
