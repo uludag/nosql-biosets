@@ -138,11 +138,6 @@ class Indexer(DBconnection):
         al = ['recommendedName', 'alternativeName', 'allergenName',
               'component', 'cdAntigenName', 'innName']
         
-        if isinstance(e['protein'], string_types):
-            import json
-            print(json.dumps(e['protein'], indent=4))
-            del e['protein']
-            return
         if 'domain' in e['protein']:
             del e['protein']['domain']
 

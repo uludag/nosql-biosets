@@ -73,16 +73,16 @@ class TestQueryUniProt(unittest.TestCase):
     # Distribution of evidence codes in a text query result set
     def test_evidence_codes(self):
         ecodes = {  # http://www.uniprot.org/help/evidences
-            255: 3840,  # match to sequence model evidence, manual assertion
-            269: 5878,  # experimental evidence used in manual assertion
-            305: 4130,  # curator inference used in manual assertion
-            250: 2960,  # sequence similarity evidence used in manual assertion
-            303: 1485,  # non-traceable author statement, manual assertion
+            255: 3892,  # match to sequence model evidence, manual assertion
+            269: 6040,  # experimental evidence used in manual assertion
+            305: 4380,  # curator inference used in manual assertion
+            250: 3088,  # sequence similarity evidence used in manual assertion
+            303: 1650,  # non-traceable author statement, manual assertion
             244: 790,   # combinatorial evidence used in manual assertion
-            312: 630    # imported information used in manual assertion
+            312: 748    # imported information used in manual assertion
         }
         qc = {'$text': {'$search': 'antimicrobial'}}
-        self.assertAlmostEqual(4546,
+        self.assertAlmostEqual(4700,
                                len(list(qryuniprot.query(qc, {'_id': 1}))),
                                delta=100)
         aggqc = [
@@ -103,9 +103,9 @@ class TestQueryUniProt(unittest.TestCase):
     def test_GO_annotations(self):
         tests = [  # species, unique annotations, all annotations
             ('Rice', 2786, 25482),
-            ('Human', 17982, 260242),
+            ('Human', 18010, 262822),
             ('Arabidopsis thaliana', 6741, 99198),
-            ('Danio rerio', 5106, 22491)
+            ('Danio rerio', 5160, 22491)
         ]
         for org, uniqgo, nall in tests:
             qc = {'organism.name.#text': org}
@@ -132,7 +132,7 @@ class TestQueryUniProt(unittest.TestCase):
             r = [c for c in hits]
             self.assertAlmostEqual(uniqgo, len(r), delta=30)
             self.assertAlmostEqual(nall, sum([c['abundance'] for c in r]),
-                                   delta=300)
+                                   delta=1000)
 
     def test_getenzymedata(self):
         enzys = [
@@ -154,8 +154,8 @@ class TestQueryUniProt(unittest.TestCase):
         qryuniprot_es = QueryUniProt("Elasticsearch", "uniprot", "uniprot")
         for ecn, accs, gene, pathway, reaction, org, nametype, n, orgs in enzys:
             genetype, genename, abundance = gene
-            r = qryuniprot_es.getgenes(ecn)
-            assert gene[2] == r[gene[0]][gene[1]], r
+            r = qryuniprot_es.getgenes(ecn, limit=100)  # Elasticsearch
+            assert abundance == r[genetype][genename], r
             r = qryuniprot.getgenes(ecn)
             assert abundance == r[genetype][genename]
             assert accs.issubset(qryuniprot.getaccs(ecn))

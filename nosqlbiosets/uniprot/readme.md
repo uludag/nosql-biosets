@@ -3,7 +3,7 @@
 
 * [index.py](index.py): Index UniProtKB xml files
   
-  _Tested with Swiss-Prot dataset only, (Feb 2019 release)_
+  _Tested with Swiss-Prot dataset only, (May 2019 release)_
   
     ```
     ./nosqlbiosets/uniprot/index.py --help
