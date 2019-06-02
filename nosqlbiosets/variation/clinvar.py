@@ -16,14 +16,13 @@ from six import string_types
 from nosqlbiosets.dbutils import DBconnection
 from nosqlbiosets.objutils import unifylistattribute
 
-pool = ThreadPool(10)   # Threads for index calls, parsing is in the main thread
-MAX_QUEUED_JOBS = 14000  # Maximum number of index jobs in queue
+pool = ThreadPool(40)  # Threads for index calls, parsing is in the main thread
+MAX_QUEUED_JOBS = 400  # Maximum number of index jobs in queue
 
 
 class Indexer(DBconnection):
 
     def __init__(self, dbtype, db, collection, index=None, host=None, port=None):
-        self.doctype = collection
         self.index = db if dbtype == 'MongoDB' else collection
         self.dbtype = dbtype
         self.i = 1
@@ -58,17 +57,17 @@ class Indexer(DBconnection):
     def index_clinvar_entry(self, _, entry):
         def index():
             try:
-                self.update_entry(entry)
                 rtype = 'InterpretedRecord' if 'InterpretedRecord' in entry \
                     else 'IncludedRecord'
                 r = entry[rtype]
                 _type = 'SimpleAllele' if 'SimpleAllele' in r \
                     else 'Haplotype' if 'Haplotype' in r \
                     else 'Genotype'
-                docid = r[_type]['VariationID']
+                docid = int(r[_type]['VariationID'])
+                self.update_entry(entry)
                 if self.dbtype == "Elasticsearch":
-                    self.es.index(index=self.index, doc_type=self.doctype,
-                                  op_type='create', ignore=409,
+                    self.es.index(index=self.index,
+                                  ignore=409,
                                   filter_path=['hits.hits._id'],
                                   id=docid, body=entry)
                 else:  # assume MongoDB
@@ -78,10 +77,10 @@ class Indexer(DBconnection):
                 self.reportprogress(1000)
                 return True
             except Exception as e:
-                print("ERROR: %s" % e)
+                if 'docid' in vars():
+                    print("ERROR (docid=%d): %s" % (docid, e))
                 print(traceback.format_exc())
                 return False
-                # exit(-1)
         # return index(_attrs, entry)
         if pool._inqueue.qsize() > MAX_QUEUED_JOBS:
             from time import sleep
@@ -89,6 +88,31 @@ class Indexer(DBconnection):
             sleep(1)
         pool.apply_async(index, [])
         return True
+
+    def update_synonyms(self, sa):  # SimpleAllele
+        if 'OtherNameList' in sa:
+            unifylistattribute(sa, "OtherNameList", "Name",
+                               renamelistto='otherNames')
+            for i, name in enumerate(sa['otherNames']):
+                if isinstance(name, string_types):
+                    sa['otherNames'][i] = {'#text': name}
+
+    # genotype or haplotype
+    def update_genotype_haplotype(self, catype):
+        if 'SimpleAllele' in catype:
+            sa = catype['SimpleAllele']
+            if isinstance(sa, list):
+                for i in sa:
+                    self.update_synonyms(i)
+            else:
+                self.update_synonyms(sa)
+
+    def update_date(self, ca):
+        if "Interpretation" in ca \
+                and "DateLastEvaluated" in ca["Interpretation"] \
+                and len(ca["Interpretation"]["DateLastEvaluated"]) > 10:
+            ca["Interpretation"]["DateLastEvaluated"] = \
+                ca["Interpretation"]["DateLastEvaluated"][:10]
 
     def update_entry(self, entry):  # ClinVar Variation Archive entry
         if 'InterpretedRecord' in entry:
@@ -109,15 +133,15 @@ class Indexer(DBconnection):
             unifylistattribute(ir, "ClinicalAssertionList", "ClinicalAssertion",
                                renamelistto='clinicalAssertion')
             for ca in ir['clinicalAssertion']:
+                self.update_date(ca)
                 unifylistattribute(ca, "ObservedInList", "ObservedIn",
                                    renamelistto='observedIn')
-                if 'SimpleAllele' in ca and 'OtherNameList' in ca['SimpleAllele']:
-                    unifylistattribute(ca['SimpleAllele'], "OtherNameList", "Name",
-                                       renamelistto='otherNames')
-                    for i, name in enumerate(ca['SimpleAllele']['otherNames']):
-                        if isinstance(name, string_types):
-                            ca['SimpleAllele']['otherNames'][i] = {'#text': name}
-
+                if 'SimpleAllele' in ca:
+                    self.update_synonyms(ca['SimpleAllele'])
+                if 'Genotype' in ca:
+                    self.update_genotype_haplotype(ca['Genotype'])
+                if 'Haplotype' in ca:
+                    self.update_genotype_haplotype(ca['Haplotype'])
                 if 'Comment' in ca:
                     if not isinstance(ca['Comment'], list):
                         ca['Comment'] = [ca['Comment']]
@@ -148,7 +172,9 @@ def mongodb_indices(mdb):
         "RecordStatus",
         "InterpretedRecord.SimpleAllele.GeneList.Gene.Symbol",
         "InterpretedRecord.Interpretations.Interpretation.Type",
-        "InterpretedRecord.Interpretations.Interpretation.Description"
+        "InterpretedRecord.Interpretations.Interpretation.Description",
+        "InterpretedRecord.clinicalAssertion"
+        ".observedIn.Method.MethodAttribute.Attribute.Type"
     ]
     for field in indx_fields:
         mdb.create_index(field)
