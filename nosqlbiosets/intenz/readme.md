@@ -2,7 +2,7 @@
 # Index/query scripts for IntEnz enzyme dataset
 
 * [index.py](index.py): Index [IntEnz](http://www.ebi.ac.uk/intenz) xml files,
-  tested with IntEnz Feb 2019 release
+  tested with IntEnz Jun 2019 release
   
   ```text
     $ ./nosqlbiosets/intenz/index.py --help
@@ -80,10 +80,10 @@ wget -P ./data http://ftp.ebi.ac.uk/pub/databases/intenz/xml/ASCII/intenz.xml
 ./nosqlbiosets/intenz/index.py --db Elasticsearch --infile ./data/intenz.xml\
  --index intenz
 
-# Index with MongoDB, requires ~2m with local server, ~12m with MongoDB Atlas
+# Index with MongoDB, requires ~1m with local server, ~12m with MongoDB Atlas
 ./nosqlbiosets/intenz/index.py --db MongoDB --infile ./data/intenz.xml
 
-# Index with Neo4j (processing time ~ 10m)
+# Index with Neo4j (processing time ~ 12m)
 ./nosqlbiosets/intenz/index.py --db Neo4j --infile ./data/intenz.xml
 
 ```

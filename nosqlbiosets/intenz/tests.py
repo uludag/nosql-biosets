@@ -40,7 +40,7 @@ class TestQueryIntEnz(unittest.TestCase):
     def test_enzymeswithreactant(self):
         tests = [
             # reactant, name of one expected enzyme, # of expected enzymes
-            ("2-oxoglutarate", "Thymine dioxygenase", 135),
+            ("2-oxoglutarate", "Thymine dioxygenase", 140),
             ("L-glutamate", "Glutamate--tRNA(Gln) ligase", 37),
             ("3-oxopropanoate", "Malonate-semialdehyde dehydrogenase", 5),
             ("glycerol", "D/L-glyceraldehyde reductase", 8),
@@ -55,7 +55,7 @@ class TestQueryIntEnz(unittest.TestCase):
     def test_enzymeswithreactant_chebiid(self):
         tests = [
             # ChEBI id, id and name of one enzyme, # of enzymes
-            (32682, "3.5.3.6", "Arginine deiminase", 22),
+            (32682, "3.5.3.6", "Arginine deiminase", 23),
             (58098, "4.1.2.20", "2-dehydro-3-deoxyglucarate aldolase", 1)
         ]
         for chebiid, ecn, ename, n in tests:
@@ -69,7 +69,7 @@ class TestQueryIntEnz(unittest.TestCase):
             # ChEBI id, id and name of one enzyme, # of enzymes
             (32682, "7.4.2.1", "ABC-type polar-amino-acid transporter", 5),
             (15361, "4.1.2.20", "2-dehydro-3-deoxyglucarate aldolase", 100),
-            (33019, "2.7.7.19", "Polynucleotide adenylyltransferase", 474)
+            (33019, "2.7.7.19", "Polynucleotide adenylyltransferase", 488)
         ]
         for chebiid, ecn, ename, n in tests:
             enzymes = qryintenz.getenzymeswithproduct_chebiid(chebiid)
@@ -130,7 +130,7 @@ class TestQueryIntEnz(unittest.TestCase):
         r = qryintenz.get_connections({})
         r = {(e['_id']['reactant'], e['_id']['product']): e['enzymes']
              for e in r}
-        self.assertAlmostEqual(24312, len(r), delta=200)
+        self.assertAlmostEqual(24555, len(r), delta=200)
         for re, pr, ecn in tests:
             assert (re, pr) in r
             assert ecn in r[(re, pr)]
@@ -139,7 +139,7 @@ class TestQueryIntEnz(unittest.TestCase):
         qc = {'reactions.label.value': "Chemically balanced"}
         g = qryintenz.get_connections_graph(qc, limit=40000)
         self.assertAlmostEqual(24000, g.number_of_edges(), delta=800)
-        self.assertAlmostEqual(7030,  g.number_of_nodes(), delta=200)
+        self.assertAlmostEqual(7236,  g.number_of_nodes(), delta=200)
         assert '2 H(+)' in g.nodes
         self.assertAlmostEqual(573, g.degree('2 H(+)'), delta=20)
 
@@ -232,6 +232,25 @@ class TestQueryIntEnz(unittest.TestCase):
         qc = {'$text': {'$search': 'semialdehyde'}}
         r = list(qryintenz.getreactions(qc))
         self.assertAlmostEqual(96, len(r), delta=20)
+
+    def test_enzymes_with_most_reactions(self):
+        # Enzymes with most reactions
+        agpl = [
+            {"$match": {"reactions": {"$type": "array"}}},
+            {"$project": {
+                "_id": 1,
+                'numberOfReactions': {'$size': "$reactions"}
+            }},
+            {"$sort": {"numberOfReactions": -1}},
+            {"$limit": 10}
+        ]
+        r = qryintenz.dbc.mdbi['intenz'].aggregate(agpl)
+        e = [
+            ('2.3.1.258', 16), ('3.6.1.9', 15), ('1.14.15.9', 15),
+            ('1.14.12.23', 13), ('2.7.4.6', 13), ('2.3.1.255', 12),
+            ('1.14.13.224', 12), ('2.1.1.244', 12), ('2.1.1.163', 12),
+            ('1.14.15.33', 12)]
+        assert [(i['_id'], i['numberOfReactions']) for i in r] == e
 
 
 if __name__ == '__main__':
