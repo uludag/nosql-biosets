@@ -73,7 +73,7 @@ class TestQueryUniProt(unittest.TestCase):
     # Distribution of evidence codes in a text query result set
     def test_evidence_codes(self):
         ecodes = {  # http://www.uniprot.org/help/evidences
-            255: 3892,  # match to sequence model evidence, manual assertion
+            255: 4025,  # match to sequence model evidence, manual assertion
             269: 6040,  # experimental evidence used in manual assertion
             305: 4380,  # curator inference used in manual assertion
             250: 3088,  # sequence similarity evidence used in manual assertion
@@ -103,7 +103,7 @@ class TestQueryUniProt(unittest.TestCase):
     def test_GO_annotations(self):
         tests = [  # species, unique annotations, all annotations
             ('Rice', 2786, 25482),
-            ('Human', 18010, 262822),
+            ('Human', 18055, 262822),
             ('Arabidopsis thaliana', 6741, 99198),
             ('Danio rerio', 5160, 22491)
         ]
@@ -130,7 +130,7 @@ class TestQueryUniProt(unittest.TestCase):
             ]
             hits = qryuniprot.aggregate_query(aggqc)
             r = [c for c in hits]
-            self.assertAlmostEqual(uniqgo, len(r), delta=30)
+            self.assertAlmostEqual(uniqgo, len(r), delta=100)
             self.assertAlmostEqual(nall, sum([c['abundance'] for c in r]),
                                    delta=1000)
 

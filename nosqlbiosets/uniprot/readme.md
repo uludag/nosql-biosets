@@ -3,7 +3,7 @@
 
 * [index.py](index.py): Index UniProtKB xml files
   
-  _Tested with Swiss-Prot dataset only, (May 2019 release)_
+  _Tested with Swiss-Prot dataset only, (June 2019 release)_
   
     ```
     ./nosqlbiosets/uniprot/index.py --help
@@ -41,7 +41,7 @@ Example command lines for downloading `uniprot_sprot.xml` file and for indexing:
 
 ```bash
 mkdir -p data
-# ~720M(compressed), ~165.5 million lines, ~559,100 entries
+# ~720M(compressed), ~165.6 million lines, ~560,300 entries
 wget -P ./data ftp://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/\
 knowledgebase/complete/uniprot_sprot.xml.gz
 ```
@@ -95,4 +95,3 @@ wget -P ./data http://cbdm-01.zdv.uni-mainz.de/~mschaefer/hippie/HIPPIE-current.
  --db MongoDB
 ```
 HIPPIE indexing takes ~8m with MongoDB, ~2m with Elasticsearch
- 
