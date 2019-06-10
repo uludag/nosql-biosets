@@ -3,8 +3,7 @@
 ClinVar is freely available, public archive of the relationships
 between medically important variants and phenotypes​
 
-https://www.ncbi.nlm.nih.gov/clinvar/​
-
+https://www.ncbi.nlm.nih.gov/clinvar/
 
 * ~510K VariationArchive entries
 * Compressed xml file size ~0.5G, uncompressed ~7G 

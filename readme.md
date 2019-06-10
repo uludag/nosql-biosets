@@ -46,8 +46,8 @@ Datasets that has been added recently:
 
 * ClinVar, aggregated information about genomic variation
   and its relationship to human health
-  [https://www.ncbi.nlm.nih.gov/clinvar/​](https://www.ncbi.nlm.nih.gov/clinvar/​)
-  [./nosqlbiosets/variation/](nosqlbiosets/variation/)
+  [https://www.ncbi.nlm.nih.gov/clinvar/​](https://www.ncbi.nlm.nih.gov/clinvar/)
+  [./nosqlbiosets/variation/](nosqlbiosets/variation)
   
 Datasets that had less attention after the initial support added to the project:
 
@@ -99,7 +99,7 @@ ModelSEEDdb, and MetaNetX datasets as graphs.
 A sister [project](https://github.com/uludag/hspsdb-indexer)
 aims to develop index scripts for sequence
 similarity search results, either in NCBI-BLAST json format
-or in BLAST tabular format which is used by other search programs as well
+or in BLAST tabular format which is used by other search programs as well,
 such as [LAMBDA](https://github.com/seqan/lambda) and
 [DIAMOND](https://github.com/bbuchfink/diamond).
 HSPsDB project aims to link the indexed search results
@@ -108,6 +108,7 @@ to the datasets indexed with this project, nosqlbiosets.
 ## Installation
 
 Download nosqlbiosets project source code and install required libraries:
+
 ```bash
 git clone https://bitbucket.org/hspsdb/nosql-biosets.git
 cd nosql-biosets
@@ -120,6 +121,7 @@ nosqlbiosets project to your local Python library/package folders
 using the `setup.py` `develop` and `--user` options
 that should allow you to run the index scripts from project
 source folders:
+
 ```bash
 python setup.py develop --user
 ```
@@ -133,10 +135,12 @@ parameters in command line.
 
 Example command lines for downloading UniProt Knowledgebase Swiss-Prot data set
 (~690M) and for indexing:
+
 ```bash
 $ wget ftp://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/\
 knowledgebase/complete/uniprot_sprot.xml.gz
 ```
+
 Make sure your Elasticsearch server is running in your localhost.
 If you are new to Elasticsearch and  you are using Linux
 the easiest way is to [download Elasticsearch](
