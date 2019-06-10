@@ -33,7 +33,7 @@ class Indexer(DBconnection):
         super(Indexer, self).__init__(dbtype, index, host, port,
                                       es_indexsettings=indxcfg,
                                       recreateindex=True)
-        if db == "MongoDB":
+        if dbtype == "MongoDB":
             self.mcl = self.mdbi[collection]
             self.mcl.drop()
 
@@ -67,6 +67,7 @@ class Indexer(DBconnection):
                 self.update_entry(entry)
                 if self.dbtype == "Elasticsearch":
                     self.es.index(index=self.index,
+                                  doc_type="_doc",
                                   ignore=409,
                                   filter_path=['hits.hits._id'],
                                   id=docid, body=entry)
@@ -174,7 +175,9 @@ def mongodb_indices(mdb):
         "InterpretedRecord.Interpretations.Interpretation.Type",
         "InterpretedRecord.Interpretations.Interpretation.Description",
         "InterpretedRecord.clinicalAssertion"
-        ".observedIn.Method.MethodAttribute.Attribute.Type"
+        ".observedIn.Method.MethodAttribute.Attribute.Type",
+        "InterpretedRecord.clinicalAssertion"
+        ".observedIn.Method.MethodAttribute.Attribute.#text"
     ]
     for field in indx_fields:
         mdb.create_index(field)

@@ -3,7 +3,7 @@
 NoSQL-biosets project includes scripts for indexing and querying
 selected free bioinformatics datasets. In addition to datasets, project aims
 to support common bioinformatics data types
-and formats, such as GFF. Elasticsearch and MongoDB are two primary databases
+and formats, such as GFF. Elasticsearch and MongoDB are two databases
 supported for most datasets included in the project.
 Neo4j and PostgreSQL support was implemented as the third database option
 for few datasets, namely for IntEnz, PubTator and HGNC.
@@ -35,12 +35,19 @@ Datasets that had more attention and have more stable support:
 * DrugBank [drugs and drug targets dataset](https://www.drugbank.ca/releases/latest):
   [`./hmdb#index-drugbank`](./hmdb#index-drugbank)
 
-* HGNC, [genenames.org](http://www.genenames.org/cgi-bin/statistics),
+* HGNC [genenames.org](http://www.genenames.org/cgi-bin/statistics),
  [data files in json format](
  http://ftp.ebi.ac.uk/pub/databases/genenames/new/json),
   from EMBL-EBI: [`./geneinfo/hgnc_geneinfo.py`](geneinfo/hgnc_geneinfo.py)
   (_tests made with [complete HGNC dataset](
   ftp://ftp.ebi.ac.uk/pub/databases/genenames/new/json/hgnc_complete_set.json)_)
+
+Datasets that has been added recently:
+
+* ClinVar, aggregated information about genomic variation
+  and its relationship to human health
+  [https://www.ncbi.nlm.nih.gov/clinvar/​](https://www.ncbi.nlm.nih.gov/clinvar/​)
+  [./nosqlbiosets/variation/](nosqlbiosets/variation/)
   
 Datasets that had less attention after the initial support added to the project:
 
