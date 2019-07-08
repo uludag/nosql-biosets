@@ -92,18 +92,33 @@ class TestQueryUniProt(unittest.TestCase):
                 '_id': '$evidence.type',
                 "sum": {"$sum": 1}}}
         ]
-        hits = qryuniprot.aggregate_query(aggqc)
-        r = [c for c in hits]
-        assert 7 == len(r)
-        for i in r:
+        cr = qryuniprot.aggregate_query(aggqc)
+        for i in cr:
             self.assertAlmostEqual(ecodes[int(i['_id'][8:])], i['sum'],
                                    delta=100)
+        # Distribution of evidence types in the same example query
+        etypes = {
+            "evidence at protein level": 2459,
+            "evidence at transcript level": 633,
+            "inferred from homology": 1587,
+            "predicted": 6,
+            "uncertain": 29
+        }
+        aggqc = [
+            {"$match": qc},
+            {'$group': {
+                '_id': '$proteinExistence.type',
+                "sum": {"$sum": 1}}}
+        ]
+        hits = qryuniprot.aggregate_query(aggqc)
+        r = {c['_id']: c['sum'] for c in hits}
+        assert r == etypes
 
     # Distribution of GO annotations
     def test_GO_annotations(self):
         tests = [  # species, unique annotations, all annotations
             ('Rice', 2786, 25482),
-            ('Human', 18055, 262822),
+            ('Human', 18055, 263951),
             ('Arabidopsis thaliana', 6741, 99198),
             ('Danio rerio', 5160, 22491)
         ]
