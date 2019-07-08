@@ -22,19 +22,21 @@ MAX_QUEUED_JOBS = 400  # Maximum number of index jobs in queue
 
 class Indexer(DBconnection):
 
-    def __init__(self, dbtype, db, collection, index=None, host=None, port=None):
-        self.index = db if dbtype == 'MongoDB' else collection
+    def __init__(self, dbtype, mdbdb, mdbcollection, esindex=None, host=None, port=None):
+        self.index = mdbdb if dbtype == 'MongoDB' else esindex
         self.dbtype = dbtype
         self.i = 1
+        # es_im = json.load(open(d + "/../../mappings/clinvarvariation.json", "r"))
         indxcfg = {  # for Elasticsearch
             "index.number_of_replicas": 0,
             "index.mapping.total_fields.limit": 14000,
             "index.refresh_interval": "60m"}
-        super(Indexer, self).__init__(dbtype, index, host, port,
+        super(Indexer, self).__init__(dbtype, self.index, host, port,
+                                      collection=mdbcollection,
                                       es_indexsettings=indxcfg,
                                       recreateindex=True)
         if dbtype == "MongoDB":
-            self.mcl = self.mdbi[collection]
+            self.mcl = self.mdbi[mdbcollection]
             self.mcl.drop()
 
     # Read and Index entries in ClinVar xml file
@@ -56,14 +58,14 @@ class Indexer(DBconnection):
 
     def index_clinvar_entry(self, _, entry):
         def index():
+            rtype = 'InterpretedRecord' if 'InterpretedRecord' in entry \
+                else 'IncludedRecord'
+            r = entry[rtype]
+            _type = 'SimpleAllele' if 'SimpleAllele' in r \
+                else 'Haplotype' if 'Haplotype' in r \
+                else 'Genotype'
+            docid = int(r[_type]['VariationID'])
             try:
-                rtype = 'InterpretedRecord' if 'InterpretedRecord' in entry \
-                    else 'IncludedRecord'
-                r = entry[rtype]
-                _type = 'SimpleAllele' if 'SimpleAllele' in r \
-                    else 'Haplotype' if 'Haplotype' in r \
-                    else 'Genotype'
-                docid = int(r[_type]['VariationID'])
                 self.update_entry(entry)
                 if self.dbtype == "Elasticsearch":
                     self.es.index(index=self.index,
@@ -78,11 +80,10 @@ class Indexer(DBconnection):
                 self.reportprogress(1000)
                 return True
             except Exception as e:
-                if 'docid' in vars():
-                    print("ERROR (docid=%d): %s" % (docid, e))
+                print("ERROR (docid=%d): %s" % (docid, e))
                 print(traceback.format_exc())
                 return False
-        # return index(_attrs, entry)
+
         if pool._inqueue.qsize() > MAX_QUEUED_JOBS:
             from time import sleep
             print('sleeping 1 sec')
@@ -183,14 +184,14 @@ def mongodb_indices(mdb):
         mdb.create_index(field)
 
 
-def main(infile, dbtype, db, collection, index, host=None, port=None):
-    indxr = Indexer(dbtype, db, collection, index, host, port)
+def main(infile, dbtype, mdbdb, mdbcollection, esindex, host=None, port=None):
+    indxr = Indexer(dbtype, mdbdb, mdbcollection, esindex, host, port)
     indxr.parse_and_index_xmlfile(infile)
     pool.close()
     pool.join()
     print("\nCompleted reading and indexing the ClinVar entries")
     if dbtype == 'Elasticsearch':
-        indxr.es.indices.refresh(index=collection)
+        indxr.es.indices.refresh(index=esindex)
     else:
         mongodb_indices(indxr.mcl)
 
