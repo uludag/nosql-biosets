@@ -32,8 +32,10 @@ class DBconnection(object):
             if not os.path.exists(cfgfile):
                 if os.path.exists("./conf/dbservers.json"):
                     cfgfile = "./conf/dbservers.json"
-                else:
+                elif os.path.exists("../conf/dbservers.json"):
                     cfgfile = "../conf/dbservers.json"
+                else:
+                    cfgfile = "../../conf/dbservers.json"
             logger.info("Servers configuration file: %s" % cfgfile)
             with open(cfgfile, "r") as cfgf:
                 conf = json.load(cfgf)
@@ -46,8 +48,11 @@ class DBconnection(object):
             if port is None:
                 port = conf['es_port']
             # TODO: should ES index default be * ?
-            self.es = Elasticsearch(host=host, port=port, timeout=120,
-                                    maxsize=130)
+            self.es = Elasticsearch(host=host, port=port, timeout=220,
+                                    maxsize=80)
+            if not self.es.ping():
+                print('Elasticsearch server looks unreachable')
+                exit()
             logger.info("New Elasticsearch connection to host '%s'" % host)
             self.check_elasticsearch_index(recreateindex, es_indexsettings,
                                            es_indexmappings)
@@ -91,8 +96,11 @@ class DBconnection(object):
             if len(self.index) > 0:
                 e = self.es.indices.exists(index=self.index)
                 if e and recreate:
-                    self.es.indices.delete(index=self.index,
-                                           params={"timeout": "10s"})
+                    print("Deleting existing index " + self.index)
+                    r = self.es.indices.delete(index=self.index,
+                                               params={"timeout": "20s"})
+                    print(r)
+                    # TODO: check delete-request return status
                     e = False
                 if not e:
                     if settings is None:
@@ -122,3 +130,28 @@ class DBconnection(object):
             sys.stdout.flush()
             if self.i % (n*80) == 0:
                 print("{}".format(self.i))
+
+
+def dbargs(argp, mdbdb='biosets', mdbcollection=None, esindex=None):
+    """ Given ArgumentParser object, argp, add database arguments """
+    argp.add_argument('--mdbdb',
+                      default=mdbdb,
+                      help='Name of the MongoDB database')
+    argp.add_argument('--mdbcollection',
+                      default=mdbcollection,
+                      help='Collection name for MongoDB')
+    argp.add_argument('--esindex',
+                      default=esindex,
+                      help='Index name for Elasticsearch')
+    argp.add_argument('--host',
+                      help='Elasticsearch or MongoDB server hostname')
+    argp.add_argument('--port', type=int,
+                      help="Elasticsearch or MongoDB server port number")
+    argp.add_argument('--dbtype', default='Elasticsearch',
+                      help="Database: 'Elasticsearch' or 'MongoDB'")
+    argp.add_argument('--user',
+                      help="Database user name, "
+                           "supported with PostgreSQL option only")
+    argp.add_argument('--password',
+                      help="Password for the database user, "
+                           " supported with PostgreSQL option only")
