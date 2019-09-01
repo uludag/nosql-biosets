@@ -63,8 +63,8 @@ class TestQueryMetanetx(unittest.TestCase):
                 hits = dbc.mdbi[doctype].find(qc, limit=10)
                 ecnos = [r['ecno'] for r in hits]
             assert len(ecnos) > 0
-            for ecno in ecnos:
-                for ecn in ecno.split(';'):
+            for ecnos_ in ecnos:
+                for ecn in ecnos_:
                     assert ec == ecn
                     r = qryuniprot.getgenes(ecn)
                     assert all([g in r['primary'] for g in genes])
@@ -92,12 +92,12 @@ class TestQueryMetanetx(unittest.TestCase):
         assert len(reacts) == len(rids)
         qc = {"xrefs.lib": "kegg"}
         reacts = qrymtntx.query_reactions(qc, projection=['ecno'])
-        assert 10302 == len(reacts)
+        assert len(reacts) == 10278
         qc = {"source.lib": "bigg", "balance": "true"}
         reacts = qrymtntx.query_reactions(qc, projection=['ecno'])
-        assert 6093 == len(reacts)
+        assert len(reacts) == 5244
         reacts, metabolites_ = qrymtntx.reactionswithmetabolites(qc)
-        assert 6093 == len(reacts)
+        assert len(reacts) == 5244
 
     def test_query_metabolites(self):
         mids = ['MNXM39', 'MNXM89612']
@@ -140,7 +140,7 @@ class TestQueryMetanetx(unittest.TestCase):
         qc = {"ecno": {"$in": eids}}
         m = qrymtntx.get_metabolite_network(qc)
         self.assertAlmostEqual(563, len(m.nodes()), delta=20)
-        self.assertAlmostEqual(640, len(m.edges()), delta=20)
+        self.assertAlmostEqual(661, len(m.edges()), delta=20)
         import networkx as nx
         r = nx.single_target_shortest_path_length(m, "Betanin", cutoff=4)
         assert ('celosianin I', 3) in list(r)
@@ -151,17 +151,17 @@ class TestQueryMetanetx(unittest.TestCase):
         self.assertAlmostEqual(430, len(mn.nodes()), delta=60)
         self.assertAlmostEqual(1157, len(mn.edges()), delta=120)
         assert "L-serine" in mn.nodes()
-        r = neighbors_graph(mn, "acetyl-CoA", beamwidth=10, maxnodes=100)
+        r = neighbors_graph(mn, "acetyl-CoA", beamwidth=20, maxnodes=200)
         # number of nodes differ based on selected search branches
-        self.assertAlmostEqual(100, r.number_of_nodes(), delta=30)
+        self.assertAlmostEqual(143, r.number_of_nodes(), delta=30)
         paths = shortest_paths(mn, 'L-serine', 'acetyl-CoA', 30)
         assert 30 == len(paths)
-        assert ['L-serine', 'H2O', 'acetyl-CoA'] == paths[0]
+        assert ['L-serine', 'glycine', 'CoA', 'acetyl-CoA'] in paths[:4]
 
         set_degree_as_weight(mn)
         paths = shortest_paths(mn, 'L-serine', 'acetyl-CoA', 30,
                                weight='weight')
-        assert 24 == len(paths)
+        assert 30 == len(paths)
         assert ['L-serine', 'glycine', 'CoA', 'acetyl-CoA'] == paths[0]
 
     def test_metabolite_network_bigg(self):
@@ -176,21 +176,21 @@ class TestQueryMetanetx(unittest.TestCase):
         assert len(r) == 0  # L-arabinitol is product, not reactant
         paths = shortest_paths(mn, 'alpha-L-arabinan', 'L-arabinitol', 10)
         assert len(paths) == 10
-        assert 'L-arabinose' == paths[0][1]
+        assert paths[0][1] == 'aldehydo-L-arabinose'
         set_degree_as_weight(mn)
         paths = shortest_paths(mn, 'alpha-L-arabinan', 'L-arabinitol', 10,
                                weight='weight')
         assert len(paths) == 1
-        assert 'L-arabinose' == paths[0][1]
+        assert paths[0][1] == 'aldehydo-L-arabinose'
 
         qc = {"source.lib": "bigg", "xrefs.lib": 'bigg', "balance": "true"}
         mn = qrymtntx.get_metabolite_network(qc)
         self.assertAlmostEqual(2815, len(mn.nodes()), delta=200)
         self.assertAlmostEqual(3741, len(mn.edges()), delta=200)
         assert 'L-xylulose' not in mn.nodes()
-        assert "xylitol" in mn.nodes()
-        assert len(cmpnds.intersection(mn.nodes())) == 3
-        assert mn.degree("xylitol") == 1
+        assert "Zymosterol ester (yeast specific)" in mn.nodes()
+        assert len(cmpnds.intersection(mn.nodes())) == 2
+        assert mn.degree("Zymosterol ester (yeast specific)") == 8
         r = neighbors_graph(mn, "L-ascorbate", beamwidth=5, maxnodes=100)
         self.assertAlmostEqual(7, r.number_of_nodes(), delta=4)
 
@@ -199,7 +199,7 @@ class TestQueryMetanetx(unittest.TestCase):
         mn = qrymtntx.get_metabolite_network(qc, max_degree=660)
 
         paths = shortest_paths(mn, 'L-serine', 'acetyl-CoA', 1600, cutoff=5)
-        assert 223 == len(paths)
+        assert 225 == len(paths)
         assert ['L-serine', 'phosphate', 'acetyl-CoA'] in paths
         set_degree_as_weight(mn)
         paths = shortest_paths(mn, 'L-serine', 'acetyl-CoA', 1600, cutoff=5,
@@ -222,8 +222,8 @@ class TestQueryMetanetx(unittest.TestCase):
 
     # Find different 'balance' values for reactions referring to KEGG
     def test_reaction_balances(self):
-        balance = {"false": 8, "ambiguous": 1050, "true": 7640,
-                   "redox": 56, "NA": 1550}
+        balance = {"false": 8, "ambiguous": 1065, "true": 7753,
+                   "redox": 56, "NA": 1397}
         aggpl = [
             {"$project": {"xrefs": 1, "balance": 1}},
             {"$match": {"xrefs.lib": "kegg"}},
@@ -240,8 +240,8 @@ class TestQueryMetanetx(unittest.TestCase):
     # Similar to above test,
     # only MetaNetX reactions with source.lib == kegg is queried
     def test_kegg_reaction_balances(self):
-        balance = {"false": 3, "ambiguous": 340, "true": 860,
-                   "redox": 23, "NA": 900}
+        balance = {"false": 3, "ambiguous": 340, "true": 669,
+                   "redox": 23, "NA": 871}
         aggpl = [
             {"$project": {"source": 1, "balance": 1}},
             {"$match": {"source.lib": "kegg"}},
@@ -256,8 +256,8 @@ class TestQueryMetanetx(unittest.TestCase):
                                    delta=20)
 
     def test_source_libraries(self):
-        libs = {"seed": 9088, "rhea": 9692, "sabiork": 4790, "reactome": 1457,
-                "bigg": 8040, "metacyc": 9116, "kegg": 2135}
+        libs = {"seed": 8620, "rhea": 9668, "sabiork": 4774, "reactome": 1309,
+                "bigg": 7080, "metacyc": 8837, "kegg": 1893}
 
         aggpl = [
             {"$project": {"source": 1, "balance": 1}},
@@ -270,7 +270,25 @@ class TestQueryMetanetx(unittest.TestCase):
         r = qrymtntx.dbc.mdbi["metanetx_reaction"].aggregate(aggpl)
         r = {i['_id']: i['c'] for i in r}
         for lib in libs:
-            self.assertAlmostEqual(libs[lib], r[lib], delta=10)
+            self.assertAlmostEqual(libs[lib], r[lib], delta=30)
+
+    def test_text_search(self):
+        libs = {"seed": 7, "sabiork": 93, "reactome": 1,
+                "metacyc": 624, "kegg": 229}
+
+        aggpl = [
+            {'$match': {'$text': {'$search': 'donor'}}},
+            {"$project": {"source": 1, "balance": 1}},
+            {"$group": {
+                "_id": "$source.lib",
+                "c": {'$sum': 1}
+            }},
+            {"$sort": {"c": -1}},
+        ]
+        r = qrymtntx.dbc.mdbi["metanetx_reaction"].aggregate(aggpl)
+        r = {i['_id']: i['c'] for i in r}
+        for lib in libs:
+            self.assertAlmostEqual(libs[lib], r[lib], delta=3)
 
 
 if __name__ == '__main__':

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """ Index MetaNetX compounds, reactions, and compartment files
-    with Elasticsearch or MongoDB (tested with version 3.1)"""
+    with Elasticsearch or MongoDB (tested with version 3.2) """
 from __future__ import print_function
 
 import argparse
@@ -146,7 +146,7 @@ def getreactionrecord(row, xrefsmap):
     r = {
         '_id':  id_, 'equation': row[1],
         'desc': row[2], 'balance':  row[3],
-        'ecno': row[4],
+        'ecno': row[4].split(";"),
         'source': {'lib': sourcelib, 'id': sourceid},
         'xrefs': xrefsmap[id_] if id_ in xrefsmap else None
     }
@@ -183,8 +183,7 @@ class Indexer(DBconnection):
         else:
             i = self.mongodb_index(reader)
             if reader != getcompartmentrecord:
-                collection = TYPE_COMPOUND if reader == getcompoundrecord \
-                    else TYPE_REACTION
+                collection = self.doctype
                 self.mongodb_indices(collection)
 
         t2 = time.time()
@@ -208,7 +207,7 @@ class Indexer(DBconnection):
         i = 0
         for r in reader:
             try:
-                self.mcl.insert(r)
+                self.mcl.insert_one(r)
                 i += 1
                 self.reportprogress()
             except Exception as e:
@@ -224,6 +223,8 @@ class Indexer(DBconnection):
         self.mdbi[collection].drop_indexes()
         self.mdbi[collection].create_indexes([index])
         indx_fields = ["xrefs.id"]
+        if collection == TYPE_REACTION:
+            indx_fields += ["ecno"]
         for field in indx_fields:
             self.mdbi[collection].create_index(field)
 

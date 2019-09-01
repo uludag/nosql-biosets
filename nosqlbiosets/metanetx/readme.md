@@ -2,7 +2,7 @@
 ## MetaNetX index/query scripts
 
 * [index.py](index.py) index MetaNetX compounds, compartments, and reactions
- data including the xref data, tested with MetaNetX Oct 2018 release, version 3.1
+ data including the xref data, tested with MetaNetX Aug 2019 release, version 3.2
 
 * [query.py](query.py) query MetaNetX compounds, compartments, and reactions 
 
@@ -16,7 +16,8 @@ http://www.metanetx.org/mnxdoc/mnxref.html
 ```bash
 # Download MetaNetX csv files
 mkdir -p data/metanetx
-wget -nc -P data/metanetx -r ftp://ftp.vital-it.ch/databases/metanetx/MNXref/latest/ --no-directories
+wget -nc -P data/metanetx -r ftp://ftp.vital-it.ch/databases/metanetx/MNXref/latest/\
+  --no-directories
 ```
 
 
@@ -24,10 +25,10 @@ wget -nc -P data/metanetx -r ftp://ftp.vital-it.ch/databases/metanetx/MNXref/lat
 
 Index with Elasticsearch or MongoDB:  
 ```bash
-# Index with Elasticsearch, requires ~10m
+# Index with Elasticsearch, requires about 10-15m
  ./nosqlbiosets/metanetx/index.py --metanetxdatafolder ./data/metanetx\
         --db Elasticsearch;
-# Index with MongoDB, requires ~8m
+# Index with MongoDB, requires ~10m
  ./nosqlbiosets/metanetx/index.py --metanetxdatafolder ./data/metanetx\
         --index biosets --db MongoDB;
 ```
