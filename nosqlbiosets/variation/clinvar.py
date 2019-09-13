@@ -4,6 +4,7 @@
 from __future__ import print_function
 
 import argparse
+import json
 import os
 import traceback
 from gzip import GzipFile
@@ -13,11 +14,12 @@ import xmltodict
 from pymongo import IndexModel
 from six import string_types
 
-from nosqlbiosets.dbutils import DBconnection
+from nosqlbiosets.dbutils import DBconnection, dbargs
 from nosqlbiosets.objutils import unifylistattribute
 
 pool = ThreadPool(40)  # Threads for index calls, parsing is in the main thread
 MAX_QUEUED_JOBS = 400  # Maximum number of index jobs in queue
+d = os.path.dirname(os.path.abspath(__file__))
 
 
 class Indexer(DBconnection):
@@ -26,7 +28,7 @@ class Indexer(DBconnection):
         self.index = mdbdb if dbtype == 'MongoDB' else esindex
         self.dbtype = dbtype
         self.i = 1
-        # es_im = json.load(open(d + "/../../mappings/clinvarvariation.json", "r"))
+        es_im = json.load(open(d + "/../../mappings/clinvarvariation.json", "r"))
         indxcfg = {  # for Elasticsearch
             "index.number_of_replicas": 0,
             "index.mapping.total_fields.limit": 14000,
@@ -34,6 +36,7 @@ class Indexer(DBconnection):
         super(Indexer, self).__init__(dbtype, self.index, host, port,
                                       collection=mdbcollection,
                                       es_indexsettings=indxcfg,
+                                      es_indexmappings=es_im['clinvarvariation'],
                                       recreateindex=True)
         if dbtype == "MongoDB":
             self.mcl = self.mdbi[mdbcollection]
@@ -105,16 +108,35 @@ class Indexer(DBconnection):
             sa = catype['SimpleAllele']
             if isinstance(sa, list):
                 for i in sa:
-                    self.update_synonyms(i)
+                    self.update_simpleallele(i)
             else:
-                self.update_synonyms(sa)
+                self.update_simpleallele(sa)
 
     def update_date(self, ca):
-        if "Interpretation" in ca \
-                and "DateLastEvaluated" in ca["Interpretation"] \
+        if "DateLastEvaluated" in ca["Interpretation"] \
                 and len(ca["Interpretation"]["DateLastEvaluated"]) > 10:
             ca["Interpretation"]["DateLastEvaluated"] = \
                 ca["Interpretation"]["DateLastEvaluated"][:10]
+
+    def update_comment(self, ca):
+        if 'Comment' in ca:
+            if not isinstance(ca['Comment'], list):
+                ca['Comment'] = [ca['Comment']]
+            for i, c in enumerate(ca['Comment']):
+                if isinstance(c, string_types):
+                    ca['Comment'][i] = {'#text': c}
+
+    def update_simpleallele(self, sa):
+        self.update_synonyms(sa)
+        self.update_comment(sa)
+        unifylistattribute(sa,
+                           "MolecularConsequenceList",
+                           "MolecularConsequence",
+                           renamelistto='molecularConsequence')
+        if 'molecularConsequence' in sa:
+            self.update_comment(sa['molecularConsequence'])
+        if 'FunctionalConsequence' in sa:
+            self.update_comment(sa['FunctionalConsequence'])
 
     def update_entry(self, entry):  # ClinVar Variation Archive entry
         if 'InterpretedRecord' in entry:
@@ -135,24 +157,34 @@ class Indexer(DBconnection):
             unifylistattribute(ir, "ClinicalAssertionList", "ClinicalAssertion",
                                renamelistto='clinicalAssertion')
             for ca in ir['clinicalAssertion']:
-                self.update_date(ca)
+                if "Interpretation" in ca:
+                    self.update_date(ca)
+                    self.update_comment(ca['Interpretation'])
+
                 unifylistattribute(ca, "ObservedInList", "ObservedIn",
                                    renamelistto='observedIn')
                 if 'SimpleAllele' in ca:
-                    self.update_synonyms(ca['SimpleAllele'])
+                    sa = ca['SimpleAllele']
+                    self.update_simpleallele(sa)
+
                 if 'Genotype' in ca:
                     self.update_genotype_haplotype(ca['Genotype'])
                 if 'Haplotype' in ca:
                     self.update_genotype_haplotype(ca['Haplotype'])
-                if 'Comment' in ca:
-                    if not isinstance(ca['Comment'], list):
-                        ca['Comment'] = [ca['Comment']]
-                    for i, c in enumerate(ca['Comment']):
-                        if isinstance(c, string_types):
-                            ca['Comment'][i] = {'#text': c}
+                if 'TraitSet' in ca:
+                    self.update_comment(ca['TraitSet'])
+
+                self.update_comment(ca)
                 for o in ca['observedIn']:
+                    self.update_comment(o)
                     if not isinstance(o['Sample']['Species'], string_types):
                         o['Sample']['Species'] = o['Sample']['Species']['#text']
+                    if 'TraitSet' in o:
+                        self.update_comment(o['TraitSet'])
+                    if 'ObservedData' in o:
+                        self.update_comment(o['ObservedData'])
+                    if 'Method' in o and 'ObsMethodAttribute' in o['Method']:
+                        self.update_comment(o['Method']['ObsMethodAttribute'])
 
 
 def mongodb_indices(mdb):
@@ -189,6 +221,7 @@ def main(infile, dbtype, mdbdb, mdbcollection, esindex, host=None, port=None):
     indxr.parse_and_index_xmlfile(infile)
     pool.close()
     pool.join()
+    pool.terminate()  # not tested yet
     print("\nCompleted reading and indexing the ClinVar entries")
     if dbtype == 'Elasticsearch':
         indxr.es.indices.refresh(index=esindex)
@@ -197,26 +230,13 @@ def main(infile, dbtype, mdbdb, mdbcollection, esindex, host=None, port=None):
 
 
 if __name__ == '__main__':
-    d = os.path.dirname(os.path.abspath(__file__))
-    parser = argparse.ArgumentParser(
+    args = argparse.ArgumentParser(
         description='Index ClinVar Variation Archive xml files,'
                     ' with Elasticsearch or MongoDB')
-    parser.add_argument('infile',
-                        help='Input file name for ClinVar Variation Archive'
-                             ' compressed or uncompressed xml file')
-    parser.add_argument('--mdbdb',
-                        default="biosets",
-                        help='Name of the MongoDB database')
-    parser.add_argument('--mdbcollection', default='clinvarvariation',
-                        help='Collection name for MongoDB')
-    parser.add_argument('--esindex', default='clinvarvariation',
-                        help='Index name for Elasticsearch')
-    parser.add_argument('--host',
-                        help='Elasticsearch or MongoDB server hostname')
-    parser.add_argument('--port', type=int,
-                        help="Elasticsearch or MongoDB server port number")
-    parser.add_argument('--dbtype', default='Elasticsearch',
-                        help="Database: 'Elasticsearch' or 'MongoDB'")
-    args = parser.parse_args()
+    args.add_argument('infile',
+                      help='Input file name of ClinVar Variation Archive,'
+                           ' compressed or uncompressed xml file')
+    dbargs(args, mdbcollection='clinvarvariation', esindex='clinvarvariation')
+    args = args.parse_args()
     main(args.infile, args.dbtype, args.mdbdb, args.mdbcollection, args.esindex,
          args.host, args.port)

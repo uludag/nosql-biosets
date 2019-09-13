@@ -8,14 +8,14 @@ https://www.ncbi.nlm.nih.gov/clinvar/
 * ~510K VariationArchive entries
 * Compressed xml file size ~0.5G, uncompressed ~7G 
 
-_Tested with July 2019 release_
+_Tested with Sep 2019 release_
 
 ```bash
 
 wget -P ./data ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/xml/clinvar_variation/ClinVarVariationRelease_00-latest.xml.gz
 
 
-# requires about 40min
+# example indexing times we have seen 40m, 60m, 66m
 ./nosqlbiosets/variation/clinvar.py --dbtype MongoDB\
    ./data/ClinVarVariationRelease_00-latest.xml.gz
 
