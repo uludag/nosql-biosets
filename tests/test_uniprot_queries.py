@@ -3,15 +3,16 @@
 
 import unittest
 
-from nosqlbiosets.uniprot.query import QueryUniProt
+from nosqlbiosets.uniprot.query import QueryUniProt, idmatch
 
-qryuniprot = QueryUniProt("MongoDB", "biosets", "uniprot")
+qryuniprot = QueryUniProt("MongoDB", "biosets", "uniprot-Muh1441")
+qryuniprot_es = QueryUniProt("Elasticsearch", "uniprot", "uniprot")
 
 
 class TestQueryUniProt(unittest.TestCase):
 
     def test_kegg_geneid_queries_es(self):
-        ids = qryuniprot.getnamesforkegg_geneids(
+        ids = qryuniprot_es.getnamesforkegg_geneids(
             ['hsa:7157', 'hsa:121504'], "Elasticsearch")
         self.assertListEqual(['H4_HUMAN', 'P53_HUMAN'], sorted(set(ids)))
 
@@ -62,13 +63,47 @@ class TestQueryUniProt(unittest.TestCase):
     def test_getgenes(self):
         tests = [
             (['CLPC1_ARATH', 'CLPB_GLOVI', 'CLPC2_ORYSJ', 'CLPB_CHLCV'],
-             {"clpB": 2, "CLPC2": 1, "CLPC1": 1}),
+             {"clpB": 2, "CLPC2": 1, "CLPC1": 1},
+             {2601981, 4351828, 835165}),
             (['RPOB_RHOS1', 'RPOB_RHOS4', 'RPOB_RHOSK', 'RPOB_RHOS5'],
-             {"rpoB": 3, "rpoB1": 1, "rpoB2": 1})
+             {"rpoB": 3, "rpoB1": 1, "rpoB2": 1}, {3718913})
         ]
-        for ids, genes in tests:
+        for ids, genes, egids in tests:
             r = qryuniprot.getgenes(None, qc={'_id': {"$in": ids}})
             assert genes == r['primary']
+
+    def test_getgeneids(self):
+        tests = [
+            ({"accession": "Q16613"}, 1, 15),
+            # ({"organism.dbReference.id": "9606"}, 19022, 15)
+        ]
+        for qc, nids, entrezid in tests:
+            r = qryuniprot.getgeneids(qc, limit=20000)
+            assert len(r) == nids
+            assert entrezid == r.pop()[1]
+        tests = [
+            ({"name": "BIEA_HUMAN"}, 1, ("BIEA_HUMAN", 644, 'BLVRA')),
+            ({'$text': {'$search': 'bilirubin'},
+              "organism.dbReference.id": "9606"},
+             18, ("BIEA_HUMAN", 644, 'BLVRA'))
+        ]
+        for qc, nids, ids in tests:
+            r = qryuniprot.getgeneids(qc, limit=20000)
+            assert len(r) == nids
+            assert ids in r
+
+    def test_idmatch(self):
+        tests = [
+            ("645, CASQ2, GSTO1, DMD, GSTM2, MALAT1, 2168, UD14_HUMAN, BVR",
+             8, ("BLVRB_HUMAN", 645, 'BLVRB')),
+            ("BIEA_HUMAN", 1, ("BIEA_HUMAN", 644, 'BLVRA')),
+            ("BLVRB_HUMAN", 1, ("BLVRB_HUMAN", 645, 'BLVRB')),
+            ("BLVRB", 1, ("BLVRB_HUMAN", 645, 'BLVRB'))
+        ]
+        for iids, nids, ids in tests:
+            r = idmatch(iids, limit=20000)
+            assert len(r) == nids
+            assert ids in r
 
     # Distribution of evidence codes in a text query result set
     def test_evidence_codes(self):
@@ -96,11 +131,11 @@ class TestQueryUniProt(unittest.TestCase):
         for i in cr:
             self.assertAlmostEqual(ecodes[int(i['_id'][8:])], i['sum'],
                                    delta=100)
-        # Distribution of evidence types in the same example query
+        # Distribution of evidence types for the same example query
         etypes = {
-            "evidence at protein level": 2459,
-            "evidence at transcript level": 633,
-            "inferred from homology": 1587,
+            "evidence at protein level": 2465,
+            "evidence at transcript level": 630,
+            "inferred from homology": 1592,
             "predicted": 6,
             "uncertain": 29
         }
@@ -118,36 +153,26 @@ class TestQueryUniProt(unittest.TestCase):
     def test_GO_annotations(self):
         tests = [  # species, unique annotations, all annotations
             ('Rice', 2786, 25482),
-            ('Human', 18055, 263951),
-            ('Arabidopsis thaliana', 6741, 99198),
-            ('Danio rerio', 5160, 22491)
+            # ('Human', 18055, 265142),
+            ('Arabidopsis thaliana', 6741, 101658),
+            ('Danio rerio', 5160, 23547)
         ]
         for org, uniqgo, nall in tests:
             qc = {'organism.name.#text': org}
-            aggqc = [
-                {"$match": qc},
-                {"$unwind": "$dbReference"},
-                {"$match": {"dbReference.type": "GO"}},
-                {'$group': {
-                    '_id': {
-                        'id': '$dbReference.id',
-                        'name': {"$arrayElemAt": ['$dbReference.property', 0]}
-                    },
-                    "abundance": {"$sum": 1}
-                }},
-                {"$sort": {"abundance": -1}},
-                {'$project': {
-                    "abundance": 1,
-                    "id": "$_id.id",
-                    "name": "$_id.name.value",
-                    "_id": 0
-                }}
-            ]
-            hits = qryuniprot.aggregate_query(aggqc)
-            r = [c for c in hits]
+            r = qryuniprot.getannotations(qc)
+            r = list(r)
             self.assertAlmostEqual(uniqgo, len(r), delta=100)
             self.assertAlmostEqual(nall, sum([c['abundance'] for c in r]),
                                    delta=1000)
+
+    def test_annotation_pairs(self):
+        qc = {'organism.name.#text': 'Rice'}
+        r = qryuniprot.query_annotation_pairs(qc)
+        r = list(r)
+        assert r[0]['go']['property'][0][
+                   'value'] == 'F:protein serine/threonine phosphatase activity'
+        assert r[0]['pfam']['property'][0][
+                   'value'] == 'PP2C'
 
     def test_getenzymedata(self):
         enzys = [
@@ -156,17 +181,16 @@ class TestQueryUniProt(unittest.TestCase):
              'beta-D-fructose 1,6-bisphosphate = D-glyceraldehyde 3-phosphate'
              ' + dihydroxyacetone phosphate',
              'Methanococcus jannaschii', 'common', 1, 1),
-            ('2.5.1.-', {'Q5AR51'}, ("primary", 'ubiA', 224),
+            ('2.5.1.-', {'Q5AR51'}, ("primary", 'UBIAD1', 3),
              "Cofactor biosynthesis; ubiquinone biosynthesis.",
              'hydrogen sulfide + O-acetyl-L-serine = acetate + L-cysteine',
-             'Arabidopsis thaliana', 'scientific', 18, 500),
+             'Arabidopsis thaliana', 'scientific', 18, 430),
             ('5.4.2.2', {'P93804'}, ("primary", 'PGM1', 10),
              "Glycolipid metabolism;"
              " diglucosyl-diacylglycerol biosynthesis.",
              'alpha-D-ribose 1-phosphate = D-ribose 5-phosphate',
              'Baker\'s yeast', 'common', 2, 25)
         ]
-        qryuniprot_es = QueryUniProt("Elasticsearch", "uniprot", "uniprot")
         for ecn, accs, gene, pathway, reaction, org, nametype, n, orgs in enzys:
             genetype, genename, abundance = gene
             r = qryuniprot_es.getgenes(ecn, limit=100)  # Elasticsearch

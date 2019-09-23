@@ -30,7 +30,7 @@ class QueryUniProt:
         r = self.dbc.mdbi[self.doctype].distinct(key, filter=qc)
         return r
 
-    # Get names and observation numbers of the genes for given enzyme
+    # Get names and abundance of the genes for given enzyme
     # or for entries selected by the query clause qc
     def getgenes(self, ecn, qc=None, limit=100):
         if qc is None:
@@ -82,6 +82,54 @@ class QueryUniProt:
                 if nametype not in r:
                     r[nametype] = OrderedDict()
                 r[nametype][i['_id']['name']] = i['total']
+        return r
+
+    def getgeneids(self, qc, limit=1000):
+        """ Given query return matching genes primary name and Entrez ids """
+        assert self.dbc.db == 'MongoDB'
+        aggq = [
+            {"$match": qc},
+            {"$project": {"dbReference": 1, "gene": 1}},
+            {"$unwind": "$dbReference"},
+            {"$match": {"dbReference.type": "GeneID"}},
+            {"$project": {
+                "gid": "$dbReference.id", "gene": 1}},
+            {"$unwind": "$gene"},
+            {"$unwind": "$gene.name"},
+            {"$match": {"gene.name.type": "primary"}},
+            {"$project": {
+                "gid": 1, "gene": "$gene.name.#text"}},
+            {"$limit": limit}
+        ]
+        cr = self.aggregate_query(aggq)
+        r = set()
+        for i in cr:
+            r.add((i['_id'], int(i['gid']), i['gene']))
+        return r
+
+    # Find abundance of GO annotations for the set specified by the query clause
+    def getannotations(self, qc):
+        assert self.dbc.db == 'MongoDB'
+        aggq = [
+            {"$match": qc},
+            {"$unwind": "$dbReference"},
+            {"$match": {"dbReference.type": "GO"}},
+            {'$group': {
+                '_id': {
+                    'id': '$dbReference.id',
+                    'name': {"$arrayElemAt": ['$dbReference.property', 0]}
+                },
+                "abundance": {"$sum": 1}
+            }},
+            {"$sort": {"abundance": -1}},
+            {'$project': {
+                "abundance": 1,
+                "id": "$_id.id",
+                "name": "$_id.name.value",
+                "_id": 0
+            }}
+        ]
+        r = self.aggregate_query(aggq)
         return r
 
     # Find related genes for given KEGG reaction id
@@ -264,3 +312,79 @@ class QueryUniProt:
         nhits = r['hits']['total']
         aggs = r["aggregations"] if "aggregations" in r else None
         return r['hits']['hits'], nhits, aggs
+
+    def query_annotation_pairs(self, qc, limit=10):
+        """ Return most abundant GO and Pfam annotations co-occurences
+        qc: Query clause to select subsets of UniProt data
+        """
+        agpl = [
+            {"$match": qc},
+            {"$project": {
+                "dbReference": 1
+            }},
+            {'$match': {
+                'dbReference': {
+                    '$type': 'array'}}},
+            {'$group': {
+                "_id": {
+                    "go": {
+                        "$filter": {
+                            "input": "$dbReference",
+                            "as": "r",
+                            "cond": {
+                                "$eq": ["$$r.type", "GO"]}
+                        }},
+                    "pfam": {
+                        "$filter": {
+                            "input": "$dbReference",
+                            "as": "r",
+                            "cond": {
+                                "$eq": ["$$r.type", "Pfam"]}
+                        }}
+                },
+                "abundance": {"$sum": 1}
+            }},
+            {"$unwind": "$_id.go"},
+            {"$unwind": "$_id.pfam"},
+            {"$sort": {"abundance": -1}},
+            {"$limit": limit},
+            {"$replaceRoot": {"newRoot": "$_id"}}
+        ]
+        r = self.aggregate_query(agpl, allowDiskUse=True)
+        return r
+
+
+def idmatch(idlist, limit=100):
+    """ Given mix protein/gene ids return Entrez id and primary gene name
+    for each matching UniProt record """
+    qry = QueryUniProt("MongoDB", "biosets", "uniprot")
+    import sys
+    if idlist == '-':
+        ids = []
+        for line in sys.stdin:
+            ids.append(line.strip())
+    else:
+        ids = idlist.split(", ")
+    qc = {
+        "organism.dbReference.id": "9606",
+        "$or": [
+            {'name': {"$in": ids}},
+            {'gene.name.#text': {"$in": ids}},
+            {"dbReference": {'$elemMatch': {
+                "id": {"$in": ids},
+                "type": "GeneID"}}}
+        ]
+    }
+    r = qry.getgeneids(qc, limit)
+    if idlist == '-':
+        for i in r:
+            print("%s, %d, %s" % (i[0], i[1], i[2]))
+    else:
+        return r
+
+
+if __name__ == '__main__':
+    import argh
+    argh.dispatch_commands([
+        idmatch
+    ])
