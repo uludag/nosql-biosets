@@ -23,7 +23,8 @@ DOCTYPE = 'uniprot'
 
 class Indexer(DBconnection):
 
-    def __init__(self, db, index, host=None, port=None, doctype=DOCTYPE):
+    def __init__(self, db, index, host=None, port=None, doctype=DOCTYPE,
+                 recreateindex=True):
         self.doctype = doctype
         self.index = index
         self.db = db
@@ -33,7 +34,7 @@ class Indexer(DBconnection):
             "index.refresh_interval": "1m"}
         super(Indexer, self).__init__(db, index, host, port,
                                       es_indexsettings=indxcfg,
-                                      recreateindex=True)
+                                      recreateindex=recreateindex)
         if db == "MongoDB":
             self.mcl = self.mdbi[doctype]
             self.mcl.drop()
@@ -210,22 +211,27 @@ def mongodb_indices(mdb):
     mdb.create_indexes([index])
     indx_fields = ["accession",
                    "dbReference.id", "dbReference.type", "dbReference.property",
-                   "feature.type", "organism.lineage.taxon",
+                   "feature.type",
                    'comment.type', "gene.name.type",
-                   "gene.name.#text", "organism.name.#text"]
+                   "gene.name.#text",
+                   "name",
+                   "organism.dbReference.id",
+                   "organism.lineage.taxon",
+                   "organism.name.#text"]
     for field in indx_fields:
         mdb.create_index(field)
 
 
-def main(infile, index, doctype, db, host=None, port=None):
-    indxr = Indexer(db, index, host, port, doctype)
+def main(infile, index, doctype, db, host=None, port=None, recreateindex=True):
+    indxr = Indexer(db, index, host, port, doctype, recreateindex=recreateindex)
     indxr.parse_uniprot_xmlfiles(infile)
+    pool.close()
+    pool.join()
+    pool.terminate()
     if db == 'Elasticsearch':
         indxr.es.indices.refresh(index=index)
     else:
         mongodb_indices(indxr.mcl)
-    pool.close()
-    pool.join()
 
 
 if __name__ == '__main__':

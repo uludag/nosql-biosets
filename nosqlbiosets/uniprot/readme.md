@@ -2,8 +2,8 @@
 # Index/query scripts for UniProtKB datasets
 
 * [index.py](index.py): Index UniProtKB xml files
-  
-  _Tested with Swiss-Prot dataset only, (July 2019 release)_
+
+  _Tested with Swiss-Prot dataset only, (Sep 2019 release)_
   
     ```
     ./nosqlbiosets/uniprot/index.py --help
