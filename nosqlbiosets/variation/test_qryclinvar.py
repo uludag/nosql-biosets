@@ -56,8 +56,8 @@ class TestQueryClinVar(unittest.TestCase):
         ]
         cr = qry.aggregate_query(aggq)
         b = {
-            'clinical testing': 788860, 'literature only': 50159,
-            'research': 25012, 'curation': 24073,
+            'clinical testing': 794827, 'literature only': 50295,
+            'research': 25520, 'curation': 24260,
             'reference population': 19785, 'not provided': 12023}
         r = {i['method']: i['abundance'] for i in cr}
         assert r == b
@@ -78,10 +78,10 @@ class TestQueryClinVar(unittest.TestCase):
         ]
         cr = qry.aggregate_query(aggq)
         e = {
-            'Invitae': 100003,
-            'Illumina Clinical Services Laboratory,Illumina': 54162,
-            'GeneDx': 66864,
-            'EGL Genetic Diagnostics,Eurofins Clinical Diagnostics': 21521,
+            'Invitae': 99876,
+            'Illumina Clinical Services Laboratory,Illumina': 54115,
+            'GeneDx': 66075,
+            'EGL Genetic Diagnostics,Eurofins Clinical Diagnostics': 21474,
             "Laboratory of Genetics and Genomics,"
             "Cincinnati Children's Hospital Medical Center": 17786
         }
@@ -101,7 +101,7 @@ class TestQueryClinVar(unittest.TestCase):
             {"$limit": 4}
         ]
         cr = qry.aggregate_query(aggq)
-        e = [([], 560409), (None, 607), (["Variation Ontology"], 160),
+        e = [([], 565478), (None, 612), (["Variation Ontology"], 161),
              (["Sequence Ontology"], 157)]
         r = [(i['_id']['db'], i['abundance']) for i in cr]
         assert r == e
@@ -123,14 +123,14 @@ class TestQueryClinVar(unittest.TestCase):
         ]
         cr = qry.aggregate_query(aggq)
         e = [
-            ('--', '--', 2263255),
-            ('SO', 'missense variant', 725110),
-            ('SO', 'intron variant', 338265),
-            ('SO', 'synonymous variant', 274825),
-            ('SO', '3 prime UTR variant', 134071),
-            ('SO', 'frameshift variant', 115472),
-            ('SO', 'nonsense', 80942),
-            ('SO', '5 prime UTR variant', 63925)
+            ('--', '--', 2277999),
+            ('SO', 'missense variant', 725699),
+            ('SO', 'intron variant', 347345),
+            ('SO', 'synonymous variant', 274735),
+            ('SO', '3 prime UTR variant', 134351),
+            ('SO', 'frameshift variant', 117159),
+            ('SO', 'nonsense', 81500),
+            ('SO', '5 prime UTR variant', 63682)
         ]
         r = [(i['_id']['db'] if 'db' in i['_id'] else '--',
               i['_id']['type'] if 'type' in i['_id'] else '--',
@@ -194,8 +194,8 @@ class TestQueryClinVar(unittest.TestCase):
                                     ' Faculté de Médecine de Nancy'], 32),
              ('Likely pathogenic', ['DeBelle Laboratory for Biochemical Genetics,'
                                     ' MUHC/MCH RESEARCH INSTITUTE', 'Counsyl'], 23),
-             ('Uncertain significance', ['Counsyl'], 22),
-             ('Likely pathogenic', ['Counsyl'], 22)]
+             ('Likely pathogenic', ['Counsyl'], 22),
+             ('Uncertain significance', ['Counsyl'], 22)]
         r = qry.topinterpretationspersubmitter(
             {'InterpretedRecord.SimpleAllele.GeneList.Gene.Symbol': 'PAH'}, 5)
         r = [(i['_id']['interpretation'],
@@ -205,15 +205,16 @@ class TestQueryClinVar(unittest.TestCase):
 
     def testqry_topinterpretationspergene(self):
         """Genes with most variant interpretations"""
-        e = [('-', 'Benign', 7645), ('BRCA2', 'Uncertain significance', 4186),
-             (['TTN', 'TTN-AS1'], 'Uncertain significance', 3393),
-             ('BRCA2', 'Pathogenic', 3301),
-             ('-', 'Uncertain significance', 3251),  # '-' means no gene defined
-             ('APC', 'Uncertain significance', 2927),
-             ('BRCA1', 'Pathogenic', 2863),
-             ('TTN', 'Uncertain significance', 2850),
-             ('BRCA1', 'Uncertain significance', 2288),
-             ('ATM', 'Uncertain significance', 2154)]
+        e = [('-', 'Benign', 7644),
+             ('BRCA2', 'Uncertain significance', 4187),
+             (['TTN', 'TTN-AS1'], 'Uncertain significance', 3399),
+             ('-', 'Uncertain significance', 3371),  # '-' means no gene defined
+             ('BRCA2', 'Pathogenic', 3300),
+             ('APC', 'Uncertain significance', 2925),
+             ('BRCA1', 'Pathogenic', 2861),
+             ('TTN', 'Uncertain significance', 2847),
+             ('BRCA1', 'Uncertain significance', 2286),
+             ('ATM', 'Uncertain significance', 2153)]
         r = qry.topinterpretationspergene({}, limit=10)
         r = [(i['_id']['gene'] if 'gene' in i['_id'] else '-',
               i['_id']['desc'] if 'desc' in i['_id'] else '-',
@@ -263,10 +264,10 @@ class TestQueryClinVar(unittest.TestCase):
         ]
         cr = qry.aggregate_query(aggq)
         epairs = [
-            ("BRCA2", "Breast-ovarian cancer, familial 2", 2321),
-            ("BRCA1", "Breast-ovarian cancer, familial 1", 2213),
-            ("LDLR", "Familial hypercholesterolemia", 2050),
-            ("NF1", "Neurofibromatosis, type 1", 1982)
+            ("BRCA2", "Breast-ovarian cancer, familial 2", 2317),
+            ("BRCA1", "Breast-ovarian cancer, familial 1", 2207),
+            ("NF1", "Neurofibromatosis, type 1", 1980),
+            ("LDLR", "Familial hypercholesterolemia", 1969)
         ]
         pairs = []
         for i in cr:

@@ -4,8 +4,6 @@
 from __future__ import print_function
 
 import argparse
-import json
-import os
 import traceback
 from gzip import GzipFile
 from multiprocessing.pool import ThreadPool
@@ -15,29 +13,27 @@ from pymongo import IndexModel
 from six import string_types
 
 from nosqlbiosets.dbutils import DBconnection, dbargs
-from nosqlbiosets.objutils import unifylistattribute
+from nosqlbiosets.objutils import unifylistattribute, num
 
-pool = ThreadPool(40)  # Threads for index calls, parsing is in the main thread
-MAX_QUEUED_JOBS = 400  # Maximum number of index jobs in queue
-d = os.path.dirname(os.path.abspath(__file__))
+pool = ThreadPool(30)   # Threads for index calls, parsing is in the main thread
+MAX_QUEUED_JOBS = 1400  # Maximum number of index jobs in queue
 
 
 class Indexer(DBconnection):
 
-    def __init__(self, dbtype, mdbdb, mdbcollection, esindex=None, host=None, port=None):
+    def __init__(self, dbtype, mdbdb, mdbcollection, esindex=None, host=None,
+                 port=None, recreateindex=True):
         self.index = mdbdb if dbtype == 'MongoDB' else esindex
         self.dbtype = dbtype
         self.i = 1
-        es_im = json.load(open(d + "/../../mappings/clinvarvariation.json", "r"))
         indxcfg = {  # for Elasticsearch
             "index.number_of_replicas": 0,
             "index.mapping.total_fields.limit": 14000,
-            "index.refresh_interval": "60m"}
+            "index.refresh_interval": "6m"}
         super(Indexer, self).__init__(dbtype, self.index, host, port,
                                       collection=mdbcollection,
                                       es_indexsettings=indxcfg,
-                                      es_indexmappings=es_im['clinvarvariation'],
-                                      recreateindex=True)
+                                      recreateindex=recreateindex)
         if dbtype == "MongoDB":
             self.mcl = self.mdbi[mdbcollection]
             self.mcl.drop()
@@ -137,10 +133,15 @@ class Indexer(DBconnection):
             self.update_comment(sa['molecularConsequence'])
         if 'FunctionalConsequence' in sa:
             self.update_comment(sa['FunctionalConsequence'])
+        num(sa, 'AlleleID')
+        num(sa, 'VariationID')
 
     def update_entry(self, entry):  # ClinVar Variation Archive entry
         if 'InterpretedRecord' in entry:
             ir = entry['InterpretedRecord']
+            if 'SimpleAllele' in ir:
+                self.update_simpleallele(ir['SimpleAllele'])
+                num(ir['SimpleAllele'], 'VariationID')
             if 'RCVList' in ir:
                 unifylistattribute(ir, "RCVList", "RCVAccession",
                                    renamelistto='rcv')
@@ -157,6 +158,7 @@ class Indexer(DBconnection):
             unifylistattribute(ir, "ClinicalAssertionList", "ClinicalAssertion",
                                renamelistto='clinicalAssertion')
             for ca in ir['clinicalAssertion']:
+                num(ca, 'ID')
                 if "Interpretation" in ca:
                     self.update_date(ca)
                     self.update_comment(ca['Interpretation'])
@@ -216,12 +218,14 @@ def mongodb_indices(mdb):
         mdb.create_index(field)
 
 
-def main(infile, dbtype, mdbdb, mdbcollection, esindex, host=None, port=None):
-    indxr = Indexer(dbtype, mdbdb, mdbcollection, esindex, host, port)
+def main(infile, dbtype, mdbdb, mdbcollection, esindex, host=None, port=None,
+         recreateindex=True):
+    indxr = Indexer(dbtype, mdbdb, mdbcollection, esindex, host, port,
+                    recreateindex=recreateindex)
     indxr.parse_and_index_xmlfile(infile)
     pool.close()
     pool.join()
-    pool.terminate()  # not tested yet
+    pool.terminate()
     print("\nCompleted reading and indexing the ClinVar entries")
     if dbtype == 'Elasticsearch':
         indxr.es.indices.refresh(index=esindex)

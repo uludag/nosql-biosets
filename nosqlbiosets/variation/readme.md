@@ -5,22 +5,25 @@ between medically important variants and phenotypes​
 
 https://www.ncbi.nlm.nih.gov/clinvar/
 
-* ~510K VariationArchive entries
-* Compressed xml file size ~0.5G, uncompressed ~7G 
+* ~566K VariationArchive entries
+* Compressed xml file size ~0.6G, uncompressed ~8G
 
-_Tested with Sep 2019 release_
+_Tested with Oct 2019 release_
 
 ```bash
 
 wget -P ./data ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/xml/clinvar_variation/ClinVarVariationRelease_00-latest.xml.gz
 
 
-# example indexing times we have seen 40m, 60m, 66m
+# example indexing times we have seen 40m, 60m, 3h:20m
 ./nosqlbiosets/variation/clinvar.py --dbtype MongoDB\
    ./data/ClinVarVariationRelease_00-latest.xml.gz
 
-# requires about 110min
+# example indexing times we have seen 110min, 5h:06m
 ./nosqlbiosets/variation/clinvar.py --dbtype Elasticsearch\
    ./data/ClinVarVariationRelease_00-latest.xml.gz --esindex clinvarvariation
 
 ```
+
+## TODO
+- All numeric types should be represented as numbers
