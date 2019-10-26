@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # Index FDA Adverse Event Reporting System records
-import argparse
-import gzip
+import argparse, os
+import zipfile
 import json
 from pprint import pprint
 
@@ -16,18 +16,25 @@ SOURCEURL = "https://download.open.fda.gov/drug/event/"
 
 # Read FAERS report files, index using the index function specified
 def read_and_index_faers_records(infile, dbc, indexfunc):
-    if infile.endswith(".zip"):  # TODO: support for .zip files is broken
-        f = gzip.open(infile, 'rt')
+    if os.path.isdir(infile):
+        for child in os.listdir(infile):
+            c = os.path.join(infile, child)
+            if child.endswith(".json.zip"):
+                print("Processing %s" % c)
+                read_and_index_faers_records(c, dbc, indexfunc)
+        return
+    elif infile.endswith(".zip"):
+        zipf = zipfile.ZipFile(infile, 'r')
+        f = zipf.open(zipf.namelist()[0])
     else:
         f = open(infile, 'r')
     reportsinfo = json.load(f)
-    r = indexfunc(dbc, reportsinfo)
-    return r
+    indexfunc(dbc, reportsinfo)
 
 
 def read_reports(l):
     for r in l["results"]:
-        r["_id"] = int(r["safetyreportid"])
+        r["_id"] = r["safetyreportid"]  # TODO: 'safetyreportid's not unique
         yield r
 
 
@@ -82,7 +89,8 @@ if __name__ == '__main__':
                     ' or MongoDB, downloaded from ' + SOURCEURL)
     args.add_argument('--infile',
                       required=True,
-                      help='Input HGNC file to index')
+                      help='drug-event .json or .json.zip files or'
+                           'folder that includes the .json.zip files')
     dbargs(args)
     args = args.parse_args()
     main(args.dbtype, args.infile, args.mdbdb, args.mdbcollection,
