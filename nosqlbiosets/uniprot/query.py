@@ -313,7 +313,7 @@ class QueryUniProt:
         aggs = r["aggregations"] if "aggregations" in r else None
         return r['hits']['hits'], nhits, aggs
 
-    def query_annotation_pairs(self, qc, limit=10):
+    def top_annotation_pairs(self, qc, limit=10):
         """ Return most abundant GO and Pfam annotations co-occurences
         qc: Query clause to select subsets of UniProt data
         """
@@ -354,10 +354,10 @@ class QueryUniProt:
         return r
 
 
-def idmatch(idlist, limit=100):
+def idmatch(idlist, limit=100, mdbdb="biosets", mdbcollection="uniprot"):
     """ Given mix protein/gene ids return Entrez id and primary gene name
     for each matching UniProt record """
-    qry = QueryUniProt("MongoDB", "biosets", "uniprot")
+    qry = QueryUniProt("MongoDB", mdbdb, mdbcollection)
     import sys
     if idlist == '-':
         ids = []

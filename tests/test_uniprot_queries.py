@@ -5,7 +5,8 @@ import unittest
 
 from nosqlbiosets.uniprot.query import QueryUniProt, idmatch
 
-qryuniprot = QueryUniProt("MongoDB", "biosets", "uniprot-Muh1441")
+MDB_COLLECTION = "uniprot-Saf1441"
+qryuniprot = QueryUniProt("MongoDB", "biosets", MDB_COLLECTION)
 qryuniprot_es = QueryUniProt("Elasticsearch", "uniprot", "uniprot")
 
 
@@ -101,7 +102,7 @@ class TestQueryUniProt(unittest.TestCase):
             ("BLVRB", 1, ("BLVRB_HUMAN", 645, 'BLVRB'))
         ]
         for iids, nids, ids in tests:
-            r = idmatch(iids, limit=20000)
+            r = idmatch(iids, limit=20000, mdbcollection=MDB_COLLECTION)
             assert len(r) == nids
             assert ids in r
 
@@ -109,11 +110,11 @@ class TestQueryUniProt(unittest.TestCase):
     def test_evidence_codes(self):
         ecodes = {  # http://www.uniprot.org/help/evidences
             255: 4025,  # match to sequence model evidence, manual assertion
-            269: 6040,  # experimental evidence used in manual assertion
-            305: 4380,  # curator inference used in manual assertion
+            269: 6170,  # experimental evidence used in manual assertion
+            305: 4503,  # curator inference used in manual assertion
             250: 3088,  # sequence similarity evidence used in manual assertion
-            303: 1650,  # non-traceable author statement, manual assertion
-            244: 790,   # combinatorial evidence used in manual assertion
+            303: 1805,  # non-traceable author statement, manual assertion
+            244: 891,   # combinatorial evidence used in manual assertion
             312: 748    # imported information used in manual assertion
         }
         qc = {'$text': {'$search': 'antimicrobial'}}
@@ -133,9 +134,9 @@ class TestQueryUniProt(unittest.TestCase):
                                    delta=100)
         # Distribution of evidence types for the same example query
         etypes = {
-            "evidence at protein level": 2465,
-            "evidence at transcript level": 630,
-            "inferred from homology": 1592,
+            "evidence at protein level": 2476,
+            "evidence at transcript level": 629,
+            "inferred from homology": 1591,
             "predicted": 6,
             "uncertain": 29
         }
@@ -150,28 +151,26 @@ class TestQueryUniProt(unittest.TestCase):
         assert r == etypes
 
     # Distribution of GO annotations
-    def test_GO_annotations(self):
-        tests = [  # species, unique annotations, all annotations
-            ('Rice', 2786, 25482),
-            # ('Human', 18055, 265142),
-            ('Arabidopsis thaliana', 6741, 101658),
-            ('Danio rerio', 5160, 23547)
-        ]
-        for org, uniqgo, nall in tests:
-            qc = {'organism.name.#text': org}
-            r = qryuniprot.getannotations(qc)
-            r = list(r)
-            self.assertAlmostEqual(uniqgo, len(r), delta=100)
-            self.assertAlmostEqual(nall, sum([c['abundance'] for c in r]),
-                                   delta=1000)
+    def _test_GO_annotations(self):
+        qc = {}
+        r = qryuniprot.getannotations(qc)
+        r = list(r)
+        self.assertAlmostEqual(len(r), 10000, delta=100)
+        self.assertAlmostEqual(sum([c['abundance'] for c in r]), 2863815,
+                               delta=1000)
 
     def test_annotation_pairs(self):
         qc = {'organism.name.#text': 'Rice'}
-        r = qryuniprot.query_annotation_pairs(qc)
-        r = list(r)
+        r = list(qryuniprot.top_annotation_pairs(qc))
         assert r[0]['go']['property'][0][
-                   'value'] == 'F:protein serine/threonine phosphatase activity'
+                   'value'] == 'F:magnesium-dependent protein serine/threonine' \
+                               ' phosphatase activity'
         assert r[0]['pfam']['property'][0][
+                   'value'] == 'PP2C'
+
+        assert r[1]['go']['property'][0][
+                   'value'] == 'F:protein serine/threonine phosphatase activity'
+        assert r[1]['pfam']['property'][0][
                    'value'] == 'PP2C'
 
     def test_getenzymedata(self):
