@@ -28,8 +28,8 @@ class QueryDrugBank:
         r = self.mdb[DOCTYPE].aggregate(agpl, **kwargs)
         return r
 
-    def distinctquery(self, key, qc=None, sort=None):
-        r = self.dbc.mdbi[DOCTYPE].distinct(key, filter=qc, sort=sort)
+    def distinctquery(self, key, qc=None):
+        r = self.dbc.mdbi[DOCTYPE].distinct(key, filter=qc)
         return r
 
     def autocomplete_drugnames(self, qterm, **kwargs):
@@ -75,19 +75,23 @@ class QueryDrugBank:
             r.append(row)
         return r
 
-    def kegg_target_id_to_drugbank_entity_id(self, keggtid, etype='targets'):
+    def kegg_target_id_to_drugbank_entity_id(self, keggtid, etype='targets',
+                                             uniprotcollection='uniprot'):
         """
         Get drugbank target ids for given KEGG target ids
         The two databases are connected by first making a UniProt query
         :param keggtid: KEGG target id
         :param etype: Drugbank entity type, 'targets' or 'enzymes'
+        :param uniprotcollection: UniProt collection to search
         :return: Drugbank target id
         """
-        qryuniprot = QueryUniProt("MongoDB", DATABASE, "uniprot")
+
+        qryuniprot = QueryUniProt("MongoDB", DATABASE, uniprotcollection)
         qc = {"dbReference.id": keggtid}
         key = 'name'
-        uniprotid = qryuniprot.dbc.mdbi['uniprot'].distinct(key, filter=qc)
-        assert 1 == len(uniprotid)
+        uniprotid = qryuniprot.dbc.mdbi[uniprotcollection].distinct(key,
+                                                                    filter=qc)
+        assert len(uniprotid) == 1
         qc = {
             etype+".polypeptide.external-identifiers.identifier": uniprotid[0]}
         aggq = [

@@ -6,17 +6,19 @@ from __future__ import print_function
 
 import argparse
 import os
+from pprint import pprint
 from zipfile import ZipFile
 
 import networkx as nx
+import pymongo
 import xmltodict
-from pprint import pprint
+from pymongo import IndexModel
 
 from nosqlbiosets.dbutils import DBconnection
 from nosqlbiosets.objutils import *
 
 SOURCE_URL = "https://www.drugbank.ca/releases/latest"
-DOCTYPE = 'drugbank'  # MongoDB collection name
+DOCTYPE = 'drugbank'  # MongoDB default collection name
 # List attributes, processed by function unifylistattributes()
 LIST_ATTRS = ["transporters", "drug-interactions", "food-interactions",
               "atc-codes", "affected-organisms", "targets", "enzymes",
@@ -90,7 +92,8 @@ class Indexer(DBconnection):
         self.doctype = doctype
         self.index = index
         self.slim = slim
-        super(Indexer, self).__init__(db, index, host, port, recreateindex=True)
+        super(Indexer, self).__init__(db, index, host, port,
+                                      collection=doctype, recreateindex=True)
         if db == "MongoDB":
             self.mcl = self.mdbi[doctype]
 
@@ -100,7 +103,7 @@ class Indexer(DBconnection):
             update_entry_forindexing(entry, slim=self.slim)
             docid = self.getdrugid(entry)
             entry["_id"] = docid
-            self.mcl.insert(entry)
+            self.mcl.insert_one(entry)
             self.reportprogress()
             r = True
         except Exception as e:
@@ -114,7 +117,7 @@ class Indexer(DBconnection):
             update_entry_forindexing(entry)
             docid = self.getdrugid(entry)
             entry['drugbank-id'] = docid
-            self.es.index(index=self.index, doc_type=self.doctype,
+            self.es.index(index=self.index, doc_type='_doc',
                           id=docid, body=entry)
             self.reportprogress()
             r = True
@@ -134,7 +137,6 @@ class Indexer(DBconnection):
 
     def saveinteractions(self, _, e):
         eid = self.getdrugid(e)
-        print(eid)
         if e['drug-interactions'] is not None:
             if isinstance(e['drug-interactions']['drug-interaction'], list):
                 for i in e['drug-interactions']['drug-interaction']:
@@ -169,13 +171,21 @@ TEXT_FIELDS = ["description", "atc-codes.level.#text",
 
 
 def mongodb_indices(mdb):
-    import pymongo
-    from pymongo import IndexModel
     indx = [(field, pymongo.TEXT) for field in TEXT_FIELDS]
     mdb.create_indexes([IndexModel(indx,
                                    name="text-index-for-selected-fields")])
-    mdb.create_index("name")
-    mdb.create_index("products.name")
+    indx_fields = [
+        "name", "products.name",
+        "classification.class", "drug-interactions.name",
+        "targets.polypeptide.gene-name",
+        "protein_associations.protein.protein_accession",
+        "metabolite_associations.metabolite.accession",
+        "metabolite_associations.metabolite.name",
+        [('name', pymongo.ASCENDING),
+         ('drug-interactions.name', pymongo.ASCENDING)]
+    ]
+    for field in indx_fields:
+        mdb.create_index(field)
 
 
 def main(infile, db, index, doctype=DOCTYPE, host=None, port=None, slim=True):
@@ -204,10 +214,9 @@ if __name__ == '__main__':
                         default="biosets",
                         help='Name of the MongoDB database or Elasticsearch'
                              ' index, or filename for NetworkX graph')
-    parser.add_argument('--doctype',
+    parser.add_argument('--mdbcollection',
                         default=DOCTYPE,
-                        help='MongoDB collection name or'
-                             ' Elasticsearch document type name')
+                        help='MongoDB collection name')
     parser.add_argument('--host',
                         help='MongoDB or Elasticsearch server hostname')
     parser.add_argument('--port',
@@ -226,5 +235,5 @@ if __name__ == '__main__':
                              " and the patents field is not indexed."
                              " Select this option to index all fields")
     args = parser.parse_args()
-    main(args.infile, args.db, args.index, args.doctype,
+    main(args.infile, args.db, args.index, args.mdbcollection,
          args.host, args.port, not args.allfields)
