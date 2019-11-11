@@ -17,7 +17,7 @@ class TestQueryIntEnz(unittest.TestCase):
 
     def test_getreactant_product_names(self):
         re = qryintenz.getreactantnames()
-        self.assertAlmostEqual(4319, len(re), delta=100,
+        self.assertAlmostEqual(len(re), 4436, delta=200,
                                msg="Number of reactant names")
         pr = qryintenz.getproductnames()
         self.assertAlmostEqual(4931, len(pr), delta=200,
@@ -130,7 +130,7 @@ class TestQueryIntEnz(unittest.TestCase):
         r = qryintenz.get_connections({})
         r = {(e['_id']['reactant'], e['_id']['product']): e['enzymes']
              for e in r}
-        self.assertAlmostEqual(24555, len(r), delta=200)
+        self.assertAlmostEqual(len(r), 24820, delta=600)
         for re, pr, ecn in tests:
             assert (re, pr) in r
             assert ecn in r[(re, pr)]
@@ -222,7 +222,7 @@ class TestQueryIntEnz(unittest.TestCase):
     def test_mdb_getreactions(self):
         qc = {'$text': {'$search': '"poly(A)"'}}
         r = list(qryintenz.getreactions(qc))
-        assert 3 == len(r)
+        assert len(r) == 5
         qc = {'$text': {'$search': '"oxopropanoate" "malonyl"'}}
         r = list(qryintenz.getreactions(qc))
         assert 4 == len(r)

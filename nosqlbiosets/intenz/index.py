@@ -79,7 +79,7 @@ class Indexer(DBconnection):
                                   id=docid, body=entry)
                 elif self.db == "MongoDB":
                     entry["_id"] = docid
-                    self.mcl.insert(entry)
+                    self.mcl.insert_one(entry)
                 else:  # Neo4j
                     self.updatereactionsandelements_sets(entry)
             except Exception as e:
