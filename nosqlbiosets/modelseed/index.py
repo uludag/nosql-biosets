@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """ Index ModelSEEDDatabase compounds/reactions with Elasticsearch or MongoDB"""
-# https://github.com/ModelSEED/ModelSEEDDatabase/blob/master/Biochemistry
+# https://github.com/ModelSEED/ModelSEEDDatabase/blob/dev/Biochemistry
 from __future__ import print_function
 
 import argparse
@@ -30,7 +30,7 @@ def delete_attrs_with_value_null(r):
 # pka, pkb, abstract_compound, comprised_of	aliases
 def updatecompoundrecord(row, _):
     for a in ['charge', 'deltag', 'deltagerr', 'mass']:
-        if len(row[a]) > 0 and row[a] != 'null':
+        if len(row[a]) > 0 and row[a] != 'null' and row[a] != 'None':
             row[a] = float(row[a])
         else:
             del row[a]
@@ -99,6 +99,7 @@ def mongodb_indices(mdb):
     if mdb.name == TYPE_COMPOUND:
         index = IndexModel([
             ("name", "text"),
+            ("aliases", "text"),
             ("abbreviation", "text")])
         mdb.create_indexes([index])
         indx_fields = ["mass", "deltag", "deltagerr", "charge",
@@ -118,7 +119,7 @@ def mongodb_index(mdbc, infile, typetuner):
     t1 = time.time()
     for entry in read_modelseed_datafile(infile, typetuner):
         del(entry['_type'])
-        mdbc.insert(entry)
+        mdbc.insert_one(entry)
         i += 1
     t2 = time.time()
     print("-- Processed %d entries, in %d sec"

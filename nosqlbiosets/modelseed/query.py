@@ -76,7 +76,7 @@ class QueryModelSEED:
     @staticmethod
     def esquery(es, index, qc, doc_type=None, size=10):
         print("Querying '%s'  %s" % (doc_type, str(qc)))
-        r = es.search(index=index, doc_type=doc_type,
+        r = es.search(index=index,
                       body={"query": qc}, size=size)
         nhits = r['hits']['total']
         return r['hits']['hits'], nhits
