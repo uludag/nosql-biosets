@@ -141,7 +141,6 @@ class Indexer(DBconnection):
             ir = entry['InterpretedRecord']
             if 'SimpleAllele' in ir:
                 self.update_simpleallele(ir['SimpleAllele'])
-                num(ir['SimpleAllele'], 'VariationID')
             if 'RCVList' in ir:
                 unifylistattribute(ir, "RCVList", "RCVAccession",
                                    renamelistto='rcv')
@@ -207,6 +206,10 @@ def mongodb_indices(mdb):
     indx_fields = [
         "RecordStatus",
         "InterpretedRecord.SimpleAllele.GeneList.Gene.Symbol",
+        "InterpretedRecord.Interpretations.Interpretation."
+        "ConditionList.TraitSet.Trait.Type",
+        "InterpretedRecord.Interpretations.Interpretation."
+        "ConditionList.TraitSet.Type",
         "InterpretedRecord.Interpretations.Interpretation.Type",
         "InterpretedRecord.Interpretations.Interpretation.Description",
         "InterpretedRecord.clinicalAssertion"

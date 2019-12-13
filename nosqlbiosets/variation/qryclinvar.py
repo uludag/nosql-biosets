@@ -29,9 +29,10 @@ class QueryClinVar:
         return r
 
     # Abundance of variant interpretations per submitter
-    def topinterpretationspersubmitter(self, qc, limit=10):
+    def topinterpretationspersubmitter(self, qc):
         aggq = [
             {"$match": qc},
+            {"$unwind": "$InterpretedRecord.clinicalAssertion"},
             {"$group": {
                 "_id": {
                     "interpretation": "$InterpretedRecord.Interpretations."
@@ -42,10 +43,16 @@ class QueryClinVar:
                 "abundance": {"$sum": 1}
             }},
             {"$sort": {"abundance": -1}},
-            {"$limit": limit}
+            {'$project': {
+                "abundance": 1,
+                "interpretation": "$_id.interpretation",
+                "submitter": "$_id.submitter",
+                "_id": 0
+            }}
         ]
-        cr = self.aggregate_query(aggq)
-        return cr
+        r = list(self.aggregate_query(aggq))
+        r = {(i['interpretation'], i['submitter']): i['abundance'] for i in r}
+        return r
 
     # Abundance of variant interpretations per gene
     def topinterpretationspergene(self, qc, limit=10):

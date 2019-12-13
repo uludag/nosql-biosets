@@ -46,3 +46,9 @@ def checkbooleanattributes(e, attrs):
                     e[attr] = True
                 else:
                     e[attr] = False
+
+
+# Make sure type of numeric attributes are numeric
+def num(e, attr, ntype=int):
+    if attr in e:
+        e[attr] = ntype(e[attr])
