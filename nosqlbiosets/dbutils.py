@@ -46,7 +46,7 @@ class DBconnection(object):
             if host is None:
                 host = conf['es_host']
             if port is None:
-                port = conf['es_port']
+                port = conf['es_port'] if 'es_port' in conf else 9200
             # TODO: should ES index default be * ?
             self.es = Elasticsearch(host=host, port=port, timeout=220,
                                     maxsize=80)
@@ -132,17 +132,22 @@ class DBconnection(object):
                 print("{}".format(self.i))
 
 
-def dbargs(argp, mdbdb='biosets', mdbcollection=None, esindex=None):
+def dbargs(argp, mdbdb='biosets', mdbcollection=None, esindex=None,
+           multipleindices=False):
     """ Given ArgumentParser object, argp, add database arguments """
     argp.add_argument('--mdbdb',
                       default=mdbdb,
                       help='Name of the MongoDB database')
-    argp.add_argument('--mdbcollection',
-                      default=mdbcollection,
-                      help='Collection name for MongoDB')
-    argp.add_argument('--esindex',
-                      default=esindex,
-                      help='Index name for Elasticsearch')
+    if not multipleindices:
+        argp.add_argument('--mdbcollection',
+                          default=mdbcollection,
+                          help='Collection name for MongoDB')
+        argp.add_argument('--esindex',
+                          default=esindex,
+                          help='Index name for Elasticsearch')
+    argp.add_argument('--recreateindex',
+                      default=False,
+                      help='Delete existing Elasticsearch index or MongoDB collection')
     argp.add_argument('--host',
                       help='Elasticsearch or MongoDB server hostname')
     argp.add_argument('--port', type=int,

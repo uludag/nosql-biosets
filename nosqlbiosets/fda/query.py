@@ -7,11 +7,12 @@ from nosqlbiosets.dbutils import DBconnection
 
 class QueryFaers:
 
-    def __init__(self, db="MongoDB", index="biosets", collection="faers"):
+    def __init__(self, db="MongoDB", index="biosets", collection="faers",
+                 **kwargs):
         self.collection = collection
-        self.dbc = DBconnection(db, index, collection=collection)
+        self.dbc = DBconnection(db, index, collection=collection, **kwargs)
 
-    def get_adversereactions(self, qc, limit=10):
+    def get_adversereactions(self, qc, limit=200):
         aggq = [
             {"$match": qc},
             {"$unwind": "$patient.reaction"},
@@ -30,6 +31,8 @@ class QueryFaers:
     def get_reaction_medicine_pairs(self, qc, limit=10):
         aggq = [
             {"$match": qc},
+            {"$project": {"patient.reaction.reactionmeddrapt": 1,
+                          "patient.drug.medicinalproduct": 1}},
             {"$unwind": "$patient.reaction"},
             {"$unwind": "$patient.drug"},
             {"$group": {
