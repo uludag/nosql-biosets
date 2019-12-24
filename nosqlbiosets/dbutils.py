@@ -18,7 +18,7 @@ logger.addHandler(ch)
 class DBconnection(object):
     i = 0  # counter for the number of objects indexed
 
-    def __init__(self, db, index, host=None, port=None, collection=None,
+    def __init__(self, db, index, host=None, port=None, mdbcollection=None,
                  user=None, password=None, recreateindex=False,
                  es_indexsettings=None, es_indexmappings=None):
         assert index is not None
@@ -79,8 +79,8 @@ class DBconnection(object):
             mc = MongoClient(host, port)
             logger.info("New MongoDB connection: '%s:%d'" % (host, port))
             self.mdbi = mc[index]
-            if recreateindex and collection is not None:
-                self.mdbi.drop_collection(collection)
+            if recreateindex and mdbcollection is not None:
+                self.mdbi.drop_collection(mdbcollection)
         else:  # Assume PostgreSQL
             from sqlalchemy import create_engine
             if port is None:

@@ -5,9 +5,11 @@ import json
 import re
 
 import networkx as nx
+
 from nosqlbiosets.dbutils import DBconnection
-from nosqlbiosets.metanetx.index import TYPE_COMPOUND, TYPE_REACTION
 from nosqlbiosets.graphutils import remove_highly_connected_nodes
+from nosqlbiosets.metanetx.index import TYPE_COMPOUND, TYPE_REACTION
+from nosqlbiosets.qryutils import parseinputquery
 
 
 def cobrababel_parse_metanetx_equation(equation):
@@ -241,7 +243,6 @@ class QueryMetaNetX:
 def cyview(query):
     """ See metabolite networks with Cytoscape runing on your local machine """
     from py2cytoscape.data.cyrest_client import CyRestClient
-    from nosqlbiosets import parseinputquery
     qc = parseinputquery(query)
     qry = QueryMetaNetX()
     mn = qry.get_metabolite_network(qc, max_degree=maxdegree)

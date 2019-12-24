@@ -93,7 +93,7 @@ class Indexer(DBconnection):
         self.index = index
         self.slim = slim
         super(Indexer, self).__init__(db, index, host, port,
-                                      collection=doctype, recreateindex=True)
+                                      mdbcollection=doctype, recreateindex=True)
         if db == "MongoDB":
             self.mcl = self.mdbi[doctype]
 

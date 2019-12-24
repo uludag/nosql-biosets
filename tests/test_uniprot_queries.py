@@ -5,7 +5,7 @@ import unittest
 
 from nosqlbiosets.uniprot.query import QueryUniProt, idmatch
 
-MDB_COLLECTION = "uniprot-Saf1441"
+MDB_COLLECTION = "uniprot-Nov2019"
 qryuniprot = QueryUniProt("MongoDB", "biosets", MDB_COLLECTION)
 qryuniprot_es = QueryUniProt("Elasticsearch", "uniprot", "uniprot")
 
@@ -134,7 +134,7 @@ class TestQueryUniProt(unittest.TestCase):
                                    delta=100)
         # Distribution of evidence types for the same example query
         etypes = {
-            "evidence at protein level": 2476,
+            "evidence at protein level": 2484,
             "evidence at transcript level": 629,
             "inferred from homology": 1591,
             "predicted": 6,
@@ -150,26 +150,42 @@ class TestQueryUniProt(unittest.TestCase):
         r = {c['_id']: c['sum'] for c in hits}
         assert r == etypes
 
-    # Distribution of GO annotations
-    def _test_GO_annotations(self):
-        qc = {}
-        r = qryuniprot.getannotations(qc)
+    # Distribution of Pfam annotations
+    def test_Pfam_annotations(self):
+        e = [{'abundance': 210, 'id': 'PF00009', 'name': 'GTP_EFTU'},
+         {'abundance': 150, 'id': 'PF00005', 'name': 'ABC_tran'},
+         {'abundance': 150, 'id': 'PF04055', 'name': 'Radical_SAM'},
+         {'abundance': 240, 'id': 'PF00069', 'name': 'Pkinase'}]
+        qc = {"$sample": {'size': 20000}}
+        r = qryuniprot.getannotations(qc, annottype='Pfam')
         r = list(r)
-        self.assertAlmostEqual(len(r), 10000, delta=100)
-        self.assertAlmostEqual(sum([c['abundance'] for c in r]), 2863815,
-                               delta=1000)
+        self.assertAlmostEqual(len(r), 5600, delta=600)  # distinct Pfam ids
+        self.assertAlmostEqual(sum([c['abundance'] for c in r]), 30000,
+                               delta=2000)
+        r = {i['id']: i['abundance'] for i in r}
+        for i in e:
+            self.assertAlmostEqual(r[i['id']], i['abundance'],
+                                   delta=i['abundance']/3, msg=i)
+
+    # Distribution of GO annotations
+    def test_GO_annotations(self):
+        qc = {"$sample": {'size': 20000}}
+        r = qryuniprot.getannotations(qc, annottype="GO")
+        r = list(r)
+        self.assertAlmostEqual(len(r), 14600, delta=1000)  # distinct GO ids
+        self.assertAlmostEqual(sum([c['abundance'] for c in r]), 142000,
+                               delta=10000)
 
     def test_annotation_pairs(self):
         qc = {'organism.name.#text': 'Rice'}
         r = list(qryuniprot.top_annotation_pairs(qc))
         assert r[0]['go']['property'][0][
-                   'value'] == 'F:magnesium-dependent protein serine/threonine' \
-                               ' phosphatase activity'
+                   'value'] == 'F:protein serine/threonine phosphatase activity'
         assert r[0]['pfam']['property'][0][
                    'value'] == 'PP2C'
 
         assert r[1]['go']['property'][0][
-                   'value'] == 'F:protein serine/threonine phosphatase activity'
+                   'value'] == 'F:metal ion binding'
         assert r[1]['pfam']['property'][0][
                    'value'] == 'PP2C'
 

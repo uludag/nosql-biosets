@@ -5,7 +5,9 @@ import json
 import re
 
 import networkx as nx
+
 from nosqlbiosets.dbutils import DBconnection
+from nosqlbiosets.qryutils import parseinputquery
 
 # MongoDB collection names or Elasticsearch index names:
 COMPOUNDSTYPE = "modelseed_compound"
@@ -152,7 +154,6 @@ class QueryModelSEED:
 def cyview(query):
     """ See metabolite networks with Cytoscape runing on your local machine """
     from py2cytoscape.data.cyrest_client import CyRestClient
-    from nosqlbiosets import parseinputquery
     qc = parseinputquery(query)
     qry = QueryModelSEED()
     mn = qry.get_metabolite_network(qc)

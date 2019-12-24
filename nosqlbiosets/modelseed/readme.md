@@ -31,6 +31,8 @@ wget -O ./data/reactions.tsv https://github.com/ModelSEED/ModelSEEDDatabase/blob
 # Index reactions with Elasticsearch, requires ~20s
 ./nosqlbiosets/modelseed/index.py --db Elasticsearch --index modelseed_reaction --reactionsfile data/reactions.tsv
 
+# View network of metabolites that has reference to the keyword 'naringenin'
+./nosqlbiosets/modelseed/query.py cyview naringenin
 ```
 
 MongoDB collection names are defined in index.py:  

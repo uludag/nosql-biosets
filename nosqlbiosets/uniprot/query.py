@@ -4,30 +4,16 @@
 
 from collections import OrderedDict
 
-from nosqlbiosets.dbutils import DBconnection
+from nosqlbiosets.qryutils import Query
 
 
-class QueryUniProt:
-
-    def __init__(self, db, index, doctype, **kwargs):
-        self.index = index
-        self.doctype = doctype
-        self.dbc = DBconnection(db, self.index, **kwargs)
-
-    def query(self, qc, projection=None, limit=0):
-        c = self.dbc.mdbi[self.doctype].find(qc, projection=projection,
-                                             limit=limit)
-        return c
-
-    def aggregate_query(self, agpl, **kwargs):
-        r = self.dbc.mdbi[self.doctype].aggregate(agpl, **kwargs)
-        return r
+class QueryUniProt(Query):
 
     # Get UniProt acc ids for given enzyme
     def getaccs(self, ecn, reftype="EC"):
         qc = {"dbReference.id": ecn, "dbReference.type": reftype}
         key = 'accession'
-        r = self.dbc.mdbi[self.doctype].distinct(key, filter=qc)
+        r = self.dbc.mdbi[self.mdbcollection].distinct(key, filter=qc)
         return r
 
     # Get names and abundance of the genes for given enzyme
@@ -49,8 +35,7 @@ class QueryUniProt:
                                     "field": "gene.name.#text.keyword",
                                     "size": limit
                                 }}}}}}
-            hits, n, aggs = self.esquery(
-                self.dbc.es, self.doctype, qc, self.doctype)
+            hits, n, aggs = self.esquery(self.index, qc)
             r = dict()
             for i in aggs['genes']['buckets']:
                 nametype = i['key']
@@ -107,13 +92,13 @@ class QueryUniProt:
             r.add((i['_id'], int(i['gid']), i['gene']))
         return r
 
-    # Find abundance of GO annotations for the set specified by the query clause
-    def getannotations(self, qc):
+    # Find abundance of annotations for the set specified by the query clause
+    def getannotations(self, qc, annottype="GO"):
         assert self.dbc.db == 'MongoDB'
         aggq = [
-            {"$match": qc},
+            qc,
             {"$unwind": "$dbReference"},
-            {"$match": {"dbReference.type": "GO"}},
+            {"$match": {"dbReference.type": annottype}},
             {'$group': {
                 '_id': {
                     'id': '$dbReference.id',
@@ -121,13 +106,13 @@ class QueryUniProt:
                 },
                 "abundance": {"$sum": 1}
             }},
-            {"$sort": {"abundance": -1}},
             {'$project': {
                 "abundance": 1,
                 "id": "$_id.id",
                 "name": "$_id.name.value",
                 "_id": 0
-            }}
+            }},
+            {"$sort": {"abundance": -1}}
         ]
         r = self.aggregate_query(aggq)
         return r
@@ -142,7 +127,7 @@ class QueryUniProt:
                 {"$unwind": "$links"},
                 {"$match": {"links.db": "UniProt"}},
                 {"$lookup": {
-                    "from": self.doctype,
+                    "from": self.mdbcollection,
                     "localField": "links.accession_number",
                     "foreignField": "accession",
                     "as": "uniprot"
@@ -167,8 +152,7 @@ class QueryUniProt:
             qc = {"query": {"match": qc},
                   "_source": "organism.name"
                   }
-            hits, n, _ = self.esquery(
-                self.dbc.es, self.index, qc, self.doctype, size=limit)
+            hits, n, _ = self.esquery(self.index, qc, size=limit)
             rr = dict()
 
             def digestnames(name):
@@ -287,31 +271,22 @@ class QueryUniProt:
             {"$sort": {"total": -1}},
             {"$limit": limit}
         ]
-        r = self.dbc.mdbi[self.doctype].aggregate(aggq)
+        r = self.dbc.mdbi[self.mdbcollection].aggregate(aggq)
         return r
 
     # Get UniProt names(=ids) for given KEGG gene ids
     def getnamesforkegg_geneids(self, kgids, db="MongoDB"):
         if db == 'Elasticsearch':
-            esc = DBconnection(db, self.index)
+            # esc = DBconnection(db, self.index)
             qc = {"terms": {
                 "dbReference.id.keyword": kgids}}
-            hits, _, _ = self.esquery(esc.es, self.doctype, {"query": qc})
+            hits, _, _ = self.esquery(self.mdbcollection, {"query": qc})
             r = [xref['_id'] for xref in hits]
         else:
             qc = {"dbReference.id": {'$in': kgids}}
             key = 'name'
-            r = self.dbc.mdbi[self.doctype].distinct(key, filter=qc)
+            r = self.dbc.mdbi[self.mdbcollection].distinct(key, filter=qc)
         return r
-
-    @staticmethod
-    def esquery(es, index, qc, doc_type=None, size=10):
-        import json
-        print("Querying '%s'  %s" % (doc_type, json.dumps(qc, indent=4)))
-        r = es.search(index=index, body=qc, size=size)
-        nhits = r['hits']['total']
-        aggs = r["aggregations"] if "aggregations" in r else None
-        return r['hits']['hits'], nhits, aggs
 
     def top_annotation_pairs(self, qc, limit=10):
         """ Return most abundant GO and Pfam annotations co-occurences
@@ -355,7 +330,7 @@ class QueryUniProt:
 
 
 def idmatch(idlist, limit=100, mdbdb="biosets", mdbcollection="uniprot"):
-    """ Given mix protein/gene ids return Entrez id and primary gene name
+    """ Given mixed protein/gene ids return Entrez id and primary gene name
     for each matching UniProt record """
     qry = QueryUniProt("MongoDB", mdbdb, mdbcollection)
     import sys

@@ -122,7 +122,7 @@ def main(db, infile, mdbdb, mdbcollection, esindex,
         read_and_index_faers_records(infile, dbc, es_index_reports)
         dbc.es.indices.refresh(index=esindex)
     elif db == "MongoDB":
-        dbc = DBconnection(db, mdbdb, collection=mdbcollection,
+        dbc = DBconnection(db, mdbdb, mdbcollection=mdbcollection,
                            host=host, port=port, user=user, password=password,
                            recreateindex=recreateindex)
         read_and_index_faers_records(infile, dbc.mdbi[mdbcollection],

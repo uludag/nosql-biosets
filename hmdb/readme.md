@@ -96,7 +96,7 @@ requires registration. Save `drugbank_all_full_database.xml.zip` file to the
 
 ./scripts/nosqlbiosets index drugbank MongoDB ~/data/drugbank/drugbank-5.1.2.xml.zip
 
-# Index with Elasticsearch,  takes ~ 20 to 30m
+# Index with Elasticsearch,  takes ~ 20 to 50m
 ./hmdb/drugbank.py --infile ./data/drugbank_all_full_database.xml.zip\
  --db Elasticsearch --index drugbank
 
@@ -121,14 +121,13 @@ or for the complete set
 # Complete drug-enzymes graph
 ./hmdb/queries.py savegraph '{}' enzymes.xml --connections=enzymes
 
-# Drug-carriers graph for drugs with "Serum albumin" carrier
+# Drug-carriers graph for drugs that have referencs to "Serum albumin"
 ./hmdb/queries.py savegraph '{"carriers.name": "Serum albumin"}'\
      carriers-sa.xml --connections carriers
 
-# Drug-targets graph for drugs with "side effects"
-./hmdb/queries.py savegraph '{"$text": {"$search": "side effects"}}'\
-     carriers-se.xml --connections targets
-
+# Drug-targets graph for drugs which have keyword "antitubercular" in text fields 
+./hmdb/queries.py savegraph '{"$text": {"$search": "antitubercular"}}'\
+     antitubercular.xml --connections targets
 
 ```
 

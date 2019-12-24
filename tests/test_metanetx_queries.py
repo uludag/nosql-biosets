@@ -11,7 +11,7 @@ from nosqlbiosets.uniprot.query import QueryUniProt
 
 DB = 'biosets'
 qrymtntx = QueryMetaNetX(index=DB)
-qryuniprot = QueryUniProt("MongoDB", DB, "uniprot")
+qryuniprot = QueryUniProt("MongoDB", DB, "uniprot-Nov2019")
 
 
 class TestQueryMetanetx(unittest.TestCase):

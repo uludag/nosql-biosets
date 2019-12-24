@@ -330,6 +330,7 @@ def cyview(query, dataset='HMDB', connections='targets', name='',
     from nosqlbiosets import parseinputquery
     from py2cytoscape.data.style import Style
     qc = parseinputquery(query)
+    print(qc)  # todo: tests with HMDB
     if dataset.upper() == 'HMDB':
         qry = QueryHMDB(index=database)
         pairs = qry.getconnectedmetabolites(qc)

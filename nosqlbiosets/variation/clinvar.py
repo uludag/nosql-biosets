@@ -31,7 +31,7 @@ class Indexer(DBconnection):
             "index.mapping.total_fields.limit": 14000,
             "index.refresh_interval": "6m"}
         super(Indexer, self).__init__(dbtype, self.index, host, port,
-                                      collection=mdbcollection,
+                                      mdbcollection=mdbcollection,
                                       es_indexsettings=indxcfg,
                                       recreateindex=recreateindex)
         if dbtype == "MongoDB":

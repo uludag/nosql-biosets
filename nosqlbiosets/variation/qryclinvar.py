@@ -1,32 +1,10 @@
 #!/usr/bin/env python
 """ Query ClinVar data indexed with MongoDB """
 
-from nosqlbiosets.dbutils import DBconnection
+from nosqlbiosets.qryutils import Query
 
 
-class QueryClinVar:
-
-    def __init__(self, db, index, doctype, **kwargs):
-        self.index = index
-        self.doctype = doctype
-        self.dbc = DBconnection(db, self.index, **kwargs)
-
-    def query(self, qc, projection=None, limit=0):
-        c = self.dbc.mdbi[self.doctype].find(qc, projection=projection,
-                                             limit=limit)
-        return c
-
-    def count(self, qc, **kwargs):
-        n = self.dbc.mdbi[self.doctype].count(qc, **kwargs)
-        return n
-
-    def distinct(self, key, qc, **kwargs):
-        r = self.dbc.mdbi[self.doctype].distinct(key, qc, **kwargs)
-        return r
-
-    def aggregate_query(self, agpl, **kwargs):
-        r = self.dbc.mdbi[self.doctype].aggregate(agpl, **kwargs)
-        return r
+class QueryClinVar(Query):
 
     # Abundance of variant interpretations per submitter
     def topinterpretationspersubmitter(self, qc):

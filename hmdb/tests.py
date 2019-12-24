@@ -4,13 +4,14 @@ import os
 import unittest
 
 import networkx as nx
+
 from nosqlbiosets.graphutils import neighbors_graph
 from nosqlbiosets.graphutils import remove_highly_connected_nodes
 from nosqlbiosets.graphutils import remove_small_subgraphs
 from nosqlbiosets.graphutils import save_graph
+from .queries import QueryDrugBank, cyview, savegraph
 
-from .queries import DOCTYPE
-from .queries import QueryDrugBank
+DrugBank = 'drugbank'  # MongoDB collection name
 
 # Selected list of antituberculosis drugs, collected from a KAUST publication
 ATdrugs = ['Isoniazid', 'Rifampicin', 'Ethambutol', 'Ethionamide',
@@ -23,7 +24,7 @@ EX_GRAPHS = os.path.dirname(os.path.abspath(__file__)) + \
 
 
 class TestQueryDrugBank(unittest.TestCase):
-    qry = QueryDrugBank(index='biosets', host='localhost')
+    qry = QueryDrugBank("MongoDB", index='biosets', mdbcollection=DrugBank)
 
     def test_target_genes_interacted_drugs(self):
         genes = ['gyrA', 'katG', 'inhA', 'rpoC', 'rpsL']
@@ -44,36 +45,35 @@ class TestQueryDrugBank(unittest.TestCase):
         ]
         for qterm, name in pairs:
             for qterm_ in [qterm.lower(), qterm.upper(), qterm[:4]]:
-                r = self.qry.autocomplete_drugnames(qterm_)
+                r = self.qry.autocomplete_drugnames(qterm_, limit=8)
                 assert any(name in i['name'] for i in r), name
-
         for name in ATdrugs:
             for qterm in [name.lower(), name.upper(), name[:4]]:
-                r = self.qry.autocomplete_drugnames(qterm)
+                r = self.qry.autocomplete_drugnames(qterm, limit=30)
                 assert any(name in i['name'] for i in r), name
 
     def test_distinct_classes(self):
         key = "classification.class"
-        names = self.qry.distinctquery(key)
+        names = self.qry.distinct(key)
         self.assertIn("Carboxylic Acids and Derivatives", names)
         self.assertAlmostEqual(302, len(names), delta=10)
 
     def test_distinct_groups(self):
         key = "groups"
-        names = self.qry.distinctquery(key)
+        names = self.qry.distinct(key)
         self.assertIn("withdrawn", names)
         self.assertIn("investigational", names)
         self.assertAlmostEqual(7, len(names), delta=0)
 
     def test_distinct_pfam_classes(self):
         key = "transporters.polypeptide.pfams.pfam.name"
-        names = self.qry.distinctquery(key)
+        names = self.qry.distinct(key)
         self.assertIn("Alpha_kinase", names)
         self.assertAlmostEqual(113, len(names), delta=40)
 
     def test_distinct_go_classes(self):
         key = "transporters.polypeptide.go-classifiers.description"
-        names = self.qry.distinctquery(key)
+        names = self.qry.distinct(key)
         self.assertIn("lipid transport", names)
         self.assertAlmostEqual(1324, len(names), delta=400)
 
@@ -90,40 +90,40 @@ class TestQueryDrugBank(unittest.TestCase):
         self.assertAlmostEqual(7500, r[0]['count'], delta=60)
 
         # Number of unique target names: ~4360
-        names = self.qry.distinctquery("targets.name")
+        names = self.qry.distinct("targets.name")
         self.assertIn("Isoleucine--tRNA ligase", names)
         self.assertAlmostEqual(4366, len(names), delta=60)
 
         # Number of unique target ids: ~4860
-        ids = self.qry.distinctquery("targets.id")
+        ids = self.qry.distinct("targets.id")
         self.assertIn("BE0000198", ids)
         self.assertAlmostEqual(4865, len(ids), delta=60)
 
-        names = self.qry.distinctquery("targets.polypeptide.gene-name")
+        names = self.qry.distinct("targets.polypeptide.gene-name")
         self.assertIn("RNASE4", names)
         self.assertAlmostEqual(4023, len(names), delta=60)
 
-        names = self.qry.distinctquery("targets.polypeptide.source")
+        names = self.qry.distinct("targets.polypeptide.source")
         self.assertSetEqual({'TrEMBL', "Swiss-Prot"}, set(names))
 
-        names = self.qry.distinctquery("targets.actions.action")
+        names = self.qry.distinct("targets.actions.action")
         actions = "inhibitor antagonist antibody activator binder intercalation"
         assert set(actions.split(' ')).issubset(names)
         self.assertAlmostEqual(63, len(names), delta=4)
 
     def test_distinct_atc_codes(self):
         key = "atc-codes.level.#text"
-        atc_codes = self.qry.distinctquery(key)
+        atc_codes = self.qry.distinct(key)
         self.assertIn("Direct thrombin inhibitors", atc_codes)
         self.assertAlmostEqual(981, len(atc_codes), delta=10)
         key = "atc-codes.code"
-        atc_codes = self.qry.distinctquery(key)
+        atc_codes = self.qry.distinct(key)
         self.assertIn("A10AC04", atc_codes)
         self.assertAlmostEqual(4478, len(atc_codes), delta=140)
 
     def test_distinct_ahfs_codes(self):
         key = "ahfs-codes.ahfs-code"
-        ahfs_codes = self.qry.distinctquery(key)
+        ahfs_codes = self.qry.distinct(key)
         self.assertIn("72:00.00", ahfs_codes)
         self.assertAlmostEqual(347, len(ahfs_codes), delta=10)
 
@@ -211,7 +211,7 @@ class TestQueryDrugBank(unittest.TestCase):
         ]
         for kegg, uniprotid, entityid, etype in kegg_target_pairs:
             u, r = self.qry.kegg_target_id_to_drugbank_entity_id(
-                kegg, etype=etype, uniprotcollection="uniprot-Saf1441")
+                kegg, etype=etype, uniprotcollection="uniprot-Nov2019")
             assert uniprotid == u
             assert entityid == r
 
@@ -233,19 +233,19 @@ class TestQueryDrugBank(unittest.TestCase):
         assert 'Begelomab' in names
 
         key = "drug-interactions.name"
-        names = self.qry.distinctquery(key)
+        names = self.qry.distinct(key)
         self.assertIn("Salmeterol", names)
         self.assertAlmostEqual(3951, len(names), delta=200)
 
         key = "drug-interactions.drugbank-id"
-        idids = self.qry.distinctquery(key)
+        idids = self.qry.distinct(key)
         self.assertIn("DB00048", idids)
         self.assertAlmostEqual(3950, len(idids), delta=160)
         # list of approved drugs that interacts with at least one other drug
-        dids = self.qry.distinctquery('_id',
-                                      qc={"products.approved": True,
-                                          "drug-interactions":
-                                              {"$not": {"$size": 0}}})
+        dids = self.qry.distinct('_id',
+                                 qc={"products.approved": True,
+                                     "drug-interactions":
+                                         {"$not": {"$size": 0}}})
         self.assertIn("DB00048", dids)
         self.assertAlmostEqual(3220, len(dids), delta=100)
 
@@ -390,7 +390,7 @@ class TestQueryDrugBank(unittest.TestCase):
                 agpl = [
                     {'$match': qc},
                     {"$graphLookup": {
-                        "from": DOCTYPE,
+                        "from": DrugBank,
                         "startWith": "$name",
                         "connectToField":
                             "drug-interactions.name",
@@ -431,7 +431,7 @@ class TestQueryDrugBank(unittest.TestCase):
                     {'$unwind': '$targets'},
                     {'$unwind': '$targets.polypeptide'},
                     {"$graphLookup": {
-                        "from": DOCTYPE,
+                        "from": DrugBank,
                         "startWith": "$targets.polypeptide.gene-name",
                         "connectToField":
                             "targets.polypeptide.gene-name",

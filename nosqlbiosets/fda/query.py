@@ -2,15 +2,10 @@
 """Queries with FDA Adverse Event Reporting System data indexed with MongoDB
 """
 
-from nosqlbiosets.dbutils import DBconnection
+from nosqlbiosets.qryutils import Query
 
 
-class QueryFaers:
-
-    def __init__(self, db="MongoDB", index="biosets", collection="faers",
-                 **kwargs):
-        self.collection = collection
-        self.dbc = DBconnection(db, index, collection=collection, **kwargs)
+class QueryFaers(Query):
 
     def get_adversereactions(self, qc, limit=200):
         aggq = [
@@ -25,7 +20,7 @@ class QueryFaers:
             {"$sort": {"abundance": -1}},
             {"$limit": limit}
         ]
-        r = self.aggregate(aggq)
+        r = self.aggregate_query(aggq)
         return r
 
     def get_reaction_medicine_pairs(self, qc, limit=10):
@@ -45,20 +40,5 @@ class QueryFaers:
             {"$sort": {"abundance": -1}},
             {"$limit": limit}
         ]
-        r = self.aggregate(aggq)
-        return r
-
-    def query(self, qc, **kwargs):
-        r = self.dbc.mdbi[self.collection].find(qc, **kwargs)
-        return r
-
-    def aggregate(self, aggpl):
-        return self.dbc.mdbi[self.collection].aggregate(aggpl)
-
-    def count(self, qc, **kwargs):
-        r = self.dbc.mdbi[self.collection].count(qc, **kwargs)
-        return r
-
-    def distinct(self, key, qc, **kwargs):
-        r = self.dbc.mdbi[self.collection].distinct(key, qc, **kwargs)
+        r = self.aggregate_query(aggq)
         return r

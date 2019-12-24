@@ -7,7 +7,7 @@ from nosqlbiosets.fda.query import QueryFaers
 
 
 class QueryFaersTests(unittest.TestCase):
-    qry = QueryFaers(collection='faers')
+    qry = QueryFaers(dbtype="MongoDB", index="biosets", mdbcollection='faers')
 
     def test_get_adversereactions(self):
         # Numbers based on 2019 quarter 1 reports

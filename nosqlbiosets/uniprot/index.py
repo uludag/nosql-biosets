@@ -170,6 +170,7 @@ class Indexer(DBconnection):
 
     # Prepare UniProt entry for indexing
     # organism.name should always be list?
+    # organism.lineage.taxon should be list
     # all has scientific name, half has common name, 1/10th has synonym(s?)
     def update_entry(self, entry):
         # Make sure type of 'gene' attr is list
