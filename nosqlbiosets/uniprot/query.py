@@ -323,16 +323,15 @@ class QueryUniProt(Query):
             {"$unwind": "$_id.pfam"},
             {"$sort": {"abundance": -1}},
             {"$limit": limit},
-            {"$replaceRoot": {"newRoot": "$_id"}}
         ]
         r = self.aggregate_query(agpl, allowDiskUse=True)
         return r
 
 
-def idmatch(idlist, limit=100, mdbdb="biosets", mdbcollection="uniprot"):
+def idmatch(idlist, limit=100, mdbdb="biosets", mdbcollection="uniprot", **kwargs):
     """ Given mixed protein/gene ids return Entrez id and primary gene name
     for each matching UniProt record """
-    qry = QueryUniProt("MongoDB", mdbdb, mdbcollection)
+    qry = QueryUniProt("MongoDB", mdbdb, mdbcollection, **kwargs)
     import sys
     if idlist == '-':
         ids = []

@@ -5,9 +5,15 @@ import unittest
 
 from nosqlbiosets.uniprot.query import QueryUniProt, idmatch
 
-MDB_COLLECTION = "uniprot-Nov2019"
-qryuniprot = QueryUniProt("MongoDB", "biosets", MDB_COLLECTION)
-qryuniprot_es = QueryUniProt("Elasticsearch", "uniprot", "uniprot")
+MDB_COLLECTION = "uniprot"
+ESINDEX = "uniprot"
+MDBHOST = "tests.cbrc.kaust.edu.sa"
+ESHOST = "tests.cbrc.kaust.edu.sa"
+
+qryuniprot = QueryUniProt("MongoDB", "biosets", MDB_COLLECTION,
+                          host=MDBHOST)
+qryuniprot_es = QueryUniProt("Elasticsearch", ESINDEX, "",
+                             host=ESHOST, port=9200)
 
 
 class TestQueryUniProt(unittest.TestCase):
@@ -26,8 +32,8 @@ class TestQueryUniProt(unittest.TestCase):
         keggids = [('R01047', {'dhaB'}), ('R03119', {'dhaT'})]
         if db == "MongoDB":
             for keggid, genes in keggids:
-                self.assertSetEqual(genes, qryuniprot.
-                                    genes_linkedto_keggreaction(keggid))
+                r = qryuniprot.genes_linkedto_keggreaction(keggid)
+                self.assertSetEqual(genes, r, msg=r)
 
     def test_get_lca(self):
         qc = {
@@ -102,7 +108,8 @@ class TestQueryUniProt(unittest.TestCase):
             ("BLVRB", 1, ("BLVRB_HUMAN", 645, 'BLVRB'))
         ]
         for iids, nids, ids in tests:
-            r = idmatch(iids, limit=20000, mdbcollection=MDB_COLLECTION)
+            r = idmatch(iids, limit=20000, mdbcollection=MDB_COLLECTION,
+                        host=MDBHOST)
             assert len(r) == nids
             assert ids in r
 
@@ -112,7 +119,7 @@ class TestQueryUniProt(unittest.TestCase):
             255: 4025,  # match to sequence model evidence, manual assertion
             269: 6170,  # experimental evidence used in manual assertion
             305: 4503,  # curator inference used in manual assertion
-            250: 3088,  # sequence similarity evidence used in manual assertion
+            250: 3245,  # sequence similarity evidence used in manual assertion
             303: 1805,  # non-traceable author statement, manual assertion
             244: 891,   # combinatorial evidence used in manual assertion
             312: 748    # imported information used in manual assertion
@@ -134,9 +141,9 @@ class TestQueryUniProt(unittest.TestCase):
                                    delta=100)
         # Distribution of evidence types for the same example query
         etypes = {
-            "evidence at protein level": 2484,
+            "evidence at protein level": 2495,
             "evidence at transcript level": 629,
-            "inferred from homology": 1591,
+            "inferred from homology": 1606,
             "predicted": 6,
             "uncertain": 29
         }
@@ -152,42 +159,40 @@ class TestQueryUniProt(unittest.TestCase):
 
     # Distribution of Pfam annotations
     def test_Pfam_annotations(self):
-        e = [{'abundance': 210, 'id': 'PF00009', 'name': 'GTP_EFTU'},
-         {'abundance': 150, 'id': 'PF00005', 'name': 'ABC_tran'},
-         {'abundance': 150, 'id': 'PF04055', 'name': 'Radical_SAM'},
-         {'abundance': 240, 'id': 'PF00069', 'name': 'Pkinase'}]
-        qc = {"$sample": {'size': 20000}}
+        e = [{'abundance': 200, 'id': 'PF00009', 'name': 'GTP_EFTU'},
+             {'abundance': 200, 'id': 'PF00005', 'name': 'ABC_tran'},
+             {'abundance': 180, 'id': 'PF04055', 'name': 'Radical_SAM'},
+             {'abundance': 170, 'id': 'PF00069', 'name': 'Pkinase'}]
+        qc = {"$sample": {'size': 26000}}
         r = qryuniprot.getannotations(qc, annottype='Pfam')
         r = list(r)
-        self.assertAlmostEqual(len(r), 5600, delta=600)  # distinct Pfam ids
-        self.assertAlmostEqual(sum([c['abundance'] for c in r]), 30000,
+        self.assertAlmostEqual(len(r), 4700, delta=600)  # distinct Pfam ids
+        self.assertAlmostEqual(sum([c['abundance'] for c in r]), 37000,
                                delta=2000)
         r = {i['id']: i['abundance'] for i in r}
         for i in e:
             self.assertAlmostEqual(r[i['id']], i['abundance'],
-                                   delta=i['abundance']/3, msg=i)
+                                   delta=i['abundance']/2, msg=i)
 
     # Distribution of GO annotations
     def test_GO_annotations(self):
         qc = {"$sample": {'size': 20000}}
         r = qryuniprot.getannotations(qc, annottype="GO")
         r = list(r)
-        self.assertAlmostEqual(len(r), 14600, delta=1000)  # distinct GO ids
-        self.assertAlmostEqual(sum([c['abundance'] for c in r]), 142000,
-                               delta=10000)
+        self.assertAlmostEqual(len(r), 12500, delta=2000)  # distinct GO ids
+        self.assertAlmostEqual(sum([c['abundance'] for c in r]), 122000,
+                               delta=20000)
 
     def test_annotation_pairs(self):
         qc = {'organism.name.#text': 'Rice'}
         r = list(qryuniprot.top_annotation_pairs(qc))
-        assert r[0]['go']['property'][0][
-                   'value'] == 'F:protein serine/threonine phosphatase activity'
-        assert r[0]['pfam']['property'][0][
-                   'value'] == 'PP2C'
-
-        assert r[1]['go']['property'][0][
-                   'value'] == 'F:metal ion binding'
-        assert r[1]['pfam']['property'][0][
-                   'value'] == 'PP2C'
+        go = {i['_id']['go']['property'][0]['value'] for i in r[:3]}
+        assert go == {
+            'F:protein serine/threonine phosphatase activity',
+            "F:magnesium-dependent protein serine/threonine phosphatase activity",
+            'F:metal ion binding'}
+        assert all(i['_id']['pfam']['property'][0]['value'] == 'PP2C'
+                   for i in r[:3])
 
     def test_getenzymedata(self):
         enzys = [

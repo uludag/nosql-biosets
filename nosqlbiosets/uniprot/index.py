@@ -4,39 +4,39 @@
 # - Proper mapping for all attributes
 #   (unhandled attributes are deleted for now)
 
-from __future__ import print_function
-from six import string_types
 import argparse
-import os
 import traceback
 from gzip import GzipFile
 from multiprocessing.pool import ThreadPool
 
 import xmltodict
 from pymongo import IndexModel
+from six import string_types
 
-from nosqlbiosets.dbutils import DBconnection
+from nosqlbiosets.dbutils import DBconnection, dbargs
+
 pool = ThreadPool(14)   # Threads for index calls, parsing is in the main thread
 MAX_QUEUED_JOBS = 1400  # Maximum number of index jobs in queue
-DOCTYPE = 'uniprot'
+MDBCOLLECTION = 'uniprot'
 
 
 class Indexer(DBconnection):
 
-    def __init__(self, db, index, host=None, port=None, doctype=DOCTYPE,
+    def __init__(self, db, esindex, mdbdb, mdbcollection=MDBCOLLECTION,
+                 host=None, port=None,
                  recreateindex=True):
-        self.doctype = doctype
-        self.index = index
+        self.index = esindex if db == "Elasticsearch" else mdbdb
         self.db = db
         indxcfg = {  # for Elasticsearch
             "index.number_of_replicas": 0,
             "index.number_of_shards": 5,
             "index.refresh_interval": "1m"}
-        super(Indexer, self).__init__(db, index, host, port,
+        super(Indexer, self).__init__(db, self.index, host, port,
+                                      mdbcollection=mdbcollection,
                                       es_indexsettings=indxcfg,
                                       recreateindex=recreateindex)
         if db == "MongoDB":
-            self.mcl = self.mdbi[doctype]
+            self.mcl = self.mdbi[mdbcollection]
             self.mcl.drop()
 
     # Read and Index entries in UniProt xml file
@@ -61,7 +61,7 @@ class Indexer(DBconnection):
                 self.update_entry(entry)
                 docid = entry['name']
                 if self.db == "Elasticsearch":
-                    self.es.index(index=self.index, doc_type=self.doctype,
+                    self.es.index(index=self.index,
                                   op_type='create', ignore=409,
                                   filter_path=['hits.hits._id'],
                                   id=docid, body=entry)
@@ -223,38 +223,28 @@ def mongodb_indices(mdb):
         mdb.create_index(field)
 
 
-def main(infile, index, doctype, db, host=None, port=None, recreateindex=True):
-    indxr = Indexer(db, index, host, port, doctype, recreateindex=recreateindex)
+def main(infile, esindex, mdbdb, mdbcollection, db, host=None, port=None,
+         recreateindex=True):
+    indxr = Indexer(db, esindex, mdbdb, mdbcollection, host, port,
+                    recreateindex=recreateindex)
     indxr.parse_uniprot_xmlfiles(infile)
     pool.close()
     pool.join()
     pool.terminate()
     if db == 'Elasticsearch':
-        indxr.es.indices.refresh(index=index)
+        indxr.es.indices.refresh(index=esindex)
     else:
         mongodb_indices(indxr.mcl)
 
 
 if __name__ == '__main__':
-    d = os.path.dirname(os.path.abspath(__file__))
-    parser = argparse.ArgumentParser(
+    args = argparse.ArgumentParser(
         description='Index UniProt xml files,'
                     ' with Elasticsearch or MongoDB')
-    parser.add_argument('infile',
-                        help='Input file name for UniProt Swiss-Prot compressed'
-                             ' xml dataset')
-    parser.add_argument('--index',
-                        default="biosets",
-                        help='Name of the Elasticsearch index'
-                             ' or MongoDB database')
-    parser.add_argument('--doctype', default=DOCTYPE,
-                        help='Document type name for Elasticsearch, '
-                             'collection name for MongoDB')
-    parser.add_argument('--host',
-                        help='Elasticsearch or MongoDB server hostname')
-    parser.add_argument('--port', type=int,
-                        help="Elasticsearch or MongoDB server port number")
-    parser.add_argument('--db', default='Elasticsearch',
-                        help="Database: 'Elasticsearch' or 'MongoDB'")
-    args = parser.parse_args()
-    main(args.infile, args.index, args.doctype, args.db, args.host, args.port)
+    args.add_argument('infile',
+                      help='Input file name for UniProt Swiss-Prot compressed'
+                           ' xml dataset')
+    dbargs(args)
+    args = args.parse_args()
+    main(args.infile, args.esindex, args.mdbdb, args.mdbcollection,
+         args.dbtype, args.host, args.port)
