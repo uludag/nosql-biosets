@@ -23,7 +23,7 @@ Datasets that had more attention and have more stable support:
 * ModelSEEDDatabase [compounds and reactions data files](
   https://github.com/ModelSEED/ModelSEEDDatabase/tree/master/Biochemistry)
   in tsv format:
-  [`./nosqlbiosets/modelseed/index.py`](nosqlbiosets/modelseed/index.py)
+  [`./nosqlbiosets/modelseed/index.py`](nosqlbiosets/modelseed)
 
 * MetaNetX [compounds and reactions](
   http://www.metanetx.org/mnxdoc/mnxref.html
@@ -48,7 +48,13 @@ Datasets that has been added recently:
   and its relationship to human health
   [https://www.ncbi.nlm.nih.gov/clinvar/​](https://www.ncbi.nlm.nih.gov/clinvar/)
   [./nosqlbiosets/variation/](nosqlbiosets/variation)
-  
+
+* FAERS, FDA adverse event reports archive, https://open.fda.gov/data/faers/
+  [./nosqlbiosets/fda/](nosqlbiosets/fda)
+
+* InterPro, protein families, http://www.ebi.ac.uk/interpro/
+   [`./nosqlbiosets/uniprot/interpro.py`](nosqlbiosets/uniprot/interpro.py)
+
 Datasets that had less attention after the initial support added to the project:
 
 * Metabolic network files in [SBML](http://sbml.org) format or
@@ -214,5 +220,5 @@ by contacting the [relevant offices of KAUST](https://osr.kaust.edu.sa/Pages/Con
 
 ## Acknowledgements
 
-- Computers and systems used in developing this work has been maintained
+* Computers and systems used in developing this work have been maintained
   by John Hanks and Arnaud Hungler

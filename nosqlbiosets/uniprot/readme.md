@@ -64,6 +64,25 @@ _Server default connection settings are read from [../../conf/dbservers.json](
  --host localhost --db MongoDB --index biosets
 ```
 
+# Index/query scripts for InterPro dataset
+
+* [interpro.py](interpro.py): Index InterPro XML file
+  [https://www.ebi.ac.uk/interpro/download/]
+
+```bash
+Elasticsearch, ~20m
+./nosqlbiosets/uniprot/interpro.py \
+   ~/data/interpro/interpro.xml.gz\
+   --esindex interpro\
+   --dbtype Elasticsearch --recreateindex true\
+   --host localhost 
+MongoDB  ~3m
+./nosqlbiosets/uniprot/interpro.py \
+   ~/data/interpro/interpro.xml.gz\
+   --dbtype MongoDB --recreateindex true\
+   --host localhost
+```
+
 ## PSI MI-TAB support
 
 This folder also includes an index script for PSI-MI TAB protein interactions
