@@ -20,7 +20,7 @@ class TestQueryIntEnz(unittest.TestCase):
         self.assertAlmostEqual(len(re), 4436, delta=200,
                                msg="Number of reactant names")
         pr = qryintenz.getproductnames()
-        self.assertAlmostEqual(4931, len(pr), delta=200,
+        self.assertAlmostEqual(5161, len(pr), delta=400,
                                msg="Number of product names")
         i = set(re).intersection(pr)
         self.assertAlmostEqual(2093, len(i), delta=140,
@@ -138,7 +138,7 @@ class TestQueryIntEnz(unittest.TestCase):
     def test_getconnections_graph(self):
         qc = {'reactions.label.value': "Chemically balanced"}
         g = qryintenz.get_connections_graph(qc, limit=40000)
-        self.assertAlmostEqual(24000, g.number_of_edges(), delta=800)
+        self.assertAlmostEqual(25000, g.number_of_edges(), delta=800)
         self.assertAlmostEqual(7236,  g.number_of_nodes(), delta=200)
         assert '2 H(+)' in g.nodes
         self.assertAlmostEqual(573, g.degree('2 H(+)'), delta=20)

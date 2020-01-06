@@ -3,11 +3,13 @@
 # Server connection details are read from file conf/dbservers.json
 
 import json
+
 import argh
 import networkx as nx
-from nosqlbiosets import parseinputquery
+
 from nosqlbiosets.dbutils import DBconnection
 from nosqlbiosets.graphutils import save_graph
+from nosqlbiosets.qryutils import parseinputquery
 
 COLLECTION = "intenz"
 
@@ -15,19 +17,19 @@ COLLECTION = "intenz"
 class QueryIntEnz:
 
     def __init__(self, db="MongoDB", index="biosets", doctype=COLLECTION):
-        self.doctype = doctype
+        self.mdbcollection = doctype
         self.dbc = DBconnection(db, index)
 
     def getreactantnames(self, filterc=None, **kwargs):
         assert self.dbc.db == 'MongoDB'
         key = "reactions.reactants.title"
-        r = self.dbc.mdbi[self.doctype].distinct(key, filter=filterc, **kwargs)
+        r = self.dbc.mdbi[self.mdbcollection].distinct(key, filter=filterc, **kwargs)
         return r
 
     def getproductnames(self, filterc=None):
         assert self.dbc.db == 'MongoDB'
         key = "reactions.products.title"
-        r = self.dbc.mdbi[self.doctype].distinct(key, filter=filterc)
+        r = self.dbc.mdbi[self.mdbcollection].distinct(key, filter=filterc)
         return r
 
     def getcofactors(self, filterc=None):
@@ -38,14 +40,14 @@ class QueryIntEnz:
          """
         assert self.dbc.db == 'MongoDB'
         key = "cofactors"
-        r = self.dbc.mdbi[self.doctype].distinct(key, filter=filterc)
+        r = self.dbc.mdbi[self.mdbcollection].distinct(key, filter=filterc)
         return r
 
     # Find enzyme names for given query
     def getenzymenames(self, qc):
         if self.dbc.db == 'MongoDB':
             pr = ["_id", "accepted_name.#text"]
-            hits = self.dbc.mdbi[self.doctype].find(qc, projection=pr)
+            hits = self.dbc.mdbi[self.mdbcollection].find(qc, projection=pr)
             hits = [c for c in hits]
             # TODO: accepted_name is list
             r = {c['_id']: c["accepted_name"]["#text"]
@@ -96,7 +98,7 @@ class QueryIntEnz:
 
     def getenzymebyid(self, eid=None):
         if self.dbc.db == 'MongoDB':
-            r = self.dbc.mdbi[self.doctype].find_one(filter=eid)
+            r = self.dbc.mdbi[self.mdbcollection].find_one(filter=eid)
             return r
 
     # Find all enzymes where given chemical is a product
@@ -106,14 +108,14 @@ class QueryIntEnz:
                 "reactions.products.title": {
                     '$in': rnames}}
             r = ["_id", "accepted_name.#text"]
-            hits = self.dbc.mdbi[self.doctype].find(qc, projection=r, limit=100)
+            hits = self.dbc.mdbi[self.mdbcollection].find(qc, projection=r, limit=100)
             r = [c for c in hits]
             return r
 
     def enzyme_name2id(self, enames):
         if self.dbc.db == 'MongoDB':
             qc = {"accepted_name.#text": {'$in': enames}}
-            hits = self.dbc.mdbi[self.doctype].find(qc, limit=10)
+            hits = self.dbc.mdbi[self.mdbcollection].find(qc, limit=10)
             eids = [c['_id'] for c in hits]
             return eids
 
@@ -135,7 +137,7 @@ class QueryIntEnz:
                         "reactions.products.title": {
                             '$in': [reactant]}}
                 ]}
-            hits = self.dbc.mdbi[self.doctype].find(qc)
+            hits = self.dbc.mdbi[self.mdbcollection].find(qc)
             hits = [c for c in hits]
             eids = [c['accepted_name']['#text'] for c in hits]
             return eids
@@ -180,7 +182,7 @@ class QueryIntEnz:
                 "enzyme2.reactions.reactants.title": 1
             }}
         ]
-        hits = self.dbc.mdbi[self.doctype].aggregate(agpl)
+        hits = self.dbc.mdbi[self.mdbcollection].aggregate(agpl)
         r = [i for i in hits]
         return r
 
@@ -238,7 +240,7 @@ class QueryIntEnz:
                         {"enzymes.reactions.products": {
                             '$elemMatch': {"title": target}}}]}},
         ]
-        hits = self.dbc.mdbi[self.doctype].aggregate(agpl)
+        hits = self.dbc.mdbi[self.mdbcollection].aggregate(agpl)
         r = [i for i in hits]
         return r
 
@@ -266,7 +268,7 @@ class QueryIntEnz:
                 {"$group": {"_id": "$reactions.id",
                             "reaction": {"$addToSet": "$reactions"}}}
             ]
-            hits = self.dbc.mdbi[self.doctype].aggregate(agpl)
+            hits = self.dbc.mdbi[self.mdbcollection].aggregate(agpl)
             r = [i for i in hits]
             return r
 
@@ -292,7 +294,7 @@ class QueryIntEnz:
             }},
             {"$limit": limit}
         ]
-        r = self.dbc.mdbi[self.doctype].aggregate(agpl)
+        r = self.dbc.mdbi[self.mdbcollection].aggregate(agpl)
         return r
 
     def get_connections_graph(self, qc, limit=4000):
@@ -335,7 +337,6 @@ def cyview(query, name='', limit=4000):
      :param limit
      """
     from py2cytoscape.data.cyrest_client import CyRestClient
-    from nosqlbiosets import parseinputquery
     from py2cytoscape.data.style import Style
     qc = parseinputquery(query)
     qry = QueryIntEnz()

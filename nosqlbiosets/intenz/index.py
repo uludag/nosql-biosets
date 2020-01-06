@@ -22,7 +22,7 @@ class Indexer(DBconnection):
         self.index = index
         self.db = db
         super(Indexer, self).__init__(db, index, host, port,
-                                      collection=doctype, recreateindex=True)
+                                      mdbcollection=doctype, recreateindex=True)
         if db == "MongoDB":
             self.mcl = self.mdbi[doctype]
         elif db == "Neo4j":
@@ -73,7 +73,7 @@ class Indexer(DBconnection):
             # TODO: make accepted_name list
             try:
                 if self.db == "Elasticsearch":
-                    self.es.index(index=self.index, doc_type=self.doctype,
+                    self.es.index(index=self.index,
                                   op_type='create', ignore=409,
                                   filter_path=['hits.hits._id'],
                                   id=docid, body=entry)
