@@ -51,4 +51,9 @@ def checkbooleanattributes(e, attrs):
 # Make sure type of numeric attributes are numeric
 def num(e, attr, ntype=int):
     if attr in e:
-        e[attr] = ntype(e[attr])
+        if isinstance(e[attr], str) and len(e[attr]) == 0:
+            del e[attr]
+        else:
+            r = ntype(e[attr])
+            e[attr] = r
+            return r

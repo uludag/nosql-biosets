@@ -1,40 +1,36 @@
 #!/usr/bin/env python
 """ Index PMC articles with Elasticsearch or MongoDB"""
-from __future__ import print_function
-
 import argparse
+import datetime
 import gzip
-import json
 import os
-import sys
 import tarfile
 import time
-import datetime
 
 import pubmed_parser as pp
 
-from nosqlbiosets.dbutils import DBconnection
+from nosqlbiosets.dbutils import DBconnection, dbargs
+from nosqlbiosets.objutils import num
 
-PMCARTICLE = 'PMC_article'
+SOURCEURL = "ftp://ftp.ncbi.nlm.nih.gov/pub/pmc/oa_bulk/*.xml.tar.gz"
 d = os.path.dirname(os.path.abspath(__file__))
 
 
-# Read PMC article xml files, index using the function indexf
+# Read PMC article xml files;
 # If the input file is a folder iterate over files in the folder
-def read_and_index_pmc_articles(infile, dbc, indexf):
-    print("Reading %s " % infile)
+def read_and_index_pmc_articles(infile, dbc):
     n = 0
     t1 = time.time()
     if os.path.isdir(infile):
         for child in os.listdir(infile):
             c = os.path.join(infile, child)
-            read_and_index_pmc_articles_file(c, dbc, indexf)
+            read_and_index_pmc_articles(c, dbc)
             n += 1
     else:
-        if infile.endswith(".tar"):
-            n = read_and_index_pmc_articles_tarfile(infile, dbc, indexf)
+        if infile.endswith(".tar") or infile.endswith(".tar.gz"):
+            n = read_and_index_pmc_articles_tarfile(infile, dbc)
         else:
-            read_and_index_pmc_articles_file(infile, dbc, indexf)
+            read_and_index_pmc_articles_file(infile, dbc)
             n = 1
     t2 = time.time()
     print("-- %d files have been processed, in %dms"
@@ -42,11 +38,8 @@ def read_and_index_pmc_articles(infile, dbc, indexf):
     return None
 
 
-def pubmed_parser_parse(path_xml):
+def pubmed_parser(path_xml):
     ar = pp.parse_pubmed_xml(path_xml)
-    # if dbc.db != "Elasticsearch" or \
-    #         not dbc.es.exists(index=dbc.index, doc_type=PMCARTICLE,
-    #                           id=ar['pmid']):
     path_xml.seek(0)
     paragraph_dicts = pp.parse_pubmed_paragraph(path_xml)
     paragraphs = []
@@ -55,7 +48,9 @@ def pubmed_parser_parse(path_xml):
         del (p['pmid'])
         paragraphs.append(p)
     ar['paragraphs'] = paragraphs
-    ar['pub_date'] = datetime.datetime(int(ar['publication_year']), 1, 1)
+    num(ar, 'publication_year')
+    ar['publication_date'] = datetime.datetime.strptime(
+        ar['publication_date'], "%d-%m-%Y")
     return ar
 
 
@@ -74,27 +69,27 @@ def xmltodict_parser_parse(path_xml):
     return ar
 
 
-PARSER = pubmed_parser_parse
+PARSER = pubmed_parser
 
 
-# Read given PMC tar file, index using the index function specified
-def read_and_index_pmc_articles_tarfile(infile, dbc, indexfunc):
+# Read given PMC tar file
+def read_and_index_pmc_articles_tarfile(infile, dbc):
     print("\nProcessing tar file: %s " % infile)
     i = 0
-    tar = tarfile.open(infile, 'r:')
+    tar = tarfile.open(infile, 'r:gz')
     for member in tar:
         f = tar.extractfile(member)
         if f is None:
             continue  # if the tar-file entry is folder then skip
         ar = PARSER(f)
-        indexfunc(dbc, ar)
+        index_article(dbc, ar)
         tar.members = []
         i += 1
     return i
 
 
-# Read PMC articles file, index using the function indexf
-def read_and_index_pmc_articles_file(infile_, dbc, indexf):
+# Read PMC articles file, index
+def read_and_index_pmc_articles_file(infile_, dbc):
     infile = str(infile_)
     print("Reading %s " % infile)
     if infile.endswith(".gz"):
@@ -102,53 +97,41 @@ def read_and_index_pmc_articles_file(infile_, dbc, indexf):
     else:
         f = open(infile, 'rb')
     ba = PARSER(f)
-    r = indexf(dbc, ba)
-    return r
+    index_article(dbc, ba)
 
 
 def index_article(dbc, ar):
-    print(".", end='', file=sys.stdout)
-    sys.stdout.flush()
-    if PARSER == pubmed_parser_parse:
-        pmid = ar['pmid']
+    num(ar, 'pmid')
+    if PARSER == pubmed_parser:
+        pmcid = num(ar, 'pmc')
     else:
-        pmid = ar['front']['article-meta']['article-id'][0]['#text']
+        pmcid = ar['front']['article-meta']['article-id'][0]['#text']
     try:
         if dbc.db == "Elasticsearch":
-            dbc.es.index(index=dbc.index, doc_type=PMCARTICLE, id=pmid,
-                         body=ar)
+            dbc.es.index(index=dbc.index, id=pmcid, body=ar)
         else:  # MongoDB
-            spec = {"_id": pmid}
-            dbc.mdbi[PMCARTICLE].update(spec, ar, upsert=True)
+            spec = {"_id": pmcid}
+            dbc.mdbi[dbc.mdbcollection].update(spec, ar, upsert=True)
     except Exception as e:
         print("error: %s" % e)
     return None
 
 
-def main(infile, db, index, host, port):
-    iconfig = json.load(open(d+"/../../mappings/pmc-articles.json", "r"))
-    dbc = DBconnection(db, index, host, port,
-                       es_indexmappings=iconfig['mappings'])
-    read_and_index_pmc_articles(infile, dbc, index_article)
+def main(infile, db, index, **kwargs):
+    dbc = DBconnection(db, index, **kwargs)
+    read_and_index_pmc_articles(infile, dbc)
     dbc.close()
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(
-        description='Index PMC articles, using Elasticsearch or MongoDB')
-    parser.add_argument('-infile', '--infile',
-                        default=d + "/../../data/PMC0044-1000.tar",
-                        help='input file; tar file ???? '
-                             'or folder with PMC files')
-    parser.add_argument('--index',
-                        default="biosets",
-                        help='Name of the Elasticsearch index'
-                             ' or MongoDB database')
-    parser.add_argument('--host',
-                        help='Elasticsearch or MongoDB server hostname')
-    parser.add_argument('--port',
-                        help="Elasticsearch or MongoDB server port number")
-    parser.add_argument('--db', default='Elasticsearch',
-                        help="Database: Elasticsearch or MongoDB")
-    args = parser.parse_args()
-    main(args.infile, args.db, args.index, args.host, args.port)
+    args = argparse.ArgumentParser(
+        description='Index PMC XML document files (articles with full-text)'
+                    ' with Elasticsearch,'
+                    ' or MongoDB, downloaded from ' + SOURCEURL)
+    args.add_argument('-infile', '--infile',
+                      help='PMC XML document file,'
+                           ' such as Biotechnol_Lett/PMC6828833.nxml'
+                           ' or input folder with the XML document files')
+    dbargs(args)
+    args = args.parse_args()
+    main(args.infile, args.dbtype, args.esindex, host=args.host, port=args.port)

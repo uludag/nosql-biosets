@@ -42,6 +42,12 @@ Datasets that had more attention and have more stable support:
   (_tests made with [complete HGNC dataset](
   ftp://ftp.ebi.ac.uk/pub/databases/genenames/new/json/hgnc_complete_set.json)_)
 
+* PubMed and PMC [articles](https://www.nlm.nih.gov/bsd/difference.html):
+  [`./nosqlbiosets/pubmed/index_pubmed_articles.py`](
+  ./nosqlbiosets/pubmed/index_pubmed_articles.py)
+  [`./nosqlbiosets/pubmed/index_pmc_articles.py`](
+  ./nosqlbiosets/pubmed/index_pmc_articles.py)
+
 Datasets that has been added recently:
 
 * ClinVar, aggregated information about genomic variation
@@ -72,10 +78,6 @@ Datasets that had less attention after the initial support added to the project:
 http://www.wikipathways.org/index.php/Download_Pathways):
   [`./nosqlbiosets/pathways/index_wikipathways.py`](
   ./nosqlbiosets/pathways/index_wikipathways.py)
-
-* PMC [articles](http://ftp.ebi.ac.uk/pub/databases/pmc/manuscripts):
-  [`./nosqlbiosets/pubmed/index_pmc_articles.py`](
-  ./nosqlbiosets/pubmed/index_pmc_articles.py)
 
 * Ensembl regulatory build [GFF files](
 http://ftp.ensemblorg.ebi.ac.uk/pub/current_regulation/homo_sapiens):

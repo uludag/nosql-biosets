@@ -79,8 +79,10 @@ class DBconnection(object):
             mc = MongoClient(host, port)
             logger.info("New MongoDB connection: '%s:%d'" % (host, port))
             self.mdbi = mc[index]
-            if recreateindex and mdbcollection is not None:
-                self.mdbi.drop_collection(mdbcollection)
+            if mdbcollection is not None:
+                self.mdbcollection = mdbcollection
+                if recreateindex :
+                    self.mdbi.drop_collection(mdbcollection)
         else:  # Assume PostgreSQL
             from sqlalchemy import create_engine
             if port is None:
