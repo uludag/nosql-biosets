@@ -86,10 +86,10 @@ class TestQueryClinVar(unittest.TestCase):
         ]
         cr = qry.aggregate_query(aggq)
         e = {
-            'Invitae': 99876,
+            'Invitae': 204758,
             'Illumina Clinical Services Laboratory,Illumina': 54115,
             'GeneDx': 66075,
-            'EGL Genetic Diagnostics,Eurofins Clinical Diagnostics': 21474,
+            'EGL Genetic Diagnostics,Eurofins Clinical Diagnostics': 18857,
             "Laboratory of Genetics and Genomics,"
             "Cincinnati Children's Hospital Medical Center": 17786
         }
@@ -139,20 +139,20 @@ class TestQueryClinVar(unittest.TestCase):
         ]
         cr = qry.aggregate_query(aggq)
         e = {
-            ('--', '--'): 2277999,
-            ('SO', 'missense variant'): 725699,
-            ('SO', 'intron variant'): 347345,
-            ('SO', 'synonymous variant'): 274735,
+            ('--', '--'): 2467457,
+            ('SO', 'missense variant'): 792383,
+            ('SO', 'intron variant'): 418895,
+            ('SO', 'synonymous variant'): 493542,
             ('SO', '3 prime UTR variant'): 134351,
-            ('SO', 'frameshift variant'): 117159,
+            ('SO', 'frameshift variant'): 131261,
             ('SO', 'nonsense'): 81500,
-            ('SO', '5 prime UTR variant'): 63682
+            ('SO', '5 prime UTR variant'): 70966
         }
         r = {(i['_id']['db'] if 'db' in i['_id'] else '--',
               i['_id']['type'] if 'type' in i['_id'] else '--'):
                  i['abundance']
              for i in cr}
-        self.comparepairs(r, e)
+        self.comparepairs(r, e, r=14)
 
     def testqry_exampledistinctqueries(self):
         r = qry.distinct("InterpretedRecord.Interpretations."
@@ -264,6 +264,7 @@ class TestQueryClinVar(unittest.TestCase):
                 "InterpretedRecord.Interpretations.Interpretation"
                 ".ConditionList.TraitSet.Trait.Name": {
                     '$type': 'array'}}},
+            {"$unwind": '$InterpretedRecord.SimpleAllele.GeneList.Gene.Symbol'},
             {"$group": {
                 "_id": {
                     "desc": '$InterpretedRecord.SimpleAllele.GeneList.Gene'
@@ -281,7 +282,7 @@ class TestQueryClinVar(unittest.TestCase):
                 "abundance": {"$sum": 1}
             }},
             {"$sort": {"abundance": -1}},
-            {"$limit": 5}
+            {"$limit": 10}
         ]
         cr = qry.aggregate_query(aggq)
         epairs = {
@@ -298,10 +299,10 @@ class TestQueryClinVar(unittest.TestCase):
                     i['abundance']
         self.comparepairs(pairs, epairs)
 
-    def comparepairs(self, pairs, epairs):
+    def comparepairs(self, pairs, epairs, r=5):
         for pair, ab in epairs.items():
             self.assertAlmostEqual(pairs[pair], ab,
-                                   delta=ab / 5, msg=pair)
+                                   delta=ab / r, msg=pair)
 
 
 if __name__ == '__main__':
