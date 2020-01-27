@@ -56,8 +56,10 @@ def modelseeddb_parse_equation(equation, delimiter=' '):
 
 class QueryModelSEED:
 
-    def __init__(self, db="MongoDB", index="biosets"):
-        self.dbc = DBconnection(db, index)
+    def __init__(self, db="MongoDB", index='biosets', version="", **kwargs):
+        self.dbc = DBconnection(db, index, **kwargs)
+        self.rcollection = REACTIONSTYPE+version
+        self.ccollection = COMPOUNDSTYPE+version
 
     # Given ModelSEED compound id return its name
     def getcompoundname(self, dbc, mid, limit=0):
@@ -66,9 +68,8 @@ class QueryModelSEED:
             qc = {"match": {"_id": mid}}
             hits, n = self.esquery(dbc.es, index, qc, doctype)
         else:  # MongoDB
-            doctype = COMPOUNDSTYPE
             qc = {"_id": mid}
-            hits = list(dbc.mdbi[doctype].find(qc, limit=limit))
+            hits = list(dbc.mdbi[self.ccollection].find(qc, limit=limit))
             n = len(hits)
         assert 1 == n
         c = hits[0]
@@ -86,16 +87,14 @@ class QueryModelSEED:
     # Query metabolites with given query clause
     def query_metabolites(self, qc, **kwargs):
         assert "MongoDB" == self.dbc.db
-        doctype = COMPOUNDSTYPE
-        r = self.dbc.mdbi[doctype].find(qc, **kwargs)
+        r = self.dbc.mdbi[self.ccollection].find(qc, **kwargs)
         return r
 
     # Text search metabolites with given query term
     def textsearch_metabolites(self, queryterm):
         assert "MongoDB" == self.dbc.db
-        doctype = COMPOUNDSTYPE
         qc = {'$text': {'$search': queryterm}}
-        hits = self.dbc.mdbi[doctype].find(qc, projection={
+        hits = self.dbc.mdbi[self.ccollection].find(qc, projection={
             'score': {'$meta': "textScore"}})
         r = [c for c in hits]
         r.sort(key=lambda x: x['score'])
@@ -120,7 +119,7 @@ class QueryModelSEED:
         edges data include the set of reactions connecting two metabolites
         """
         graph = nx.DiGraph(name='ModelSEEDdb', query=json.dumps(qc))
-        reacts = self.dbc.mdbi[REACTIONSTYPE].\
+        reacts = self.dbc.mdbi[self.rcollection].\
             find(qc, projection=['name', 'equation'], **kwargs)
         mre = re.compile(r'\((\d*\.*\d*(e-\d+)?)\) (cpd\d+)\[(\d+)\]')
         r = self.query_metabolites({}, projection=['name'])

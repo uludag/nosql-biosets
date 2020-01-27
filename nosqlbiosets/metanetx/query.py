@@ -56,8 +56,10 @@ def cobrababel_parse_metanetx_equation(equation):
 
 class QueryMetaNetX:
 
-    def __init__(self, db="MongoDB", index='biosets'):
-        self.dbc = DBconnection(db, index)
+    def __init__(self, db="MongoDB", index='biosets', version="", **kwargs):
+        self.dbc = DBconnection(db, index, **kwargs)
+        self.rcollection = TYPE_REACTION+version
+        self.ccollection = TYPE_COMPOUND+version
 
     # Given MetaNetX compound id return its name
     def getcompoundname(self, mid, limit=0):
@@ -67,7 +69,7 @@ class QueryMetaNetX:
             hits, n = self.esquery(self.dbc.es, index, qc, doctype)
         else:  # MongoDB
             qc = {"_id": mid}
-            hits = list(self.dbc.mdbi[TYPE_COMPOUND].find(qc, limit=limit))
+            hits = list(self.dbc.mdbi[self.ccollection].find(qc, limit=limit))
             n = len(hits)
         assert 1 == n, "%s %s" % (self.dbc.db, mid)
         c = hits[0]
@@ -86,9 +88,8 @@ class QueryMetaNetX:
     # Text search metabolites with given query term
     def textsearch_metabolites(self, queryterm):
         assert "MongoDB" == self.dbc.db
-        doctype = TYPE_COMPOUND
         qc = {'$text': {'$search': queryterm}}
-        hits = self.dbc.mdbi[doctype].find(qc, projection={
+        hits = self.dbc.mdbi[self.ccollection].find(qc, projection={
             'score': {'$meta': "textScore"}})
         r = [c for c in hits]
         r.sort(key=lambda x: x['score'])
@@ -102,7 +103,7 @@ class QueryMetaNetX:
             hits, n = self.esquery(self.dbc.es, index, qc, doctype, len(cids))
         else:  # MongoDB
             qc = {'xrefs.id': {'$in': cids}}
-            hits = list(self.dbc.mdbi[TYPE_COMPOUND].find(qc))
+            hits = list(self.dbc.mdbi[self.ccollection].find(qc))
             n = len(hits)
         assert len(cids) == n
         mids = [None] * n
@@ -137,21 +138,21 @@ class QueryMetaNetX:
         assert "MongoDB" == self.dbc.db
         if qc is None:
             qc = {}
-        r = self.dbc.mdbi[TYPE_COMPOUND].find(qc, **kwargs)
+        r = self.dbc.mdbi[self.ccollection].find(qc, **kwargs)
         return r
 
     # Query metabolites with given query clause
     def aggregatequery_metabolites(self, qc, **kwargs):
         assert "MongoDB" == self.dbc.db
         assert qc is not None
-        r = self.dbc.mdbi[TYPE_COMPOUND].aggregate(qc, **kwargs)
+        r = self.dbc.mdbi[self.ccollection].aggregate(qc, **kwargs)
         return r
 
     # Query metabolites with given query clause
     def aggregatequery_reactions(self, qc, **kwargs):
         assert "MongoDB" == self.dbc.db
         assert qc is not None
-        r = self.dbc.mdbi[TYPE_REACTION].aggregate(qc, **kwargs)
+        r = self.dbc.mdbi[self.rcollection].aggregate(qc, **kwargs)
         return r
 
     # Query compartments with given query clause
@@ -167,16 +168,16 @@ class QueryMetaNetX:
     # Query reactions with given query clause
     def query_reactions(self, qc, **kwargs):
         if "MongoDB" == self.dbc.db:
-            hits = self.dbc.mdbi[TYPE_REACTION].find(qc, **kwargs)
+            hits = self.dbc.mdbi[self.rcollection].find(qc, **kwargs)
             r = [c for c in hits]
         else:
-            index, doctype = TYPE_REACTION, "_doc"
+            index, doctype = self.rcollection, "_doc"
             r, _ = self.esquery(self.dbc.es, index, qc, doctype, **kwargs)
         return r
 
     # Query reactions and return reactions together with their metabolites
     def reactionswithmetabolites(self, qc, **kwargs):
-        cr = self.dbc.mdbi[TYPE_REACTION].find(qc, **kwargs)
+        cr = self.dbc.mdbi[self.rcollection].find(qc, **kwargs)
         reacts = []
         mids = set()
         for r in cr:
