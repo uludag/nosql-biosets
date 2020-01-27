@@ -7,18 +7,18 @@ import json
 import argh
 import networkx as nx
 
-from nosqlbiosets.dbutils import DBconnection
 from nosqlbiosets.graphutils import save_graph
-from nosqlbiosets.qryutils import parseinputquery
+from nosqlbiosets.qryutils import parseinputquery, Query
 
 COLLECTION = "intenz"
 
 
-class QueryIntEnz:
+class QueryIntEnz(Query):
 
-    def __init__(self, db="MongoDB", index="biosets", doctype=COLLECTION):
-        self.mdbcollection = doctype
-        self.dbc = DBconnection(db, index)
+    def __init__(self, dbtype="MongoDB", index="biosets",
+                 mdbcollection=COLLECTION, **kwargs):
+        super(QueryIntEnz, self).__init__(dbtype, index,
+                                          mdbcollection, **kwargs)
 
     def getreactantnames(self, filterc=None, **kwargs):
         assert self.dbc.db == 'MongoDB'
@@ -46,13 +46,17 @@ class QueryIntEnz:
     # Find enzyme names for given query
     def getenzymenames(self, qc):
         if self.dbc.db == 'MongoDB':
-            pr = ["_id", "accepted_name.#text"]
+            pr = ["_id", "accepted_name.#text", "history"]
             hits = self.dbc.mdbi[self.mdbcollection].find(qc, projection=pr)
-            hits = [c for c in hits]
-            # TODO: accepted_name is list
-            r = {c['_id']: c["accepted_name"]["#text"]
-                 for c in hits if "accepted_name" in c and
-                 not isinstance(c["accepted_name"], list)}
+            r = dict()
+            for c in hits:
+                if "accepted_name" in c:
+                    if isinstance(c["accepted_name"], list):
+                        r[c['_id']] = c["accepted_name"][0]["#text"]
+                    else:
+                        r[c['_id']] = c["accepted_name"]["#text"]
+                else:
+                    r[c['_id']] = c["history"]
             return r
 
     # Find enzymes where given chemical is a reactant
@@ -92,7 +96,16 @@ class QueryIntEnz:
     # Get names of the enzymes with given ids
     def getenzymeswithids(self, eids):
         if self.dbc.db == 'MongoDB':
-            qc = {"_id": {'$in': eids}}
+            qc = {
+                "$or": [
+                    {"_id": {'$in': eids}}
+                ]
+            }
+            for eid in eids:
+                if eid[-1] == '-':
+                    qc["$or"].append(
+                        {"_id": {"$regex": "^%s" % eid[:-1]}}
+                    )
             r = self.getenzymenames(qc)
             return r
 

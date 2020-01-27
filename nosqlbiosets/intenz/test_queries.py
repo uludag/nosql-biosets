@@ -3,16 +3,16 @@
 import unittest
 
 from nosqlbiosets.dbutils import DBconnection
-from .query import QueryIntEnz, COLLECTION
+from .query import QueryIntEnz
 
-qryintenz = QueryIntEnz(index='biosets')
+qryintenz = QueryIntEnz()
 
 
 class TestQueryIntEnz(unittest.TestCase):
 
     def test_reactiondirections(self):
         key = "reactions.convention"
-        r = qryintenz.dbc.mdbi[COLLECTION].distinct(key)
+        r = qryintenz.distinct(key)
         assert r == ['rhea:direction.UN']
 
     def test_getreactant_product_names(self):
@@ -90,7 +90,6 @@ class TestQueryIntEnz(unittest.TestCase):
         tests = [("2.7.7.19", "Polynucleotide adenylyltransferase"),
                  ("4.2.1.30", "Glycerol dehydratase"),
                  ("1.1.1.202", "1,3-propanediol dehydrogenase")]
-
         enzyms = qryintenz.getenzymeswithids([eid for eid, _ in tests])
         assert len(enzyms) == 3
         for eid, enz in tests:
@@ -101,6 +100,17 @@ class TestQueryIntEnz(unittest.TestCase):
             assert e is not None and e["accepted_name"]["#text"] == enz
             eids = qryintenz.getenzymeswithids([eid])
             assert len(eids) == 1 and eids[eid] == enz
+
+    def test_getenzymeswithids(self):
+        r = qryintenz.getenzymeswithids(["1.14.13.158"])
+        assert len(r) == 1
+        tests = [("4.2.1.-", "Glycerol dehydratase"),
+                 ("1.1.1.-", "1,3-propanediol dehydrogenase")]
+        enzyms = qryintenz.getenzymeswithids([eid for eid, _ in tests])
+        assert len(enzyms) == 608
+        names = {i for i in enzyms.values()}
+        assert tests[0][1] in names
+        assert tests[1][1] in names
 
     def test_query_reactantandproduct(self):
         ste = [

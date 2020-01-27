@@ -55,7 +55,7 @@
   ./nosqlbiosets/intenz/query.py '{"$text": {"$search": "poly(A)"}}' polyA.json
   ```
 
-* [tests.py](tests.py): Tests with the query API
+* [tests.py](test_queries.py): Tests with the query API
 
 ## Example graph
 
