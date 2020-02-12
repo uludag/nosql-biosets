@@ -1,14 +1,14 @@
 
+# Acknowledgment
+
+Index scripts described here for PMC and PubMed articles are based on
+[`pubmed_parser`](https://github.com/titipata/pubmed_parser/) library,
+we used the parsers they provided and learned from their documentation
+
 # Index script for PMC (PubMed Central) articles
 
 PMC was launched in 2000 as a free archive for full-text biomedical and life sciences
 journal articles.
-
-## Acknowledgment
-
-Index scripts for PMC and PubMed articles are based on [`pubmed_parser`](https://github.com/titipata/pubmed_parser/)
-library, i.e. we used the parsers they provided and followed their documentation to understand the
-data and how to download
 
 For download information for PMC articles see:
 [https://github.com/titipata/pubmed_parser/wiki/Download-and-preprocess-Pubmed-Open-Access-dataset]

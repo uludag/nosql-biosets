@@ -6,6 +6,7 @@ import gzip
 import os
 import tarfile
 import time
+from multiprocessing.pool import ThreadPool
 
 import pubmed_parser as pp
 
@@ -14,6 +15,9 @@ from nosqlbiosets.objutils import num
 
 SOURCEURL = "ftp://ftp.ncbi.nlm.nih.gov/pub/pmc/oa_bulk/*.xml.tar.gz"
 d = os.path.dirname(os.path.abspath(__file__))
+
+pool = ThreadPool(14)  # Threads for parser/index calls
+MAX_QUEUED_JOBS = 140  # Maximum number of jobs in queue
 
 
 # Read PMC article xml files;
@@ -40,7 +44,8 @@ def read_and_index_pmc_articles(infile, dbc):
 
 def pubmed_parser(path_xml):
     ar = pp.parse_pubmed_xml(path_xml)
-    path_xml.seek(0)
+    if not isinstance(path_xml, str):
+        path_xml.seek(0)
     paragraph_dicts = pp.parse_pubmed_paragraph(path_xml)
     paragraphs = []
     for p in paragraph_dicts:
@@ -49,40 +54,37 @@ def pubmed_parser(path_xml):
         paragraphs.append(p)
     ar['paragraphs'] = paragraphs
     num(ar, 'publication_year')
-    ar['publication_date'] = datetime.datetime.strptime(
-        ar['publication_date'], "%d-%m-%Y")
+    try:
+        ar['publication_date'] = datetime.datetime.strptime(
+            ar['publication_date'], "%d-%m-%Y")
+    except ValueError:
+        try:
+            print(ar['publication_date'])
+            # assume error in 'day' and retry with the first day of the month
+            ar['publication_date'] = datetime.datetime.strptime(
+                "01"+ar['publication_date'][2:], "%d-%m-%Y")
+        except ValueError:
+            # a workaround, until we have a robust parser
+            ar['publication_date'] = datetime.datetime(2000, 1, 1)
     return ar
 
 
-def xmltodict_parser_parse(path_xml):
-    import xmltodict
-    namespaces = {
-        'http://www.w3.org/1999/xlink': None,
-        'http://www.w3.org/1998/Math/MathML': None
-    }
-    ar = xmltodict.parse(path_xml, process_namespaces=True,
-                         namespaces=namespaces, attr_prefix='')['article']
-    # Delete attributes we could not handle
-    if 'glossary' in ar['back']:
-        del ar['back']['glossary']
-    del ar['back']['ref-list']
-    return ar
-
-
-PARSER = pubmed_parser
+def index_parse(xml, dbc):
+    ar = pubmed_parser(xml.decode())
+    index_article(dbc, ar)
 
 
 # Read given PMC tar file
 def read_and_index_pmc_articles_tarfile(infile, dbc):
     print("\nProcessing tar file: %s " % infile)
     i = 0
-    tar = tarfile.open(infile, 'r:gz')
+    tar = tarfile.open(infile, 'r%s' % ':gz' if infile.endswith('.gz') else ':')
     for member in tar:
         f = tar.extractfile(member)
         if f is None:
             continue  # if the tar-file entry is folder then skip
-        ar = PARSER(f)
-        index_article(dbc, ar)
+        xml = f.read()
+        pool.apply_async(index_parse, (xml, dbc))
         tar.members = []
         i += 1
     return i
@@ -96,16 +98,13 @@ def read_and_index_pmc_articles_file(infile_, dbc):
         f = gzip.open(infile, 'rb')
     else:
         f = open(infile, 'rb')
-    ba = PARSER(f)
+    ba = pubmed_parser(f)
     index_article(dbc, ba)
 
 
 def index_article(dbc, ar):
     num(ar, 'pmid')
-    if PARSER == pubmed_parser:
-        pmcid = num(ar, 'pmc')
-    else:
-        pmcid = ar['front']['article-meta']['article-id'][0]['#text']
+    pmcid = num(ar, 'pmc')
     try:
         if dbc.db == "Elasticsearch":
             dbc.es.index(index=dbc.index, id=pmcid, body=ar)
@@ -120,6 +119,9 @@ def index_article(dbc, ar):
 def main(infile, db, index, **kwargs):
     dbc = DBconnection(db, index, **kwargs)
     read_and_index_pmc_articles(infile, dbc)
+    pool.close()
+    pool.join()
+    pool.terminate()
     dbc.close()
 
 
