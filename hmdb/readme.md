@@ -10,7 +10,7 @@
 
 * [drugbank.py](drugbank.py) Index DrugBank xml dataset with MongoDB,
   or Elasticsearch, or save drug-drug interactions as graph file in GML format.
-  Tests made with DrugBank version 5.1.4, July 2019 update
+  Tests made with DrugBank version 5.1.5, January 2020 update
   
 ```bash
 ./hmdb/drugbank.py --help

@@ -2,35 +2,18 @@
 """ Queries with HMDB and DrugBank data indexed with MongoDB """
 
 import argh
-from hmdb.drugbank import DOCTYPE  # Default MongoDB collection name
+
 from hmdb.index import DOCTYPE_METABOLITE, DOCTYPE_PROTEIN
 from nosqlbiosets.dbutils import DBconnection
 from nosqlbiosets.graphutils import *
+from nosqlbiosets.qryutils import parseinputquery, Query
 from nosqlbiosets.uniprot.query import QueryUniProt
 
 db = "MongoDB"        # Elasticsearch support has not been implemented
 DATABASE = "biosets"  # MongoDB database
 
 
-class QueryDrugBank:
-
-    def __init__(self, index=DATABASE, **kwargs):
-        self.index = index
-        self.dbc = DBconnection(db, self.index, **kwargs)
-        self.mdb = self.dbc.mdbi
-
-    def query(self, qc, projection=None, limit=0):
-        print("Querying with query clause '%s'" % (str(qc)))
-        c = self.mdb[DOCTYPE].find(qc, projection=projection, limit=limit)
-        return c
-
-    def aggregate_query(self, agpl, **kwargs):
-        r = self.mdb[DOCTYPE].aggregate(agpl, **kwargs)
-        return r
-
-    def distinctquery(self, key, qc=None):
-        r = self.dbc.mdbi[DOCTYPE].distinct(key, filter=qc)
-        return r
+class QueryDrugBank(Query):
 
     def autocomplete_drugnames(self, qterm, **kwargs):
         """
@@ -46,7 +29,7 @@ class QueryDrugBank:
             {"products.name": {
                 "$regex": "^%s" % qterm, "$options": "i"}}
         ]}
-        cr = self.mdb[DOCTYPE].find(qc, projection=['name'], **kwargs)
+        cr = self.query(qc, projection=['name'], **kwargs)
         return cr
 
     # Target genes and interacted drugs
@@ -65,7 +48,7 @@ class QueryDrugBank:
                 }}},
             {"$limit": limit}
         ]
-        cr = self.mdb[DOCTYPE].aggregate(aggqc, allowDiskUse=True)
+        cr = self.aggregate_query(aggqc, allowDiskUse=True)
         r = []
         for i in cr:
             assert 'targetid' in i['_id']
@@ -281,8 +264,7 @@ class QueryHMDB:
         return r
 
     def get_connections_graph(self, connections, query=None, outfile=None):
-        graph = nx.DiGraph(name='HMDB', query=query)
-
+        graph = nx.DiGraph(query=query)
         for i in connections:
             u = i['m1']
             v = i['m2']
@@ -309,8 +291,7 @@ def savegraph(query, graphfile, connections='targets'):
     :param connections: "targets", "enzymes", "transporters" or
                               "carriers
     """
-    from nosqlbiosets import parseinputquery
-    qry = QueryDrugBank()
+    qry = QueryDrugBank(db, DATABASE, 'drugbank')
     qc = parseinputquery(query)
     g = qry.get_connections_graph(qc, connections, graphfile)
     print(nx.info(g))
@@ -327,7 +308,6 @@ def cyview(query, dataset='HMDB', connections='targets', name='',
      :param database: Name of the MongoDB database to connect
      """
     from py2cytoscape.data.cyrest_client import CyRestClient
-    from nosqlbiosets import parseinputquery
     from py2cytoscape.data.style import Style
     qc = parseinputquery(query)
     print(qc)  # todo: tests with HMDB
@@ -336,7 +316,7 @@ def cyview(query, dataset='HMDB', connections='targets', name='',
         pairs = qry.getconnectedmetabolites(qc)
         mn = qry.get_connections_graph(pairs, query)
     else:  # assume DrugBank
-        qry = QueryDrugBank()
+        qry = QueryDrugBank(db, database, 'drugbank')
         mn = qry.get_connections_graph(qc, connections)
     crcl = CyRestClient()
     mn.name = json.dumps(qc) if name == '' else name
