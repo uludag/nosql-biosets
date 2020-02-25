@@ -5,38 +5,76 @@ Index scripts described here for PMC and PubMed articles are based on
 [`pubmed_parser`](https://github.com/titipata/pubmed_parser/) library,
 we used the parsers they provided and learned from their documentation
 
+For installing pubmed_parser see
+[https://github.com/titipata/pubmed_parser/#install-package](
+https://github.com/titipata/pubmed_parser/#install-package
+)
+
 # Index script for PMC (PubMed Central) articles
 
 PMC was launched in 2000 as a free archive for full-text biomedical and life sciences
 journal articles.
+Since then, "PMC has grown from comprising only two journals,
+ Proceedings of the National Academy of Sciences
+ and Molecular Biology of the Cell,
+ to an archive of articles from thousands of journals"
+[[https://www.ncbi.nlm.nih.gov/pmc/about/intro/](https://www.ncbi.nlm.nih.gov/pmc/about/intro/)].
 
-For download information for PMC articles see:
-[https://github.com/titipata/pubmed_parser/wiki/Download-and-preprocess-Pubmed-Open-Access-dataset]
+For download we used [PMC FTP service](https://www.ncbi.nlm.nih.gov/pmc/tools/ftp/)
+[Open Access bulk files folder](ftp://ftp.ncbi.nlm.nih.gov/pub/pmc/oa_bulk)
 
 [index_pmc_articles.py](index_pmc_articles.py) reads and indexes archives
-of PMC articles xml files.
+of PMC articles xml files with multiple threads.
 
+Example snippets to download and index xml archive files
 ```bash
-python ./nosqlbiosets/pubmed/index_pmc_articles.py --infile /local/data/pmc/data/ --esindex pmctests --dbtype Elasticsearch
+wget -nc -P ./data/pmc ftp://ftp.ncbi.nlm.nih.gov/pub/pmc/oa_bulk/*.xml.tar.gz
+
+# Index all archive files in ./data/pmc folder with Elasticsearch with 'pmc' index name
+python ./nosqlbiosets/pubmed/index_pmc_articles.py --infile ./data/pmc/\
+ --esindex pmc --dbtype Elasticsearch
+
+# Index with MongoDB 'biosets' database with 'pmc' collection name
+python ./nosqlbiosets/pubmed/index_pmc_articles.py --infile /local/data/pmc/data/\
+ --mdbdb biosets --mdbcollection pmc --dbtype Elasticsearch
 ```
+Note: our concentration for PubMed and PMC is with Elasticsearch indexing,
+indexing with MongoDB have not been tested with latest changes to the scripts
+
+Current Open Acces bulk files folder includes 8 XML archive files,
+ [../../scripts/index-pmc.sh](../../scripts/index-pmc.sh) script can be used to start
+ parallel index processe for each archive file,
+ typically takes about 10 hours to complete all 8 index jobs.  
 
 # Index script for PubMed articles
 
-PubMed article documents do not include the full text of the article,
-if the article is available through PMC, PMC article id is included in the 'pmc' field 
+PubMed article records do not include the full text of the articles, they include
+bibliographic informatin.
+If an article is available through PMC, PMC article id is included in the 'pmc' field
 
-For download information see:
-[https://github.com/titipata/pubmed_parser/wiki/Download-and-preprocess-MEDLINE-dataset]
 
 [index_pubmed_articles.py](index_pubmed_articles.py) reads and indexes archives
 of PubMed articles xml files.
 
+Example snippets to download and index xml archive files
 ```bash
+
+wget -nc -P ./data/pubmed ftp://ftp.ncbi.nlm.nih.gov/pubmed/baseline/*.xml.gz
+wget -nc -P ./data/pubmed/updatefiles ftp://ftp.ncbi.nlm.nih.gov/pubmed/updatefiles/*.xml.gz
+
+# Index all XML archive files in ./data/pubmed folder
 python ./nosqlbiosets/pubmed/index_pubmed_articles.py\
-  --infile /local/data/pubmed/baseline-2018-sample/pubmed20n0140.xml.gz\
-  --esindex pubmedtests --dbtype Elasticsearch --host localhost --port 9200
+  --infile ./data/pubmed\
+  --esindex pubmed --dbtype Elasticsearch --host localhost --port 9200
+
+# Index all XML archive files in ./data/pubmed/updatefiles folder
 python ./nosqlbiosets/pubmed/index_pubmed_articles.py\
-  --infile /local/data/pubmed/baseline-2018-sample\
+  --infile ./data/pubmed/updatefiles\
+  --esindex pubmed --dbtype Elasticsearch --host localhost --port 9200
+
+# Index individual XML archive files in ./data/pubmed folder
+python ./nosqlbiosets/pubmed/index_pubmed_articles.py\
+  --infile ./data/pubmed/pubmed20n0060.xml.gz\
   --esindex pubmedtests --dbtype Elasticsearch --host localhost --port 9200
 ```
 

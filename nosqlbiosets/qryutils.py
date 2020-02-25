@@ -30,12 +30,19 @@ class Query:
         self.dbc = DBconnection(dbtype, self.index, **kwargs)
 
     def query(self, qc, projection=None, limit=0):
-        c = self.dbc.mdbi[self.mdbcollection].find(qc, projection=projection,
-                                                   limit=limit)
+        if self.dbc.db == 'Elasticsearch':
+            c = self.dbc.es.search(index=self.index, body=qc, size=limit)
+        else:
+            c = self.dbc.mdbi[self.mdbcollection].find(qc,
+                                                       projection=projection,
+                                                       limit=limit)
         return c
 
     def count(self, qc, **kwargs):
-        n = self.dbc.mdbi[self.mdbcollection].count(qc, **kwargs)
+        if self.dbc.db == 'Elasticsearch':
+            n = self.dbc.es.count(index=self.dbc.index, body=qc)['count']
+        else:
+            n = self.dbc.mdbi[self.mdbcollection].count(qc, **kwargs)
         return n
 
     def distinct(self, key, qc=None):

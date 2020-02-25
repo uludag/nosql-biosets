@@ -9,6 +9,7 @@ import pubmed_parser as pp
 from elasticsearch.helpers import parallel_bulk
 from nosqlbiosets.dbutils import DBconnection, dbargs
 from nosqlbiosets.objutils import num
+from nosqlbiosets.pubmed.query import QueryPubMed
 
 SOURCEURL = "ftp://ftp.ncbi.nlm.nih.gov/pubmed/baseline/"
 d = os.path.dirname(os.path.abspath(__file__))
@@ -17,7 +18,13 @@ d = os.path.dirname(os.path.abspath(__file__))
 class IndexPubMedArticles(DBconnection):
 
     def __init__(self, db, index, **kwargs):
-        super(IndexPubMedArticles, self).__init__(db, index, **kwargs)
+        esindxcfg = {  # Elasticsearch index configuration
+            "index.number_of_replicas": 0,
+            "index.number_of_shards": 14}
+        super(IndexPubMedArticles, self).__init__(db, index,
+                                                  es_indexsettings=esindxcfg,
+                                                  **kwargs)
+        self.qry = QueryPubMed(db, index, **kwargs)
         if 'mdbcollection' in kwargs:
             self.mdbcollection = kwargs['mdbcollection']
 
@@ -45,26 +52,46 @@ class IndexPubMedArticles(DBconnection):
         elif infile.endswith(".xml"):
             f = open(infile, 'rb')
         else:
-            print("ERROR: filename does not end with '.xml' or '.xml.gz' '%s'"
+            print("Ignoring '%s': filename does not end with '.xml' or '.xml.gz'"
                   % infile)
             return
         articles = pp.parse_medline_xml(f)
         listattrs = ['authors', 'mesh_terms', 'publication_types',
                      'chemical_list', 'keywords', 'references', 'affiliations'
                      ]
-        for ar in articles:
-            num(ar, 'pmc')
+        ids = list()
+        deletedrecords = list()
+        for i, ar in enumerate(articles):
+            if isinstance(ar['abstract'], float) and\
+                    isinstance(ar['title'], float):
+                # DeleteCitation entries at the end of the xml archive files
+                # are parsed to an object with field values set to float NaN
+                deletedrecords.append(i)
+                continue
+            try:
+                num(ar, 'pmc')
+            except ValueError:
+                ar['pmc'] = 2000
             ar['_id'] = num(ar, 'pmid')
-            ar['pubdate'] = datetime.datetime(int(ar['pubdate']), 1, 1)
+            ids.append(ar['_id'])
+            try:
+                ar['pubdate'] = datetime.datetime(int(ar['pubdate']), 1, 1)
+            except ValueError:
+                print(ar['pubdate'])
+                ar['pubdate'] = datetime.datetime(2000, 1, 1)
             for listattr in listattrs:
                 if len(ar[listattr]) == 0:
                     del ar[listattr]
                 else:
                     spr = ';' if listattr in ['authors', 'references'] else '; '
                     ar[listattr] = ar[listattr].split(spr)
-
+        for i in reversed(deletedrecords):
+            del articles[i]
         if self.db == "Elasticsearch":
-            self.es_index(articles)
+            if self.qry.checkpubmedidsindexed([ids[0], ids[-1]]):
+                self.es_index(articles)
+            else:
+                print("Records in %s look has been indexed, skipping" % infile)
         else:  # assume MongoDB
             self.mdb_index(articles)
 

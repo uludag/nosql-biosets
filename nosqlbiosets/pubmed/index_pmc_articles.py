@@ -69,13 +69,15 @@ def pubmed_parser(path_xml):
     return ar
 
 
-def index_parse(xml, dbc):
+def parse_index(xml, dbc):
     ar = pubmed_parser(xml.decode())
+    del xml
     index_article(dbc, ar)
 
 
 # Read given PMC tar file
 def read_and_index_pmc_articles_tarfile(infile, dbc):
+    import gc
     print("\nProcessing tar file: %s " % infile)
     i = 0
     tar = tarfile.open(infile, 'r%s' % ':gz' if infile.endswith('.gz') else ':')
@@ -84,8 +86,13 @@ def read_and_index_pmc_articles_tarfile(infile, dbc):
         if f is None:
             continue  # if the tar-file entry is folder then skip
         xml = f.read()
-        pool.apply_async(index_parse, (xml, dbc))
+        pool.apply_async(parse_index, (xml, dbc))
+        del xml
+        f.close()
         tar.members = []
+        r = gc.collect()
+        if r > 0:
+            print(r)
         i += 1
     return i
 
@@ -113,11 +120,14 @@ def index_article(dbc, ar):
             dbc.mdbi[dbc.mdbcollection].update(spec, ar, upsert=True)
     except Exception as e:
         print("error: %s" % e)
-    return None
+    del ar
 
 
 def main(infile, db, index, **kwargs):
-    dbc = DBconnection(db, index, **kwargs)
+    esindxcfg = {  # Elasticsearch index configuration
+        "index.number_of_replicas": 0,
+        "index.number_of_shards": 5}
+    dbc = DBconnection(db, index, es_indexsettings=esindxcfg, **kwargs)
     read_and_index_pmc_articles(infile, dbc)
     pool.close()
     pool.join()
