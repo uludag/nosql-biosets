@@ -88,7 +88,7 @@ class IndexPubMedArticles(DBconnection):
         for i in reversed(deletedrecords):
             del articles[i]
         if self.db == "Elasticsearch":
-            if self.qry.checkpubmedidsindexed([ids[0], ids[-1]]):
+            if not self.qry.checkpubmedidsindexed([ids[0], ids[-1]]):
                 self.es_index(articles)
             else:
                 print("Records in %s look has been indexed, skipping" % infile)
@@ -130,4 +130,6 @@ if __name__ == '__main__':
                            ' or input folder with the XML document files')
     dbargs(args)
     args = args.parse_args()
-    main(args.infile, args.dbtype, args.esindex, host=args.host, port=args.port)
+    main(args.infile, args.dbtype, args.esindex,
+         mdbcollection=args.mdbcollection,
+         host=args.host, port=args.port)
