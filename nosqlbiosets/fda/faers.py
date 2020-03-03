@@ -48,6 +48,7 @@ def update_date(r, date):
     import datetime
     date += "date"
     if date in r:
+        # handle missing month and day info
         d = datetime.date(int(r[date][:4]),
                           int(r[date][4:6]) if len(r[date]) > 4 else 1,
                           int(r[date][6:8]) if len(r[date]) > 6 else 1)
@@ -58,7 +59,7 @@ def update_date(r, date):
 
 def read_reports(reports, rfile, rfolder):
     for i, r in enumerate(reports["results"]):
-        r["_id"] = "%s-%s-%d" % (rfolder, rfile, i)
+        r["_id"] = "%s-%s-%d" % (rfolder, rfile[:-17], i)
         for date in ["receive", "transmission", "receipt"]:
             update_date(r, date)
         for drug in r['patient']['drug']:
@@ -132,7 +133,7 @@ def main(db, infile, mdbdb, mdbcollection, esindex,
 
 if __name__ == '__main__':
     args = argparse.ArgumentParser(
-        description='Index FDA FAERS dataset json files using Elasticsearch,'
+        description='Index FDA FAERS dataset json files with Elasticsearch,'
                     ' or MongoDB, downloaded from ' + SOURCEURL)
     args.add_argument('--infile',
                       required=True,
