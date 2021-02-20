@@ -168,6 +168,21 @@ class Indexer(DBconnection):
         s['length'] = int(s['length'])
         s['version'] = int(s['version'])
 
+    @staticmethod
+    def checkdate(d):
+        import datetime
+        c = len(d.split('-'))
+        if c == 2:
+            r = datetime.datetime.strptime(d, "%Y-%m")
+        elif c == 1:
+            r = datetime.datetime.strptime(d, "%Y")
+        elif c == 3:
+            r = datetime.datetime.strptime(d, "%Y-%m-%d")
+        else:
+            # approx. date until we have a better solution
+            r = datetime.datetime(2000, 1, 1)
+        return r
+
     # Prepare UniProt entry for indexing
     # organism.name should always be list?
     # organism.lineage.taxon should be list
@@ -196,8 +211,12 @@ class Indexer(DBconnection):
                 for r in entry['reference']:
                     if 'source' in r:
                         del r['source']
+                    c = r['citation']['date']
+                    r['citation']['date'] = self.checkdate(c)
             elif 'source' in entry['reference']:
                 del entry['reference']['source']
+                c = entry['reference']['citation']['date']
+                entry['reference']['citation']['date'] = self.checkdate(c)
         self.updatefeatures(entry)
         self.updatesequence(entry['sequence'])
 
