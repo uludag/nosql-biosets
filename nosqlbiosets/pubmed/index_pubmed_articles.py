@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 """ Index PubmedArticleSet XML documents with Elasticsearch or MongoDB """
 import argparse
+import datetime
 import gzip
 import os
 import time
-import datetime
+
 import pubmed_parser as pp
 from elasticsearch.helpers import parallel_bulk
 from nosqlbiosets.dbutils import DBconnection, dbargs
@@ -33,7 +34,7 @@ class IndexPubMedArticles(DBconnection):
         n = 0
         t1 = time.time()
         if os.path.isdir(infile):
-            for child in os.listdir(infile):
+            for child in sorted(os.listdir(infile)):
                 c = os.path.join(infile, child)
                 self.read_and_index_articles_file(c)
                 n += 1
@@ -59,21 +60,21 @@ class IndexPubMedArticles(DBconnection):
         listattrs = ['authors', 'mesh_terms', 'publication_types',
                      'chemical_list', 'keywords', 'references', 'affiliations'
                      ]
-        ids = list()
-        deletedrecords = list()
+        ids = set()
+        deletedrecords, deletedpmids = list(), list()
         for i, ar in enumerate(articles):
-            if isinstance(ar['abstract'], float) and\
-                    isinstance(ar['title'], float):
+            if ar['delete']:
                 # DeleteCitation entries at the end of the xml archive files
                 # are parsed to an object with field values set to float NaN
                 deletedrecords.append(i)
+                deletedpmids.append(ar['pmid'])
                 continue
             try:
                 num(ar, 'pmc')
             except ValueError:
                 ar['pmc'] = 2000
             ar['_id'] = num(ar, 'pmid')
-            ids.append(ar['_id'])
+            ids.add(ar['_id'])
             try:
                 ar['pubdate'] = datetime.datetime(int(ar['pubdate']), 1, 1)
             except ValueError:
@@ -87,25 +88,25 @@ class IndexPubMedArticles(DBconnection):
                     ar[listattr] = ar[listattr].split(spr)
         for i in reversed(deletedrecords):
             del articles[i]
+        self.qry.deletepubmedids(deletedpmids)
         if self.db == "Elasticsearch":
-            if not self.qry.checkpubmedidsindexed([ids[0], ids[-1]]):
+            if not self.qry.checkpubmedidsindexed(list(ids)):
                 self.es_index(articles)
             else:
-                print("Records in %s look has been indexed, skipping" % infile)
+                print("Records in %s looks have been indexed, skipping" % infile)
         else:  # assume MongoDB
             self.mdb_index(articles)
 
     def es_index(self, articles):
         for ok, result in parallel_bulk(
                 self.es, iter(articles),
-                thread_count=14, queue_size=1400,
+                thread_count=8, queue_size=1400,
                 index=self.index, chunk_size=140
         ):
             if not ok:
                 action, result = result.popitem()
                 doc_id = '/%s/commits/%s' % (self.index, result['_id'])
                 print('Failed to %s document %s: %r' % (action, doc_id, 'result'))
-        return
 
     def mdb_index(self, ar):
         try:

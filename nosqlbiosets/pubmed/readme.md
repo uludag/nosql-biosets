@@ -20,13 +20,14 @@ Since then, "PMC has grown from comprising only two journals,
  to an archive of articles from thousands of journals"
 [[https://www.ncbi.nlm.nih.gov/pmc/about/intro/](https://www.ncbi.nlm.nih.gov/pmc/about/intro/)].
 
-For download we used [PMC FTP service](https://www.ncbi.nlm.nih.gov/pmc/tools/ftp/)
+For downloading we used [PMC FTP service](https://www.ncbi.nlm.nih.gov/pmc/tools/ftp/)
 [Open Access bulk files folder](ftp://ftp.ncbi.nlm.nih.gov/pub/pmc/oa_bulk)
 
 [index_pmc_articles.py](index_pmc_articles.py) reads and indexes archives
 of PMC articles xml files with multiple threads.
 
-Example snippets to download and index xml archive files
+Example command-lines to download and index xml archive files
+
 ```bash
 # 8 archive files with total size of ~42G, they look updated on a daily basis
 wget -nc -P ./data/pmc ftp://ftp.ncbi.nlm.nih.gov/pub/pmc/oa_bulk/*.xml.tar.gz
@@ -39,6 +40,7 @@ python ./nosqlbiosets/pubmed/index_pmc_articles.py --infile ./data/pmc/\
 python ./nosqlbiosets/pubmed/index_pmc_articles.py --infile /local/data/pmc/data/\
  --mdbdb biosets --mdbcollection pmc --dbtype Elasticsearch
 ```
+
 Note: our concentration for PubMed and PMC is with Elasticsearch indexing,
 indexing with MongoDB have not been tested with the latest changes yet
 
@@ -53,22 +55,25 @@ PubMed article records do not include the full text of the articles, they includ
 bibliographic informatin.
 If an article is available through PMC, PMC article id is included in the 'pmc' field
 
-
 [index_pubmed_articles.py](index_pubmed_articles.py) reads and indexes archives
 of PubMed articles xml files.
 
-Example snippets to download and index xml archive files
+Example command-lines to download and index xml archive files:
+
 ```bash
 
-wget -nc -P ./data/pubmed ftp://ftp.ncbi.nlm.nih.gov/pubmed/baseline/*.xml.gz
+wget -nc -P ./data/pubmed/baseline ftp://ftp.ncbi.nlm.nih.gov/pubmed/baseline/*.xml.gz
 # 1016 xml archive files in 2020 baseline folder, total file size 28G
+# 1062 xml archive files in 2021 baseline folder, total file size 31G
 wget -nc -P ./data/pubmed/updatefiles ftp://ftp.ncbi.nlm.nih.gov/pubmed/updatefiles/*.xml.gz
 # ~80 xml archive files, 26 Feb 2020,  total file size ~2.1G
+# 172 xml archive files, 18 Apr 2021,  total file size ~7.0G
 
-# Index all XML archive files in ./data/pubmed folder
+# Index all XML archive files in ./data/pubmed/baseline folder
 # 30419056 article records in 2020 baseline folder
+# indexing takes about 6 hours
 python ./nosqlbiosets/pubmed/index_pubmed_articles.py\
-  --infile ./data/pubmed\
+  --infile ./data/pubmed/baseline\
   --esindex pubmed --dbtype Elasticsearch --host localhost --port 9200
 
 # Index all XML archive files in ./data/pubmed/updatefiles folder
@@ -83,10 +88,15 @@ python ./nosqlbiosets/pubmed/index_pubmed_articles.py\
   --infile ./data/pubmed/pubmed20n0060.xml.gz\
   --esindex pubmedtests --dbtype Elasticsearch --host localhost --port 9200
 ```
+### TODO
+- Support for article versions
+- Better mechanism for understanding whether the xml files previously indexed
 
-Following information for PubMed is a partial copy of the article at
-[https://www.nlm.nih.gov/bsd/difference.html]:
- 
+# MEDLINE, PubMed, and PMC (PubMed Central): How are they different?
+
+This section is a partial copy of the article at
+[https://www.nlm.nih.gov/bsd/difference.html](https://www.nlm.nih.gov/bsd/difference.html):
+
 PubMed citations come from
 
  1) MEDLINE indexed journals
