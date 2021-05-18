@@ -38,11 +38,3 @@ class QueryInterPro(Query):
             j = {i['_id']: i['name'] for i in facet}
             names.update(j)
         return names
-
-
-def test_pfamid2names():
-    qr = QueryInterPro("MongoDB", "biosets", "interpro")
-    r = qr.id2names(["PF00051", "PF00008", "PF04257"])
-    assert r["PF00008"] == 'EGF-like domain'
-    assert r["PF04257"] == 'RecBCD enzyme subunit RecC'
-    assert r["PF00051"] == 'Kringle'

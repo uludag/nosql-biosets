@@ -200,17 +200,11 @@ class QueryUniProt(Query):
                 rr[nametype][i['name']] = i['total']
         return rr
 
-    def getspecies(self, qc):
-        aggq = [
-            {"$match": qc},
-            {"$match": {"organism.lineage.taxon.0": {"$exists": True}}},
-            {"$group": {
-                "_id": {"$arrayElemAt": ['$organism.lineage.taxon', -1]}
-            }}
-        ]
-        r = self.aggregate_query(aggq)
-        r = [i['_id'] for i in r]
-        return r
+    # Get organism names; name_type = scientific, common, or synonym
+    def getorganismnames(self, qc, name_type='scientific'):
+        r = self.getorganisms(None, qc)
+        assert name_type in r
+        return r[name_type]
 
     def get_lca(self, qc):
         """
@@ -280,7 +274,7 @@ class QueryUniProt(Query):
             # esc = DBconnection(db, self.index)
             qc = {"terms": {
                 "dbReference.id.keyword": kgids}}
-            hits, _, _ = self.esquery(self.mdbcollection, {"query": qc})
+            hits, _, _ = self.esquery(self.index, {"query": qc})
             r = [xref['_id'] for xref in hits]
         else:
             qc = {"dbReference.id": {'$in': kgids}}

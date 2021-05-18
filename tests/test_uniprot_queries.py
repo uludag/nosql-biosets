@@ -12,7 +12,7 @@ ESHOST = "tests.cbrc.kaust.edu.sa"
 
 qryuniprot = QueryUniProt("MongoDB", "biosets", MDB_COLLECTION,
                           host=MDBHOST)
-qryuniprot_es = QueryUniProt("Elasticsearch", ESINDEX, "",
+qryuniprot_es = QueryUniProt("Elasticsearch", ESINDEX, None,
                              host=ESHOST, port=9200)
 
 
@@ -33,7 +33,7 @@ class TestQueryUniProt(unittest.TestCase):
         if db == "MongoDB":
             for keggid, genes in keggids:
                 r = qryuniprot.genes_linkedto_keggreaction(keggid)
-                self.assertSetEqual(genes, r, msg=r)
+                self.assertSetEqual(genes, r, msg=(genes, r))
 
     def test_get_lca(self):
         qc = {
@@ -53,17 +53,18 @@ class TestQueryUniProt(unittest.TestCase):
             else:
                 assert taxon == r[-1]
 
-    def test_get_species(self):
+    def test_get_getorganismnames(self):
         ecn = "4.2.1.-"
         qc = {
             "dbReference": {"$elemMatch": {
                 "type": "EC",
                 "id": {'$regex': '^' + ecn[:-1]}
             }}}
-        r = qryuniprot.getspecies(qc)
+        r = qryuniprot.getorganismnames(qc)
         n = len(r)
+        assert "Arabidopsis thaliana" in r
         qc['dbReference']["$elemMatch"]["id"] = ecn
-        r = qryuniprot.getspecies(qc)
+        r = qryuniprot.getorganismnames(qc)
         m = len(r)
         assert m < n
 
@@ -92,7 +93,7 @@ class TestQueryUniProt(unittest.TestCase):
             ({"name": "BIEA_HUMAN"}, 1, ("BIEA_HUMAN", 644, 'BLVRA')),
             ({'$text': {'$search': 'bilirubin'},
               "organism.dbReference.id": "9606"},
-             18, ("BIEA_HUMAN", 644, 'BLVRA'))
+             20, ("BIEA_HUMAN", 644, 'BLVRA'))
         ]
         for qc, nids, ids in tests:
             r = qryuniprot.getgeneids(qc, limit=20000)
@@ -108,7 +109,8 @@ class TestQueryUniProt(unittest.TestCase):
             ("BLVRB", 1, ("BLVRB_HUMAN", 645, 'BLVRB'))
         ]
         for iids, nids, ids in tests:
-            r = idmatch(iids, limit=20000, mdbcollection=MDB_COLLECTION,
+            r = idmatch(iids, limit=20000,
+                        mdbdb=MDB_DB, mdbcollection=MDB_COLLECTION,
                         host=MDBHOST)
             assert len(r) == nids
             assert ids in r
@@ -116,18 +118,19 @@ class TestQueryUniProt(unittest.TestCase):
     # Distribution of evidence codes in a text query result set
     def test_evidence_codes(self):
         ecodes = {  # http://www.uniprot.org/help/evidences
-            255: 4025,  # match to sequence model evidence, manual assertion
-            269: 6170,  # experimental evidence used in manual assertion
-            305: 4503,  # curator inference used in manual assertion
-            250: 3245,  # sequence similarity evidence used in manual assertion
-            303: 1805,  # non-traceable author statement, manual assertion
-            244: 891,   # combinatorial evidence used in manual assertion
-            312: 748    # imported information used in manual assertion
+            255: 4200,  # match to sequence model evidence, manual assertion
+            269: 7130,  # experimental evidence used in manual assertion
+            305: 5140,  # curator inference used in manual assertion
+            250: 3520,  # sequence similarity evidence used in manual assertion
+            303: 2400,  # non-traceable author statement, manual assertion
+            244:  891,   # combinatorial evidence used in manual assertion
+            312:  940,   # imported information used in manual assertion
+            744:  940  # imported information used in manual assertion
         }
         qc = {'$text': {'$search': 'antimicrobial'}}
-        self.assertAlmostEqual(4700,
+        self.assertAlmostEqual(5000,
                                len(list(qryuniprot.query(qc, {'_id': 1}))),
-                               delta=100)
+                               delta=400)
         aggqc = [
             {"$match": qc},
             {"$unwind": "$evidence"},
@@ -137,13 +140,13 @@ class TestQueryUniProt(unittest.TestCase):
         ]
         cr = qryuniprot.aggregate_query(aggqc)
         for i in cr:
-            self.assertAlmostEqual(ecodes[int(i['_id'][8:])], i['sum'],
+            self.assertAlmostEqual(i['sum'], ecodes[int(i['_id'][8:])],
                                    delta=100)
         # Distribution of evidence types for the same example query
         etypes = {
-            "evidence at protein level": 2495,
-            "evidence at transcript level": 629,
-            "inferred from homology": 1606,
+            "evidence at protein level": 2705,
+            "evidence at transcript level": 627,
+            "inferred from homology": 1623,
             "predicted": 6,
             "uncertain": 29
         }
@@ -166,7 +169,7 @@ class TestQueryUniProt(unittest.TestCase):
         qc = {"$sample": {'size': 26000}}
         r = qryuniprot.getannotations(qc, annottype='Pfam')
         r = list(r)
-        self.assertAlmostEqual(len(r), 4700, delta=600)  # distinct Pfam ids
+        self.assertAlmostEqual(len(r), 5000, delta=1400)  # distinct Pfam ids
         self.assertAlmostEqual(sum([c['abundance'] for c in r]), 37000,
                                delta=2000)
         r = {i['id']: i['abundance'] for i in r}
@@ -188,10 +191,10 @@ class TestQueryUniProt(unittest.TestCase):
         r = list(qryuniprot.top_annotation_pairs(qc))
         go = {i['_id']['go']['property'][0]['value'] for i in r[:3]}
         assert go == {
-            'F:protein serine/threonine phosphatase activity',
-            "F:magnesium-dependent protein serine/threonine phosphatase activity",
-            'F:metal ion binding'}
-        assert all(i['_id']['pfam']['property'][0]['value'] == 'PP2C'
+            'C:apoplast',
+            "F:manganese ion binding",
+            'C:cell wall'}
+        assert all(i['_id']['pfam']['property'][0]['value'] == 'Cupin_1'
                    for i in r[:3])
 
     def test_getenzymedata(self):
@@ -225,7 +228,7 @@ class TestQueryUniProt(unittest.TestCase):
             for organisms in [qryuniprot_es.getorganisms(ecn, limit=2000),
                               qryuniprot.getorganisms(ecn, limit=2000)]:
                 assert n == organisms[nametype][org], organisms
-                self.assertAlmostEqual(orgs, len(organisms[nametype]), delta=30)
+                self.assertAlmostEqual(orgs, len(organisms[nametype]), delta=50)
 
 
 if __name__ == '__main__':

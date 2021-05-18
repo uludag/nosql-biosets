@@ -104,7 +104,7 @@ def mongodb_indices(mdb):
         mdb.create_index(field)
 
 
-def main(infile, dbtype, esindex, mdbcollection, mdbdb='biosets',
+def main(infile, dbtype, esindex, mdbcollection='interpro', mdbdb='biosets',
          host=None, port=None, recreateindex=True):
     indxr = Indexer(dbtype, esindex, mdbdb=mdbdb,
                     host=host, port=port, mdbcollection=mdbcollection,

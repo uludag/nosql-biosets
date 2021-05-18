@@ -3,7 +3,7 @@
 
 * [index.py](index.py): Index UniProtKB xml files
 
-  _Tested with Swiss-Prot dataset only, (December 2019 release)_
+  _Tested with Swiss-Prot dataset only, (April 2021 release)_
   
     ```
     ./nosqlbiosets/uniprot/index.py --help
@@ -57,7 +57,7 @@ _Server default connection settings are read from [../../conf/dbservers.json](
 ```bash
 # Index with Elasticsearch, typically requires about 2 to 8 hours
 ./nosqlbiosets/uniprot/index.py ./data/uniprot_sprot.xml.gz\
- --host localhost --db Elasticsearch  --index uniprot
+ --host localhost --db Elasticsearch  --esindex uniprot
 
 # Index with MongoDB, typically requires about 1 to 2 hours
 ./nosqlbiosets/uniprot/index.py ./data/uniprot_sprot.xml.gz\
@@ -70,7 +70,7 @@ _Server default connection settings are read from [../../conf/dbservers.json](
   [https://www.ebi.ac.uk/interpro/download/]
 
 ```bash
-Elasticsearch, ~20m
+Elasticsearch, ~10m
 ./nosqlbiosets/uniprot/interpro.py \
    ~/data/interpro/interpro.xml.gz\
    --esindex interpro\
@@ -80,6 +80,7 @@ MongoDB  ~3m
 ./nosqlbiosets/uniprot/interpro.py \
    ~/data/interpro/interpro.xml.gz\
    --dbtype MongoDB --recreateindex true\
+   --mdbdb=biosets --mdbcollection interpro\
    --host localhost
 ```
 
