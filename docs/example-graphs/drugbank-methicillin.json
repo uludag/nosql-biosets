@@ -1,1138 +1,1612 @@
 {
-    "layout": {
-        "directed": true,
-        "name": "cose",
-        "nodeDimensionsIncludeLabels": true
+    "data": {
+        "name": "carriers"
     },
     "elements": {
         "nodes": [
             {
                 "data": {
-                    "viz_color": "orchid",
-                    "label": "Gyrase A",
-                    "id": "Gyrase A"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "orchid",
-                    "label": "Multidrug resistance protein MdtK",
-                    "id": "Multidrug resistance protein MdtK"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "orchid",
-                    "label": "DNA topoisomerase 2-alpha",
-                    "id": "DNA topoisomerase 2-alpha"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "coral",
-                    "label": "Solute carrier family 22 member 6",
-                    "id": "Solute carrier family 22 member 6"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "orchid",
-                    "label": "D-alanyl-D-alanine carboxypeptidase DacA",
-                    "id": "D-alanyl-D-alanine carboxypeptidase DacA"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "orchid",
-                    "label": "Penicillin acylase",
-                    "id": "Penicillin acylase"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "orchid",
-                    "label": "D-alanyl-D-alanine carboxypeptidase DacB",
-                    "id": "D-alanyl-D-alanine carboxypeptidase DacB"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "orchid",
-                    "label": "Solute carrier organic anion transporter family member 1B1",
-                    "id": "Solute carrier organic anion transporter family member 1B1"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "sienna",
-                    "label": "Cytochrome P450 1A2",
-                    "id": "Cytochrome P450 1A2"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "blue",
-                    "label": "Serum albumin",
-                    "id": "Serum albumin"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "yellowgreen",
-                    "label": "Ceftobiprole",
-                    "id": "Ceftobiprole"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "yellowgreen",
-                    "label": "Phenoxymethylpenicillin",
-                    "id": "Phenoxymethylpenicillin"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "yellowgreen",
-                    "label": "Ciprofloxacin",
-                    "id": "Ciprofloxacin"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "coral",
-                    "label": "Multidrug resistance-associated protein 4",
-                    "id": "Multidrug resistance-associated protein 4"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "sienna",
-                    "label": "Thiopurine S-methyltransferase",
-                    "id": "Thiopurine S-methyltransferase"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "orchid",
-                    "label": "Penicillin binding protein 2a",
-                    "id": "Penicillin binding protein 2a"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "yellowgreen",
+                    "id": "Cefazolin",
+                    "name": "Cefazolin",
                     "label": "Cefazolin",
-                    "id": "Cefazolin"
+                    "viz_color": "green"
                 }
             },
             {
                 "data": {
-                    "viz_color": "orchid",
-                    "label": "Penicillin-binding protein 2a",
-                    "id": "Penicillin-binding protein 2a"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "orchid",
-                    "label": "Solute carrier organic anion transporter family member 1B3",
-                    "id": "Solute carrier organic anion transporter family member 1B3"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "orchid",
-                    "label": "Interleukin-15",
-                    "id": "Interleukin-15"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "orchid",
-                    "label": "D-Ala-D-Ala moiety of NAM/NAG peptide subunits of peptidoglycan",
-                    "id": "D-Ala-D-Ala moiety of NAM/NAG peptide subunits of peptidoglycan"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "orchid",
-                    "label": "MecA",
-                    "id": "MecA"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "sienna",
-                    "label": "Cytochrome P450 3A4",
-                    "id": "Cytochrome P450 3A4"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "orchid",
-                    "label": "DNA topoisomerase 4 subunit A",
-                    "id": "DNA topoisomerase 4 subunit A"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "yellowgreen",
-                    "label": "Cefpiramide",
-                    "id": "Cefpiramide"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "orchid",
-                    "label": "Penicillin-binding protein 2x",
-                    "id": "Penicillin-binding protein 2x"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "orchid",
-                    "label": "Penicillin-binding protein 1C",
-                    "id": "Penicillin-binding protein 1C"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "orchid",
-                    "label": "Interleukin-2",
-                    "id": "Interleukin-2"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "yellowgreen",
-                    "label": "Cefmetazole",
-                    "id": "Cefmetazole"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "orchid",
-                    "label": "Penicillin-binding protein 1b",
-                    "id": "Penicillin-binding protein 1b"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "orchid",
-                    "label": "MecA PBP2' (penicillin binding protein 2')",
-                    "id": "MecA PBP2' (penicillin binding protein 2')"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "coral",
-                    "label": "Solute carrier family 15 member 2",
-                    "id": "Solute carrier family 15 member 2"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "orchid",
-                    "label": "Potassium voltage-gated channel subfamily H member 2",
-                    "id": "Potassium voltage-gated channel subfamily H member 2"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "orchid",
-                    "label": "Serum paraoxonase/arylesterase 1",
-                    "id": "Serum paraoxonase/arylesterase 1"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "sienna",
-                    "label": "Cytochrome P450 3A5",
-                    "id": "Cytochrome P450 3A5"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "coral",
-                    "label": "Solute carrier family 22 member 8",
-                    "id": "Solute carrier family 22 member 8"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "sienna",
-                    "label": "Cytochrome P450 2C19",
-                    "id": "Cytochrome P450 2C19"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "coral",
-                    "label": "Multidrug resistance protein 1",
-                    "id": "Multidrug resistance protein 1"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "sienna",
-                    "label": "Cytochrome P450 3A7",
-                    "id": "Cytochrome P450 3A7"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "yellowgreen",
-                    "label": "Clarithromycin",
-                    "id": "Clarithromycin"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "yellowgreen",
-                    "label": "Cefacetrile",
-                    "id": "Cefacetrile"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "orchid",
-                    "label": "50S ribosomal protein L10",
-                    "id": "50S ribosomal protein L10"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "coral",
-                    "label": "Solute carrier family 22 member 11",
-                    "id": "Solute carrier family 22 member 11"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "orchid",
-                    "label": "Peptidoglycan synthase FtsI",
-                    "id": "Peptidoglycan synthase FtsI"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "orchid",
+                    "id": "Penicillin-binding protein 1A",
+                    "name": "Penicillin-binding protein 1A",
                     "label": "Penicillin-binding protein 1A",
-                    "id": "Penicillin-binding protein 1A"
+                    "viz_color": "orchid"
                 }
             },
             {
                 "data": {
-                    "viz_color": "coral",
-                    "label": "Solute carrier family 15 member 1",
-                    "id": "Solute carrier family 15 member 1"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "yellowgreen",
-                    "label": "Oxacillin",
-                    "id": "Oxacillin"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "yellowgreen",
-                    "label": "Nafcillin",
-                    "id": "Nafcillin"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "yellowgreen",
-                    "label": "Cefotiam",
-                    "id": "Cefotiam"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "orchid",
-                    "label": "Penicillin-binding protein 3",
-                    "id": "Penicillin-binding protein 3"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "orchid",
+                    "id": "Penicillin-binding protein 1B",
+                    "name": "Penicillin-binding protein 1B",
                     "label": "Penicillin-binding protein 1B",
-                    "id": "Penicillin-binding protein 1B"
+                    "viz_color": "orchid"
                 }
             },
             {
                 "data": {
-                    "viz_color": "yellowgreen",
-                    "label": "Ticarcillin",
-                    "id": "Ticarcillin"
+                    "id": "Penicillin-binding protein 1C",
+                    "name": "Penicillin-binding protein 1C",
+                    "label": "Penicillin-binding protein 1C",
+                    "viz_color": "orchid"
                 }
             },
             {
                 "data": {
-                    "viz_color": "orchid",
-                    "label": "DNA gyrase subunit A",
-                    "id": "DNA gyrase subunit A"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "blue",
-                    "label": "alpha1-acid glycoprotein",
-                    "id": "alpha1-acid glycoprotein"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "yellowgreen",
-                    "label": "Vancomycin",
-                    "id": "Vancomycin"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "yellowgreen",
-                    "label": "Spiramycin",
-                    "id": "Spiramycin"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "orchid",
-                    "label": "D-alanyl-D-alanine carboxypeptidase DacC",
-                    "id": "D-alanyl-D-alanine carboxypeptidase DacC"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "orchid",
-                    "label": "50S ribosomal protein L3",
-                    "id": "50S ribosomal protein L3"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "blue",
-                    "label": "Gamma Globulin",
-                    "id": "Gamma Globulin"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "coral",
-                    "label": "Solute carrier family 22 member 7",
-                    "id": "Solute carrier family 22 member 7"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "orchid",
-                    "label": "Penicillin-binding protein 2B",
-                    "id": "Penicillin-binding protein 2B"
-                }
-            },
-            {
-                "data": {
-                    "viz_color": "orchid",
+                    "id": "Penicillin-binding protein 2",
+                    "name": "Penicillin-binding protein 2",
                     "label": "Penicillin-binding protein 2",
-                    "id": "Penicillin-binding protein 2"
+                    "viz_color": "orchid"
                 }
             },
             {
                 "data": {
-                    "viz_color": "orchid",
+                    "id": "Peptidoglycan synthase FtsI",
+                    "name": "Peptidoglycan synthase FtsI",
+                    "label": "Peptidoglycan synthase FtsI",
+                    "viz_color": "orchid"
+                }
+            },
+            {
+                "data": {
+                    "id": "Serum paraoxonase/arylesterase 1",
+                    "name": "Serum paraoxonase/arylesterase 1",
+                    "label": "Serum paraoxonase/arylesterase 1",
+                    "viz_color": "orchid"
+                }
+            },
+            {
+                "data": {
+                    "id": "Interleukin-15",
+                    "name": "Interleukin-15",
+                    "label": "Interleukin-15",
+                    "viz_color": "orchid"
+                }
+            },
+            {
+                "data": {
+                    "id": "Interleukin-2",
+                    "name": "Interleukin-2",
+                    "label": "Interleukin-2",
+                    "viz_color": "orchid"
+                }
+            },
+            {
+                "data": {
+                    "id": "Cefacetrile",
+                    "name": "Cefacetrile",
+                    "label": "Cefacetrile",
+                    "viz_color": "green"
+                }
+            },
+            {
+                "data": {
+                    "id": "Cefdinir",
+                    "name": "Cefdinir",
+                    "label": "Cefdinir",
+                    "viz_color": "green"
+                }
+            },
+            {
+                "data": {
+                    "id": "PBP3",
+                    "name": "PBP3",
+                    "label": "PBP3",
+                    "viz_color": "orchid"
+                }
+            },
+            {
+                "data": {
+                    "id": "Myeloperoxidase",
+                    "name": "Myeloperoxidase",
+                    "label": "Myeloperoxidase",
+                    "viz_color": "orchid"
+                }
+            },
+            {
+                "data": {
+                    "id": "Peptidoglycan transpeptidase",
+                    "name": "Peptidoglycan transpeptidase",
+                    "label": "Peptidoglycan transpeptidase",
+                    "viz_color": "orchid"
+                }
+            },
+            {
+                "data": {
+                    "id": "Tedizolid",
+                    "name": "Tedizolid",
+                    "label": "Tedizolid",
+                    "viz_color": "green"
+                }
+            },
+            {
+                "data": {
+                    "id": "23S ribosomal RNA",
+                    "name": "23S ribosomal RNA",
+                    "label": "23S ribosomal RNA",
+                    "viz_color": "orchid"
+                }
+            },
+            {
+                "data": {
+                    "id": "Tedizolid phosphate",
+                    "name": "Tedizolid phosphate",
+                    "label": "Tedizolid phosphate",
+                    "viz_color": "green"
+                }
+            },
+            {
+                "data": {
+                    "id": "Ceftobiprole",
+                    "name": "Ceftobiprole",
+                    "label": "Ceftobiprole",
+                    "viz_color": "green"
+                }
+            },
+            {
+                "data": {
+                    "id": "MecA",
+                    "name": "MecA",
+                    "label": "MecA",
+                    "viz_color": "orchid"
+                }
+            },
+            {
+                "data": {
+                    "id": "Penicillin-binding protein 2x",
+                    "name": "Penicillin-binding protein 2x",
+                    "label": "Penicillin-binding protein 2x",
+                    "viz_color": "orchid"
+                }
+            },
+            {
+                "data": {
+                    "id": "Phenoxymethylpenicillin",
+                    "name": "Phenoxymethylpenicillin",
+                    "label": "Phenoxymethylpenicillin",
+                    "viz_color": "green"
+                }
+            },
+            {
+                "data": {
+                    "id": "MecA PBP2' (penicillin binding protein 2')",
+                    "name": "MecA PBP2' (penicillin binding protein 2')",
+                    "label": "MecA PBP2' (penicillin binding protein 2')",
+                    "viz_color": "orchid"
+                }
+            },
+            {
+                "data": {
+                    "id": "D-alanyl-D-alanine carboxypeptidase DacB",
+                    "name": "D-alanyl-D-alanine carboxypeptidase DacB",
+                    "label": "D-alanyl-D-alanine carboxypeptidase DacB",
+                    "viz_color": "orchid"
+                }
+            },
+            {
+                "data": {
+                    "id": "Penicillin acylase",
+                    "name": "Penicillin acylase",
+                    "label": "Penicillin acylase",
+                    "viz_color": "orchid"
+                }
+            },
+            {
+                "data": {
+                    "id": "Solute carrier family 15 member 1",
+                    "name": "Solute carrier family 15 member 1",
+                    "label": "Solute carrier family 15 member 1",
+                    "viz_color": "coral"
+                }
+            },
+            {
+                "data": {
+                    "id": "Dalbavancin",
+                    "name": "Dalbavancin",
+                    "label": "Dalbavancin",
+                    "viz_color": "green"
+                }
+            },
+            {
+                "data": {
+                    "id": "D-Ala-D-Ala moiety of NAM/NAG peptide subunits of peptidoglycan",
+                    "name": "D-Ala-D-Ala moiety of NAM/NAG peptide subunits of peptidoglycan",
+                    "label": "D-Ala-D-Ala moiety of NAM/NAG peptide subunits of peptidoglycan",
+                    "viz_color": "orchid"
+                }
+            },
+            {
+                "data": {
+                    "id": "Clarithromycin",
+                    "name": "Clarithromycin",
+                    "label": "Clarithromycin",
+                    "viz_color": "green"
+                }
+            },
+            {
+                "data": {
+                    "id": "50S ribosomal protein L10",
+                    "name": "50S ribosomal protein L10",
+                    "label": "50S ribosomal protein L10",
+                    "viz_color": "orchid"
+                }
+            },
+            {
+                "data": {
+                    "id": "Potassium voltage-gated channel subfamily H member 2",
+                    "name": "Potassium voltage-gated channel subfamily H member 2",
+                    "label": "Potassium voltage-gated channel subfamily H member 2",
+                    "viz_color": "orchid"
+                }
+            },
+            {
+                "data": {
+                    "id": "Solute carrier organic anion transporter family member 1B1",
+                    "name": "Solute carrier organic anion transporter family member 1B1",
+                    "label": "Solute carrier organic anion transporter family member 1B1",
+                    "viz_color": "coral"
+                }
+            },
+            {
+                "data": {
+                    "id": "Solute carrier organic anion transporter family member 1B3",
+                    "name": "Solute carrier organic anion transporter family member 1B3",
+                    "label": "Solute carrier organic anion transporter family member 1B3",
+                    "viz_color": "coral"
+                }
+            },
+            {
+                "data": {
+                    "id": "Cefpiramide",
+                    "name": "Cefpiramide",
+                    "label": "Cefpiramide",
+                    "viz_color": "green"
+                }
+            },
+            {
+                "data": {
+                    "id": "D-alanyl-D-alanine carboxypeptidase DacC",
+                    "name": "D-alanyl-D-alanine carboxypeptidase DacC",
+                    "label": "D-alanyl-D-alanine carboxypeptidase DacC",
+                    "viz_color": "orchid"
+                }
+            },
+            {
+                "data": {
+                    "id": "Penicillin binding protein 2a",
+                    "name": "Penicillin binding protein 2a",
+                    "label": "Penicillin binding protein 2a",
+                    "viz_color": "orchid"
+                }
+            },
+            {
+                "data": {
+                    "id": "Linezolid",
+                    "name": "Linezolid",
+                    "label": "Linezolid",
+                    "viz_color": "green"
+                }
+            },
+            {
+                "data": {
+                    "id": "Cefmetazole",
+                    "name": "Cefmetazole",
+                    "label": "Cefmetazole",
+                    "viz_color": "green"
+                }
+            },
+            {
+                "data": {
+                    "id": "D-alanyl-D-alanine carboxypeptidase DacA",
+                    "name": "D-alanyl-D-alanine carboxypeptidase DacA",
+                    "label": "D-alanyl-D-alanine carboxypeptidase DacA",
+                    "viz_color": "orchid"
+                }
+            },
+            {
+                "data": {
+                    "id": "Cefotiam",
+                    "name": "Cefotiam",
+                    "label": "Cefotiam",
+                    "viz_color": "green"
+                }
+            },
+            {
+                "data": {
+                    "id": "Ticarcillin",
+                    "name": "Ticarcillin",
+                    "label": "Ticarcillin",
+                    "viz_color": "green"
+                }
+            },
+            {
+                "data": {
+                    "id": "Nafcillin",
+                    "name": "Nafcillin",
+                    "label": "Nafcillin",
+                    "viz_color": "green"
+                }
+            },
+            {
+                "data": {
+                    "id": "Penicillin-binding protein 1b",
+                    "name": "Penicillin-binding protein 1b",
+                    "label": "Penicillin-binding protein 1b",
+                    "viz_color": "orchid"
+                }
+            },
+            {
+                "data": {
+                    "id": "Penicillin-binding protein 2B",
+                    "name": "Penicillin-binding protein 2B",
+                    "label": "Penicillin-binding protein 2B",
+                    "viz_color": "orchid"
+                }
+            },
+            {
+                "data": {
+                    "id": "Penicillin-binding protein 2a",
+                    "name": "Penicillin-binding protein 2a",
+                    "label": "Penicillin-binding protein 2a",
+                    "viz_color": "orchid"
+                }
+            },
+            {
+                "data": {
+                    "id": "Penicillin-binding protein 3",
+                    "name": "Penicillin-binding protein 3",
+                    "label": "Penicillin-binding protein 3",
+                    "viz_color": "orchid"
+                }
+            },
+            {
+                "data": {
+                    "id": "Oxacillin",
+                    "name": "Oxacillin",
+                    "label": "Oxacillin",
+                    "viz_color": "green"
+                }
+            },
+            {
+                "data": {
+                    "id": "Solute carrier family 15 member 2",
+                    "name": "Solute carrier family 15 member 2",
+                    "label": "Solute carrier family 15 member 2",
+                    "viz_color": "coral"
+                }
+            },
+            {
+                "data": {
+                    "id": "Ciprofloxacin",
+                    "name": "Ciprofloxacin",
+                    "label": "Ciprofloxacin",
+                    "viz_color": "green"
+                }
+            },
+            {
+                "data": {
+                    "id": "DNA topoisomerase 4 subunit A",
+                    "name": "DNA topoisomerase 4 subunit A",
+                    "label": "DNA topoisomerase 4 subunit A",
+                    "viz_color": "orchid"
+                }
+            },
+            {
+                "data": {
+                    "id": "DNA gyrase subunit A",
+                    "name": "DNA gyrase subunit A",
+                    "label": "DNA gyrase subunit A",
+                    "viz_color": "orchid"
+                }
+            },
+            {
+                "data": {
+                    "id": "DNA topoisomerase 2-alpha",
+                    "name": "DNA topoisomerase 2-alpha",
+                    "label": "DNA topoisomerase 2-alpha",
+                    "viz_color": "orchid"
+                }
+            },
+            {
+                "data": {
+                    "id": "DNA topoisomerase 4 subunit B",
+                    "name": "DNA topoisomerase 4 subunit B",
                     "label": "DNA topoisomerase 4 subunit B",
-                    "id": "DNA topoisomerase 4 subunit B"
+                    "viz_color": "orchid"
+                }
+            },
+            {
+                "data": {
+                    "id": "Multidrug resistance protein MdtK",
+                    "name": "Multidrug resistance protein MdtK",
+                    "label": "Multidrug resistance protein MdtK",
+                    "viz_color": "orchid"
+                }
+            },
+            {
+                "data": {
+                    "id": "Gyrase A",
+                    "name": "Gyrase A",
+                    "label": "Gyrase A",
+                    "viz_color": "orchid"
+                }
+            },
+            {
+                "data": {
+                    "id": "Vancomycin",
+                    "name": "Vancomycin",
+                    "label": "Vancomycin",
+                    "viz_color": "green"
+                }
+            },
+            {
+                "data": {
+                    "id": "Ceftriaxone",
+                    "name": "Ceftriaxone",
+                    "label": "Ceftriaxone",
+                    "viz_color": "green"
+                }
+            },
+            {
+                "data": {
+                    "id": "Solute carrier family 22 member 11",
+                    "name": "Solute carrier family 22 member 11",
+                    "label": "Solute carrier family 22 member 11",
+                    "viz_color": "coral"
+                }
+            },
+            {
+                "data": {
+                    "id": "Solute carrier family 22 member 6",
+                    "name": "Solute carrier family 22 member 6",
+                    "label": "Solute carrier family 22 member 6",
+                    "viz_color": "coral"
+                }
+            },
+            {
+                "data": {
+                    "id": "Solute carrier family 22 member 8",
+                    "name": "Solute carrier family 22 member 8",
+                    "label": "Solute carrier family 22 member 8",
+                    "viz_color": "coral"
+                }
+            },
+            {
+                "data": {
+                    "id": "Omadacycline",
+                    "name": "Omadacycline",
+                    "label": "Omadacycline",
+                    "viz_color": "green"
+                }
+            },
+            {
+                "data": {
+                    "id": "30S ribosomal protein S3",
+                    "name": "30S ribosomal protein S3",
+                    "label": "30S ribosomal protein S3",
+                    "viz_color": "orchid"
+                }
+            },
+            {
+                "data": {
+                    "id": "30S ribosomal protein S7",
+                    "name": "30S ribosomal protein S7",
+                    "label": "30S ribosomal protein S7",
+                    "viz_color": "orchid"
+                }
+            },
+            {
+                "data": {
+                    "id": "30S ribosomal protein S8",
+                    "name": "30S ribosomal protein S8",
+                    "label": "30S ribosomal protein S8",
+                    "viz_color": "orchid"
+                }
+            },
+            {
+                "data": {
+                    "id": "30S ribosomal protein S19",
+                    "name": "30S ribosomal protein S19",
+                    "label": "30S ribosomal protein S19",
+                    "viz_color": "orchid"
+                }
+            },
+            {
+                "data": {
+                    "id": "30S ribosomal protein S14",
+                    "name": "30S ribosomal protein S14",
+                    "label": "30S ribosomal protein S14",
+                    "viz_color": "orchid"
+                }
+            },
+            {
+                "data": {
+                    "id": "16S ribosomal RNA",
+                    "name": "16S ribosomal RNA",
+                    "label": "16S ribosomal RNA",
+                    "viz_color": "orchid"
+                }
+            },
+            {
+                "data": {
+                    "id": "Thiopurine S-methyltransferase",
+                    "name": "Thiopurine S-methyltransferase",
+                    "label": "Thiopurine S-methyltransferase",
+                    "viz_color": "sienna"
+                }
+            },
+            {
+                "data": {
+                    "id": "Amine oxidase [flavin-containing] A",
+                    "name": "Amine oxidase [flavin-containing] A",
+                    "label": "Amine oxidase [flavin-containing] A",
+                    "viz_color": "sienna"
+                }
+            },
+            {
+                "data": {
+                    "id": "Amine oxidase [flavin-containing] B",
+                    "name": "Amine oxidase [flavin-containing] B",
+                    "label": "Amine oxidase [flavin-containing] B",
+                    "viz_color": "sienna"
+                }
+            },
+            {
+                "data": {
+                    "id": "Cytochrome P450 3A4",
+                    "name": "Cytochrome P450 3A4",
+                    "label": "Cytochrome P450 3A4",
+                    "viz_color": "sienna"
+                }
+            },
+            {
+                "data": {
+                    "id": "Cytochrome P450 3A5",
+                    "name": "Cytochrome P450 3A5",
+                    "label": "Cytochrome P450 3A5",
+                    "viz_color": "sienna"
+                }
+            },
+            {
+                "data": {
+                    "id": "Cytochrome P450 1A2",
+                    "name": "Cytochrome P450 1A2",
+                    "label": "Cytochrome P450 1A2",
+                    "viz_color": "sienna"
+                }
+            },
+            {
+                "data": {
+                    "id": "Cytochrome P450 3A7",
+                    "name": "Cytochrome P450 3A7",
+                    "label": "Cytochrome P450 3A7",
+                    "viz_color": "sienna"
+                }
+            },
+            {
+                "data": {
+                    "id": "Glutamine synthetase",
+                    "name": "Glutamine synthetase",
+                    "label": "Glutamine synthetase",
+                    "viz_color": "sienna"
+                }
+            },
+            {
+                "data": {
+                    "id": "Multidrug resistance-associated protein 4",
+                    "name": "Multidrug resistance-associated protein 4",
+                    "label": "Multidrug resistance-associated protein 4",
+                    "viz_color": "coral"
+                }
+            },
+            {
+                "data": {
+                    "id": "Solute carrier family 22 member 5",
+                    "name": "Solute carrier family 22 member 5",
+                    "label": "Solute carrier family 22 member 5",
+                    "viz_color": "coral"
+                }
+            },
+            {
+                "data": {
+                    "id": "Solute carrier family 22 member 7",
+                    "name": "Solute carrier family 22 member 7",
+                    "label": "Solute carrier family 22 member 7",
+                    "viz_color": "coral"
+                }
+            },
+            {
+                "data": {
+                    "id": "P-glycoprotein 1",
+                    "name": "P-glycoprotein 1",
+                    "label": "P-glycoprotein 1",
+                    "viz_color": "coral"
+                }
+            },
+            {
+                "data": {
+                    "id": "Bile salt export pump",
+                    "name": "Bile salt export pump",
+                    "label": "Bile salt export pump",
+                    "viz_color": "coral"
+                }
+            },
+            {
+                "data": {
+                    "id": "Multidrug and toxin extrusion protein 1",
+                    "name": "Multidrug and toxin extrusion protein 1",
+                    "label": "Multidrug and toxin extrusion protein 1",
+                    "viz_color": "coral"
+                }
+            },
+            {
+                "data": {
+                    "id": "Multidrug and toxin extrusion protein 2",
+                    "name": "Multidrug and toxin extrusion protein 2",
+                    "label": "Multidrug and toxin extrusion protein 2",
+                    "viz_color": "coral"
+                }
+            },
+            {
+                "data": {
+                    "id": "Serum albumin",
+                    "name": "Serum albumin",
+                    "label": "Serum albumin",
+                    "viz_color": "blue"
+                }
+            },
+            {
+                "data": {
+                    "id": "alpha1-acid glycoprotein",
+                    "name": "alpha1-acid glycoprotein",
+                    "label": "alpha1-acid glycoprotein",
+                    "viz_color": "blue"
+                }
+            },
+            {
+                "data": {
+                    "id": "Histamine H1 receptor",
+                    "name": "Histamine H1 receptor",
+                    "label": "Histamine H1 receptor",
+                    "viz_color": "blue"
                 }
             }
         ],
         "edges": [
             {
                 "data": {
-                    "target": "MecA",
+                    "id": "CefazolinPenicillin-binding protein 1A",
+                    "source": "Cefazolin",
+                    "target": "Penicillin-binding protein 1A"
+                }
+            },
+            {
+                "data": {
+                    "id": "CefazolinPenicillin-binding protein 1B",
+                    "source": "Cefazolin",
+                    "target": "Penicillin-binding protein 1B"
+                }
+            },
+            {
+                "data": {
+                    "id": "CefazolinPenicillin-binding protein 1C",
+                    "source": "Cefazolin",
+                    "target": "Penicillin-binding protein 1C"
+                }
+            },
+            {
+                "data": {
+                    "id": "CefazolinPenicillin-binding protein 2",
+                    "source": "Cefazolin",
+                    "target": "Penicillin-binding protein 2"
+                }
+            },
+            {
+                "data": {
+                    "id": "CefazolinPeptidoglycan synthase FtsI",
+                    "source": "Cefazolin",
+                    "target": "Peptidoglycan synthase FtsI"
+                }
+            },
+            {
+                "data": {
+                    "id": "CefazolinSerum paraoxonase/arylesterase 1",
+                    "source": "Cefazolin",
+                    "target": "Serum paraoxonase/arylesterase 1"
+                }
+            },
+            {
+                "data": {
+                    "id": "CefazolinInterleukin-15",
+                    "source": "Cefazolin",
+                    "target": "Interleukin-15"
+                }
+            },
+            {
+                "data": {
+                    "id": "CefazolinInterleukin-2",
+                    "source": "Cefazolin",
+                    "target": "Interleukin-2"
+                }
+            },
+            {
+                "data": {
+                    "id": "CefazolinThiopurine S-methyltransferase",
+                    "source": "Cefazolin",
+                    "target": "Thiopurine S-methyltransferase"
+                }
+            },
+            {
+                "data": {
+                    "id": "CefazolinMultidrug resistance-associated protein 4",
+                    "source": "Cefazolin",
+                    "target": "Multidrug resistance-associated protein 4"
+                }
+            },
+            {
+                "data": {
+                    "id": "CefazolinSolute carrier family 22 member 6",
+                    "source": "Cefazolin",
+                    "target": "Solute carrier family 22 member 6"
+                }
+            },
+            {
+                "data": {
+                    "id": "CefazolinSolute carrier family 22 member 8",
+                    "source": "Cefazolin",
+                    "target": "Solute carrier family 22 member 8"
+                }
+            },
+            {
+                "data": {
+                    "id": "CefazolinSolute carrier family 22 member 11",
+                    "source": "Cefazolin",
+                    "target": "Solute carrier family 22 member 11"
+                }
+            },
+            {
+                "data": {
+                    "id": "CefazolinSerum albumin",
+                    "source": "Cefazolin",
+                    "target": "Serum albumin"
+                }
+            },
+            {
+                "data": {
+                    "id": "CefacetrilePenicillin-binding protein 1A",
+                    "source": "Cefacetrile",
+                    "target": "Penicillin-binding protein 1A"
+                }
+            },
+            {
+                "data": {
+                    "id": "CefacetrilePenicillin-binding protein 1B",
+                    "source": "Cefacetrile",
+                    "target": "Penicillin-binding protein 1B"
+                }
+            },
+            {
+                "data": {
+                    "id": "CefacetrileSolute carrier family 22 member 6",
+                    "source": "Cefacetrile",
+                    "target": "Solute carrier family 22 member 6"
+                }
+            },
+            {
+                "data": {
+                    "id": "CefacetrileSolute carrier family 22 member 8",
+                    "source": "Cefacetrile",
+                    "target": "Solute carrier family 22 member 8"
+                }
+            },
+            {
+                "data": {
+                    "id": "CefdinirPenicillin-binding protein 2",
+                    "source": "Cefdinir",
+                    "target": "Penicillin-binding protein 2"
+                }
+            },
+            {
+                "data": {
+                    "id": "CefdinirPBP3",
+                    "source": "Cefdinir",
+                    "target": "PBP3"
+                }
+            },
+            {
+                "data": {
+                    "id": "CefdinirMyeloperoxidase",
+                    "source": "Cefdinir",
+                    "target": "Myeloperoxidase"
+                }
+            },
+            {
+                "data": {
+                    "id": "CefdinirPeptidoglycan transpeptidase",
+                    "source": "Cefdinir",
+                    "target": "Peptidoglycan transpeptidase"
+                }
+            },
+            {
+                "data": {
+                    "id": "CefdinirSolute carrier family 22 member 5",
+                    "source": "Cefdinir",
+                    "target": "Solute carrier family 22 member 5"
+                }
+            },
+            {
+                "data": {
+                    "id": "CefdinirSolute carrier family 15 member 1",
+                    "source": "Cefdinir",
+                    "target": "Solute carrier family 15 member 1"
+                }
+            },
+            {
+                "data": {
+                    "id": "CefdinirSolute carrier family 15 member 2",
+                    "source": "Cefdinir",
+                    "target": "Solute carrier family 15 member 2"
+                }
+            },
+            {
+                "data": {
+                    "id": "CefdinirSolute carrier family 22 member 6",
+                    "source": "Cefdinir",
+                    "target": "Solute carrier family 22 member 6"
+                }
+            },
+            {
+                "data": {
+                    "id": "CefdinirSolute carrier family 22 member 8",
+                    "source": "Cefdinir",
+                    "target": "Solute carrier family 22 member 8"
+                }
+            },
+            {
+                "data": {
+                    "id": "Tedizolid23S ribosomal RNA",
+                    "source": "Tedizolid",
+                    "target": "23S ribosomal RNA"
+                }
+            },
+            {
+                "data": {
+                    "id": "TedizolidAmine oxidase [flavin-containing] A",
+                    "source": "Tedizolid",
+                    "target": "Amine oxidase [flavin-containing] A"
+                }
+            },
+            {
+                "data": {
+                    "id": "TedizolidAmine oxidase [flavin-containing] B",
+                    "source": "Tedizolid",
+                    "target": "Amine oxidase [flavin-containing] B"
+                }
+            },
+            {
+                "data": {
+                    "id": "Tedizolid phosphate23S ribosomal RNA",
+                    "source": "Tedizolid phosphate",
+                    "target": "23S ribosomal RNA"
+                }
+            },
+            {
+                "data": {
+                    "id": "Tedizolid phosphateAmine oxidase [flavin-containing] A",
+                    "source": "Tedizolid phosphate",
+                    "target": "Amine oxidase [flavin-containing] A"
+                }
+            },
+            {
+                "data": {
+                    "id": "Tedizolid phosphateAmine oxidase [flavin-containing] B",
+                    "source": "Tedizolid phosphate",
+                    "target": "Amine oxidase [flavin-containing] B"
+                }
+            },
+            {
+                "data": {
+                    "id": "CeftobiproleMecA",
                     "source": "Ceftobiprole",
-                    "id": "CeftobiproleMecA"
+                    "target": "MecA"
                 }
             },
             {
                 "data": {
-                    "target": "Penicillin-binding protein 2x",
+                    "id": "CeftobiprolePenicillin-binding protein 2x",
                     "source": "Ceftobiprole",
-                    "id": "CeftobiprolePenicillin-binding protein 2x"
+                    "target": "Penicillin-binding protein 2x"
                 }
             },
             {
                 "data": {
-                    "target": "Peptidoglycan synthase FtsI",
+                    "id": "CeftobiprolePeptidoglycan synthase FtsI",
                     "source": "Ceftobiprole",
-                    "id": "CeftobiprolePeptidoglycan synthase FtsI"
+                    "target": "Peptidoglycan synthase FtsI"
                 }
             },
             {
                 "data": {
-                    "target": "MecA PBP2' (penicillin binding protein 2')",
+                    "id": "PhenoxymethylpenicillinPenicillin-binding protein 1A",
                     "source": "Phenoxymethylpenicillin",
-                    "id": "PhenoxymethylpenicillinMecA PBP2' (penicillin binding protein 2')"
+                    "target": "Penicillin-binding protein 1A"
                 }
             },
             {
                 "data": {
-                    "target": "D-alanyl-D-alanine carboxypeptidase DacB",
+                    "id": "PhenoxymethylpenicillinMecA PBP2' (penicillin binding protein 2')",
                     "source": "Phenoxymethylpenicillin",
-                    "id": "PhenoxymethylpenicillinD-alanyl-D-alanine carboxypeptidase DacB"
+                    "target": "MecA PBP2' (penicillin binding protein 2')"
                 }
             },
             {
                 "data": {
-                    "target": "Penicillin-binding protein 1A",
+                    "id": "PhenoxymethylpenicillinD-alanyl-D-alanine carboxypeptidase DacB",
                     "source": "Phenoxymethylpenicillin",
-                    "id": "PhenoxymethylpenicillinPenicillin-binding protein 1A"
+                    "target": "D-alanyl-D-alanine carboxypeptidase DacB"
                 }
             },
             {
                 "data": {
-                    "target": "Penicillin acylase",
+                    "id": "PhenoxymethylpenicillinPenicillin acylase",
                     "source": "Phenoxymethylpenicillin",
-                    "id": "PhenoxymethylpenicillinPenicillin acylase"
+                    "target": "Penicillin acylase"
                 }
             },
             {
                 "data": {
-                    "target": "Solute carrier family 15 member 1",
+                    "id": "PhenoxymethylpenicillinSolute carrier family 15 member 1",
                     "source": "Phenoxymethylpenicillin",
-                    "id": "PhenoxymethylpenicillinSolute carrier family 15 member 1"
+                    "target": "Solute carrier family 15 member 1"
                 }
             },
             {
                 "data": {
-                    "target": "Gyrase A",
-                    "source": "Ciprofloxacin",
-                    "id": "CiprofloxacinGyrase A"
+                    "id": "DalbavancinD-Ala-D-Ala moiety of NAM/NAG peptide subunits of peptidoglycan",
+                    "source": "Dalbavancin",
+                    "target": "D-Ala-D-Ala moiety of NAM/NAG peptide subunits of peptidoglycan"
                 }
             },
             {
                 "data": {
-                    "target": "Multidrug resistance protein 1",
-                    "source": "Ciprofloxacin",
-                    "id": "CiprofloxacinMultidrug resistance protein 1"
+                    "id": "Clarithromycin50S ribosomal protein L10",
+                    "source": "Clarithromycin",
+                    "target": "50S ribosomal protein L10"
                 }
             },
             {
                 "data": {
-                    "target": "DNA topoisomerase 2-alpha",
-                    "source": "Ciprofloxacin",
-                    "id": "CiprofloxacinDNA topoisomerase 2-alpha"
+                    "id": "ClarithromycinPotassium voltage-gated channel subfamily H member 2",
+                    "source": "Clarithromycin",
+                    "target": "Potassium voltage-gated channel subfamily H member 2"
                 }
             },
             {
                 "data": {
-                    "target": "Potassium voltage-gated channel subfamily H member 2",
-                    "source": "Ciprofloxacin",
-                    "id": "CiprofloxacinPotassium voltage-gated channel subfamily H member 2"
+                    "id": "ClarithromycinSolute carrier organic anion transporter family member 1B1",
+                    "source": "Clarithromycin",
+                    "target": "Solute carrier organic anion transporter family member 1B1"
                 }
             },
             {
                 "data": {
-                    "target": "Multidrug resistance protein MdtK",
-                    "source": "Ciprofloxacin",
-                    "id": "CiprofloxacinMultidrug resistance protein MdtK"
+                    "id": "ClarithromycinSolute carrier organic anion transporter family member 1B3",
+                    "source": "Clarithromycin",
+                    "target": "Solute carrier organic anion transporter family member 1B3"
                 }
             },
             {
                 "data": {
-                    "target": "Cytochrome P450 3A5",
-                    "source": "Ciprofloxacin",
-                    "id": "CiprofloxacinCytochrome P450 3A5"
+                    "id": "ClarithromycinCytochrome P450 3A4",
+                    "source": "Clarithromycin",
+                    "target": "Cytochrome P450 3A4"
                 }
             },
             {
                 "data": {
-                    "target": "Cytochrome P450 3A4",
-                    "source": "Ciprofloxacin",
-                    "id": "CiprofloxacinCytochrome P450 3A4"
+                    "id": "ClarithromycinCytochrome P450 3A5",
+                    "source": "Clarithromycin",
+                    "target": "Cytochrome P450 3A5"
                 }
             },
             {
                 "data": {
-                    "target": "DNA gyrase subunit A",
-                    "source": "Ciprofloxacin",
-                    "id": "CiprofloxacinDNA gyrase subunit A"
+                    "id": "ClarithromycinSolute carrier family 22 member 7",
+                    "source": "Clarithromycin",
+                    "target": "Solute carrier family 22 member 7"
                 }
             },
             {
                 "data": {
-                    "target": "DNA gyrase subunit A",
-                    "source": "Ciprofloxacin",
-                    "id": "CiprofloxacinDNA gyrase subunit A"
+                    "id": "ClarithromycinP-glycoprotein 1",
+                    "source": "Clarithromycin",
+                    "target": "P-glycoprotein 1"
                 }
             },
             {
                 "data": {
-                    "target": "DNA gyrase subunit A",
-                    "source": "Ciprofloxacin",
-                    "id": "CiprofloxacinDNA gyrase subunit A"
+                    "id": "ClarithromycinBile salt export pump",
+                    "source": "Clarithromycin",
+                    "target": "Bile salt export pump"
                 }
             },
             {
                 "data": {
-                    "target": "DNA gyrase subunit A",
-                    "source": "Ciprofloxacin",
-                    "id": "CiprofloxacinDNA gyrase subunit A"
-                }
-            },
-            {
-                "data": {
-                    "target": "Cytochrome P450 1A2",
-                    "source": "Ciprofloxacin",
-                    "id": "CiprofloxacinCytochrome P450 1A2"
-                }
-            },
-            {
-                "data": {
-                    "target": "DNA topoisomerase 4 subunit A",
-                    "source": "Ciprofloxacin",
-                    "id": "CiprofloxacinDNA topoisomerase 4 subunit A"
-                }
-            },
-            {
-                "data": {
-                    "target": "DNA topoisomerase 4 subunit A",
-                    "source": "Ciprofloxacin",
-                    "id": "CiprofloxacinDNA topoisomerase 4 subunit A"
-                }
-            },
-            {
-                "data": {
-                    "target": "Cytochrome P450 3A7",
-                    "source": "Ciprofloxacin",
-                    "id": "CiprofloxacinCytochrome P450 3A7"
-                }
-            },
-            {
-                "data": {
-                    "target": "DNA topoisomerase 4 subunit B",
-                    "source": "Ciprofloxacin",
-                    "id": "CiprofloxacinDNA topoisomerase 4 subunit B"
-                }
-            },
-            {
-                "data": {
-                    "target": "Thiopurine S-methyltransferase",
-                    "source": "Cefazolin",
-                    "id": "CefazolinThiopurine S-methyltransferase"
-                }
-            },
-            {
-                "data": {
-                    "target": "Serum albumin",
-                    "source": "Cefazolin",
-                    "id": "CefazolinSerum albumin"
-                }
-            },
-            {
-                "data": {
-                    "target": "Solute carrier family 22 member 6",
-                    "source": "Cefazolin",
-                    "id": "CefazolinSolute carrier family 22 member 6"
-                }
-            },
-            {
-                "data": {
-                    "target": "Serum paraoxonase/arylesterase 1",
-                    "source": "Cefazolin",
-                    "id": "CefazolinSerum paraoxonase/arylesterase 1"
-                }
-            },
-            {
-                "data": {
-                    "target": "Penicillin-binding protein 2",
-                    "source": "Cefazolin",
-                    "id": "CefazolinPenicillin-binding protein 2"
-                }
-            },
-            {
-                "data": {
-                    "target": "Penicillin-binding protein 1A",
-                    "source": "Cefazolin",
-                    "id": "CefazolinPenicillin-binding protein 1A"
-                }
-            },
-            {
-                "data": {
-                    "target": "Penicillin-binding protein 1B",
-                    "source": "Cefazolin",
-                    "id": "CefazolinPenicillin-binding protein 1B"
-                }
-            },
-            {
-                "data": {
-                    "target": "Peptidoglycan synthase FtsI",
-                    "source": "Cefazolin",
-                    "id": "CefazolinPeptidoglycan synthase FtsI"
-                }
-            },
-            {
-                "data": {
-                    "target": "Solute carrier family 22 member 11",
-                    "source": "Cefazolin",
-                    "id": "CefazolinSolute carrier family 22 member 11"
-                }
-            },
-            {
-                "data": {
-                    "target": "Penicillin-binding protein 1C",
-                    "source": "Cefazolin",
-                    "id": "CefazolinPenicillin-binding protein 1C"
-                }
-            },
-            {
-                "data": {
-                    "target": "Interleukin-2",
-                    "source": "Cefazolin",
-                    "id": "CefazolinInterleukin-2"
-                }
-            },
-            {
-                "data": {
-                    "target": "Interleukin-15",
-                    "source": "Cefazolin",
-                    "id": "CefazolinInterleukin-15"
-                }
-            },
-            {
-                "data": {
-                    "target": "Solute carrier family 22 member 8",
-                    "source": "Cefazolin",
-                    "id": "CefazolinSolute carrier family 22 member 8"
-                }
-            },
-            {
-                "data": {
-                    "target": "Multidrug resistance-associated protein 4",
-                    "source": "Cefazolin",
-                    "id": "CefazolinMultidrug resistance-associated protein 4"
-                }
-            },
-            {
-                "data": {
-                    "target": "Penicillin binding protein 2a",
+                    "id": "CefpiramidePeptidoglycan synthase FtsI",
                     "source": "Cefpiramide",
-                    "id": "CefpiramidePenicillin binding protein 2a"
+                    "target": "Peptidoglycan synthase FtsI"
                 }
             },
             {
                 "data": {
-                    "target": "Serum albumin",
+                    "id": "CefpiramidePenicillin-binding protein 1B",
                     "source": "Cefpiramide",
-                    "id": "CefpiramideSerum albumin"
+                    "target": "Penicillin-binding protein 1B"
                 }
             },
             {
                 "data": {
-                    "target": "D-alanyl-D-alanine carboxypeptidase DacC",
+                    "id": "CefpiramidePenicillin-binding protein 1B",
                     "source": "Cefpiramide",
-                    "id": "CefpiramideD-alanyl-D-alanine carboxypeptidase DacC"
+                    "target": "Penicillin-binding protein 1B"
                 }
             },
             {
                 "data": {
-                    "target": "Peptidoglycan synthase FtsI",
+                    "id": "CefpiramidePenicillin-binding protein 1A",
                     "source": "Cefpiramide",
-                    "id": "CefpiramidePeptidoglycan synthase FtsI"
+                    "target": "Penicillin-binding protein 1A"
                 }
             },
             {
                 "data": {
-                    "target": "Penicillin-binding protein 1B",
+                    "id": "CefpiramidePenicillin-binding protein 1A",
                     "source": "Cefpiramide",
-                    "id": "CefpiramidePenicillin-binding protein 1B"
+                    "target": "Penicillin-binding protein 1A"
                 }
             },
             {
                 "data": {
-                    "target": "Penicillin-binding protein 1B",
+                    "id": "CefpiramideD-alanyl-D-alanine carboxypeptidase DacC",
                     "source": "Cefpiramide",
-                    "id": "CefpiramidePenicillin-binding protein 1B"
+                    "target": "D-alanyl-D-alanine carboxypeptidase DacC"
                 }
             },
             {
                 "data": {
-                    "target": "Penicillin-binding protein 1A",
+                    "id": "CefpiramidePenicillin binding protein 2a",
                     "source": "Cefpiramide",
-                    "id": "CefpiramidePenicillin-binding protein 1A"
+                    "target": "Penicillin binding protein 2a"
                 }
             },
             {
                 "data": {
-                    "target": "Penicillin-binding protein 1A",
+                    "id": "CefpiramideSerum albumin",
                     "source": "Cefpiramide",
-                    "id": "CefpiramidePenicillin-binding protein 1A"
+                    "target": "Serum albumin"
                 }
             },
             {
                 "data": {
-                    "target": "Penicillin binding protein 2a",
+                    "id": "Linezolid23S ribosomal RNA",
+                    "source": "Linezolid",
+                    "target": "23S ribosomal RNA"
+                }
+            },
+            {
+                "data": {
+                    "id": "LinezolidAmine oxidase [flavin-containing] A",
+                    "source": "Linezolid",
+                    "target": "Amine oxidase [flavin-containing] A"
+                }
+            },
+            {
+                "data": {
+                    "id": "LinezolidAmine oxidase [flavin-containing] B",
+                    "source": "Linezolid",
+                    "target": "Amine oxidase [flavin-containing] B"
+                }
+            },
+            {
+                "data": {
+                    "id": "CefmetazolePenicillin binding protein 2a",
                     "source": "Cefmetazole",
-                    "id": "CefmetazolePenicillin binding protein 2a"
+                    "target": "Penicillin binding protein 2a"
                 }
             },
             {
                 "data": {
-                    "target": "Solute carrier family 15 member 2",
+                    "id": "CefmetazolePenicillin-binding protein 1A",
                     "source": "Cefmetazole",
-                    "id": "CefmetazoleSolute carrier family 15 member 2"
+                    "target": "Penicillin-binding protein 1A"
                 }
             },
             {
                 "data": {
-                    "target": "D-alanyl-D-alanine carboxypeptidase DacC",
+                    "id": "CefmetazolePenicillin-binding protein 1B",
                     "source": "Cefmetazole",
-                    "id": "CefmetazoleD-alanyl-D-alanine carboxypeptidase DacC"
+                    "target": "Penicillin-binding protein 1B"
                 }
             },
             {
                 "data": {
-                    "target": "D-alanyl-D-alanine carboxypeptidase DacA",
+                    "id": "CefmetazolePeptidoglycan synthase FtsI",
                     "source": "Cefmetazole",
-                    "id": "CefmetazoleD-alanyl-D-alanine carboxypeptidase DacA"
+                    "target": "Peptidoglycan synthase FtsI"
                 }
             },
             {
                 "data": {
-                    "target": "Serum albumin",
+                    "id": "CefmetazoleD-alanyl-D-alanine carboxypeptidase DacA",
                     "source": "Cefmetazole",
-                    "id": "CefmetazoleSerum albumin"
+                    "target": "D-alanyl-D-alanine carboxypeptidase DacA"
                 }
             },
             {
                 "data": {
-                    "target": "Penicillin-binding protein 1B",
+                    "id": "CefmetazoleD-alanyl-D-alanine carboxypeptidase DacC",
                     "source": "Cefmetazole",
-                    "id": "CefmetazolePenicillin-binding protein 1B"
+                    "target": "D-alanyl-D-alanine carboxypeptidase DacC"
                 }
             },
             {
                 "data": {
-                    "target": "Peptidoglycan synthase FtsI",
+                    "id": "CefmetazoleSolute carrier family 15 member 1",
                     "source": "Cefmetazole",
-                    "id": "CefmetazolePeptidoglycan synthase FtsI"
+                    "target": "Solute carrier family 15 member 1"
                 }
             },
             {
                 "data": {
-                    "target": "Penicillin-binding protein 1A",
+                    "id": "CefmetazoleSolute carrier family 15 member 2",
                     "source": "Cefmetazole",
-                    "id": "CefmetazolePenicillin-binding protein 1A"
+                    "target": "Solute carrier family 15 member 2"
                 }
             },
             {
                 "data": {
-                    "target": "Solute carrier family 15 member 1",
+                    "id": "CefmetazoleSerum albumin",
                     "source": "Cefmetazole",
-                    "id": "CefmetazoleSolute carrier family 15 member 1"
+                    "target": "Serum albumin"
                 }
             },
             {
                 "data": {
-                    "target": "Cytochrome P450 3A4",
-                    "source": "Clarithromycin",
-                    "id": "ClarithromycinCytochrome P450 3A4"
-                }
-            },
-            {
-                "data": {
-                    "target": "Solute carrier organic anion transporter family member 1B1",
-                    "source": "Clarithromycin",
-                    "id": "ClarithromycinSolute carrier organic anion transporter family member 1B1"
-                }
-            },
-            {
-                "data": {
-                    "target": "Multidrug resistance protein 1",
-                    "source": "Clarithromycin",
-                    "id": "ClarithromycinMultidrug resistance protein 1"
-                }
-            },
-            {
-                "data": {
-                    "target": "50S ribosomal protein L10",
-                    "source": "Clarithromycin",
-                    "id": "Clarithromycin50S ribosomal protein L10"
-                }
-            },
-            {
-                "data": {
-                    "target": "Cytochrome P450 1A2",
-                    "source": "Clarithromycin",
-                    "id": "ClarithromycinCytochrome P450 1A2"
-                }
-            },
-            {
-                "data": {
-                    "target": "Solute carrier organic anion transporter family member 1B3",
-                    "source": "Clarithromycin",
-                    "id": "ClarithromycinSolute carrier organic anion transporter family member 1B3"
-                }
-            },
-            {
-                "data": {
-                    "target": "Potassium voltage-gated channel subfamily H member 2",
-                    "source": "Clarithromycin",
-                    "id": "ClarithromycinPotassium voltage-gated channel subfamily H member 2"
-                }
-            },
-            {
-                "data": {
-                    "target": "Cytochrome P450 3A7",
-                    "source": "Clarithromycin",
-                    "id": "ClarithromycinCytochrome P450 3A7"
-                }
-            },
-            {
-                "data": {
-                    "target": "Solute carrier family 22 member 7",
-                    "source": "Clarithromycin",
-                    "id": "ClarithromycinSolute carrier family 22 member 7"
-                }
-            },
-            {
-                "data": {
-                    "target": "Cytochrome P450 3A5",
-                    "source": "Clarithromycin",
-                    "id": "ClarithromycinCytochrome P450 3A5"
-                }
-            },
-            {
-                "data": {
-                    "target": "Cytochrome P450 2C19",
-                    "source": "Clarithromycin",
-                    "id": "ClarithromycinCytochrome P450 2C19"
-                }
-            },
-            {
-                "data": {
-                    "target": "Solute carrier family 22 member 6",
-                    "source": "Cefacetrile",
-                    "id": "CefacetrileSolute carrier family 22 member 6"
-                }
-            },
-            {
-                "data": {
-                    "target": "Penicillin-binding protein 1B",
-                    "source": "Cefacetrile",
-                    "id": "CefacetrilePenicillin-binding protein 1B"
-                }
-            },
-            {
-                "data": {
-                    "target": "Solute carrier family 22 member 8",
-                    "source": "Cefacetrile",
-                    "id": "CefacetrileSolute carrier family 22 member 8"
-                }
-            },
-            {
-                "data": {
-                    "target": "Penicillin-binding protein 1A",
-                    "source": "Cefacetrile",
-                    "id": "CefacetrilePenicillin-binding protein 1A"
-                }
-            },
-            {
-                "data": {
-                    "target": "Penicillin-binding protein 1b",
-                    "source": "Oxacillin",
-                    "id": "OxacillinPenicillin-binding protein 1b"
-                }
-            },
-            {
-                "data": {
-                    "target": "Solute carrier family 15 member 2",
-                    "source": "Oxacillin",
-                    "id": "OxacillinSolute carrier family 15 member 2"
-                }
-            },
-            {
-                "data": {
-                    "target": "Penicillin-binding protein 2a",
-                    "source": "Oxacillin",
-                    "id": "OxacillinPenicillin-binding protein 2a"
-                }
-            },
-            {
-                "data": {
-                    "target": "Penicillin-binding protein 1A",
-                    "source": "Oxacillin",
-                    "id": "OxacillinPenicillin-binding protein 1A"
-                }
-            },
-            {
-                "data": {
-                    "target": "Penicillin-binding protein 1A",
-                    "source": "Oxacillin",
-                    "id": "OxacillinPenicillin-binding protein 1A"
-                }
-            },
-            {
-                "data": {
-                    "target": "Penicillin-binding protein 2B",
-                    "source": "Oxacillin",
-                    "id": "OxacillinPenicillin-binding protein 2B"
-                }
-            },
-            {
-                "data": {
-                    "target": "Penicillin-binding protein 2",
-                    "source": "Oxacillin",
-                    "id": "OxacillinPenicillin-binding protein 2"
-                }
-            },
-            {
-                "data": {
-                    "target": "Penicillin-binding protein 3",
-                    "source": "Oxacillin",
-                    "id": "OxacillinPenicillin-binding protein 3"
-                }
-            },
-            {
-                "data": {
-                    "target": "Solute carrier family 15 member 1",
-                    "source": "Oxacillin",
-                    "id": "OxacillinSolute carrier family 15 member 1"
-                }
-            },
-            {
-                "data": {
-                    "target": "Penicillin-binding protein 1b",
-                    "source": "Nafcillin",
-                    "id": "NafcillinPenicillin-binding protein 1b"
-                }
-            },
-            {
-                "data": {
-                    "target": "Cytochrome P450 3A4",
-                    "source": "Nafcillin",
-                    "id": "NafcillinCytochrome P450 3A4"
-                }
-            },
-            {
-                "data": {
-                    "target": "Cytochrome P450 1A2",
-                    "source": "Nafcillin",
-                    "id": "NafcillinCytochrome P450 1A2"
-                }
-            },
-            {
-                "data": {
-                    "target": "Serum albumin",
-                    "source": "Nafcillin",
-                    "id": "NafcillinSerum albumin"
-                }
-            },
-            {
-                "data": {
-                    "target": "Penicillin-binding protein 2a",
-                    "source": "Nafcillin",
-                    "id": "NafcillinPenicillin-binding protein 2a"
-                }
-            },
-            {
-                "data": {
-                    "target": "Penicillin-binding protein 1A",
-                    "source": "Nafcillin",
-                    "id": "NafcillinPenicillin-binding protein 1A"
-                }
-            },
-            {
-                "data": {
-                    "target": "Solute carrier family 22 member 6",
-                    "source": "Nafcillin",
-                    "id": "NafcillinSolute carrier family 22 member 6"
-                }
-            },
-            {
-                "data": {
-                    "target": "Penicillin-binding protein 3",
-                    "source": "Nafcillin",
-                    "id": "NafcillinPenicillin-binding protein 3"
-                }
-            },
-            {
-                "data": {
-                    "target": "Penicillin-binding protein 2B",
-                    "source": "Nafcillin",
-                    "id": "NafcillinPenicillin-binding protein 2B"
-                }
-            },
-            {
-                "data": {
-                    "target": "Solute carrier family 22 member 6",
+                    "id": "CefotiamPenicillin-binding protein 1A",
                     "source": "Cefotiam",
-                    "id": "CefotiamSolute carrier family 22 member 6"
+                    "target": "Penicillin-binding protein 1A"
                 }
             },
             {
                 "data": {
-                    "target": "Solute carrier family 22 member 8",
+                    "id": "CefotiamSolute carrier family 22 member 6",
                     "source": "Cefotiam",
-                    "id": "CefotiamSolute carrier family 22 member 8"
+                    "target": "Solute carrier family 22 member 6"
                 }
             },
             {
                 "data": {
-                    "target": "Penicillin-binding protein 1A",
+                    "id": "CefotiamSolute carrier family 22 member 8",
                     "source": "Cefotiam",
-                    "id": "CefotiamPenicillin-binding protein 1A"
+                    "target": "Solute carrier family 22 member 8"
                 }
             },
             {
                 "data": {
-                    "target": "Penicillin binding protein 2a",
+                    "id": "TicarcillinPenicillin binding protein 2a",
                     "source": "Ticarcillin",
-                    "id": "TicarcillinPenicillin binding protein 2a"
+                    "target": "Penicillin binding protein 2a"
                 }
             },
             {
                 "data": {
-                    "target": "Serum albumin",
+                    "id": "NafcillinPenicillin-binding protein 1b",
+                    "source": "Nafcillin",
+                    "target": "Penicillin-binding protein 1b"
+                }
+            },
+            {
+                "data": {
+                    "id": "NafcillinPenicillin-binding protein 2B",
+                    "source": "Nafcillin",
+                    "target": "Penicillin-binding protein 2B"
+                }
+            },
+            {
+                "data": {
+                    "id": "NafcillinPenicillin-binding protein 2a",
+                    "source": "Nafcillin",
+                    "target": "Penicillin-binding protein 2a"
+                }
+            },
+            {
+                "data": {
+                    "id": "NafcillinPenicillin-binding protein 3",
+                    "source": "Nafcillin",
+                    "target": "Penicillin-binding protein 3"
+                }
+            },
+            {
+                "data": {
+                    "id": "NafcillinPenicillin-binding protein 1A",
+                    "source": "Nafcillin",
+                    "target": "Penicillin-binding protein 1A"
+                }
+            },
+            {
+                "data": {
+                    "id": "NafcillinCytochrome P450 3A4",
+                    "source": "Nafcillin",
+                    "target": "Cytochrome P450 3A4"
+                }
+            },
+            {
+                "data": {
+                    "id": "NafcillinCytochrome P450 1A2",
+                    "source": "Nafcillin",
+                    "target": "Cytochrome P450 1A2"
+                }
+            },
+            {
+                "data": {
+                    "id": "NafcillinSolute carrier family 22 member 6",
+                    "source": "Nafcillin",
+                    "target": "Solute carrier family 22 member 6"
+                }
+            },
+            {
+                "data": {
+                    "id": "NafcillinSerum albumin",
+                    "source": "Nafcillin",
+                    "target": "Serum albumin"
+                }
+            },
+            {
+                "data": {
+                    "id": "OxacillinPenicillin-binding protein 3",
+                    "source": "Oxacillin",
+                    "target": "Penicillin-binding protein 3"
+                }
+            },
+            {
+                "data": {
+                    "id": "OxacillinPenicillin-binding protein 2a",
+                    "source": "Oxacillin",
+                    "target": "Penicillin-binding protein 2a"
+                }
+            },
+            {
+                "data": {
+                    "id": "OxacillinPenicillin-binding protein 1A",
+                    "source": "Oxacillin",
+                    "target": "Penicillin-binding protein 1A"
+                }
+            },
+            {
+                "data": {
+                    "id": "OxacillinPenicillin-binding protein 1A",
+                    "source": "Oxacillin",
+                    "target": "Penicillin-binding protein 1A"
+                }
+            },
+            {
+                "data": {
+                    "id": "OxacillinPenicillin-binding protein 2B",
+                    "source": "Oxacillin",
+                    "target": "Penicillin-binding protein 2B"
+                }
+            },
+            {
+                "data": {
+                    "id": "OxacillinPenicillin-binding protein 1b",
+                    "source": "Oxacillin",
+                    "target": "Penicillin-binding protein 1b"
+                }
+            },
+            {
+                "data": {
+                    "id": "OxacillinSolute carrier family 15 member 1",
+                    "source": "Oxacillin",
+                    "target": "Solute carrier family 15 member 1"
+                }
+            },
+            {
+                "data": {
+                    "id": "OxacillinPenicillin-binding protein 2",
+                    "source": "Oxacillin",
+                    "target": "Penicillin-binding protein 2"
+                }
+            },
+            {
+                "data": {
+                    "id": "OxacillinSolute carrier family 15 member 2",
+                    "source": "Oxacillin",
+                    "target": "Solute carrier family 15 member 2"
+                }
+            },
+            {
+                "data": {
+                    "id": "CiprofloxacinDNA topoisomerase 4 subunit A",
+                    "source": "Ciprofloxacin",
+                    "target": "DNA topoisomerase 4 subunit A"
+                }
+            },
+            {
+                "data": {
+                    "id": "CiprofloxacinDNA topoisomerase 4 subunit A",
+                    "source": "Ciprofloxacin",
+                    "target": "DNA topoisomerase 4 subunit A"
+                }
+            },
+            {
+                "data": {
+                    "id": "CiprofloxacinDNA gyrase subunit A",
+                    "source": "Ciprofloxacin",
+                    "target": "DNA gyrase subunit A"
+                }
+            },
+            {
+                "data": {
+                    "id": "CiprofloxacinDNA gyrase subunit A",
+                    "source": "Ciprofloxacin",
+                    "target": "DNA gyrase subunit A"
+                }
+            },
+            {
+                "data": {
+                    "id": "CiprofloxacinDNA gyrase subunit A",
+                    "source": "Ciprofloxacin",
+                    "target": "DNA gyrase subunit A"
+                }
+            },
+            {
+                "data": {
+                    "id": "CiprofloxacinDNA gyrase subunit A",
+                    "source": "Ciprofloxacin",
+                    "target": "DNA gyrase subunit A"
+                }
+            },
+            {
+                "data": {
+                    "id": "CiprofloxacinDNA topoisomerase 2-alpha",
+                    "source": "Ciprofloxacin",
+                    "target": "DNA topoisomerase 2-alpha"
+                }
+            },
+            {
+                "data": {
+                    "id": "CiprofloxacinPotassium voltage-gated channel subfamily H member 2",
+                    "source": "Ciprofloxacin",
+                    "target": "Potassium voltage-gated channel subfamily H member 2"
+                }
+            },
+            {
+                "data": {
+                    "id": "CiprofloxacinDNA topoisomerase 4 subunit B",
+                    "source": "Ciprofloxacin",
+                    "target": "DNA topoisomerase 4 subunit B"
+                }
+            },
+            {
+                "data": {
+                    "id": "CiprofloxacinMultidrug resistance protein MdtK",
+                    "source": "Ciprofloxacin",
+                    "target": "Multidrug resistance protein MdtK"
+                }
+            },
+            {
+                "data": {
+                    "id": "CiprofloxacinGyrase A",
+                    "source": "Ciprofloxacin",
+                    "target": "Gyrase A"
+                }
+            },
+            {
+                "data": {
+                    "id": "CiprofloxacinCytochrome P450 1A2",
+                    "source": "Ciprofloxacin",
+                    "target": "Cytochrome P450 1A2"
+                }
+            },
+            {
+                "data": {
+                    "id": "CiprofloxacinCytochrome P450 3A4",
+                    "source": "Ciprofloxacin",
+                    "target": "Cytochrome P450 3A4"
+                }
+            },
+            {
+                "data": {
+                    "id": "CiprofloxacinCytochrome P450 3A5",
+                    "source": "Ciprofloxacin",
+                    "target": "Cytochrome P450 3A5"
+                }
+            },
+            {
+                "data": {
+                    "id": "CiprofloxacinCytochrome P450 3A7",
+                    "source": "Ciprofloxacin",
+                    "target": "Cytochrome P450 3A7"
+                }
+            },
+            {
+                "data": {
+                    "id": "CiprofloxacinP-glycoprotein 1",
+                    "source": "Ciprofloxacin",
+                    "target": "P-glycoprotein 1"
+                }
+            },
+            {
+                "data": {
+                    "id": "CiprofloxacinMultidrug and toxin extrusion protein 1",
+                    "source": "Ciprofloxacin",
+                    "target": "Multidrug and toxin extrusion protein 1"
+                }
+            },
+            {
+                "data": {
+                    "id": "CiprofloxacinMultidrug and toxin extrusion protein 2",
+                    "source": "Ciprofloxacin",
+                    "target": "Multidrug and toxin extrusion protein 2"
+                }
+            },
+            {
+                "data": {
+                    "id": "CiprofloxacinSerum albumin",
+                    "source": "Ciprofloxacin",
+                    "target": "Serum albumin"
+                }
+            },
+            {
+                "data": {
+                    "id": "VancomycinD-Ala-D-Ala moiety of NAM/NAG peptide subunits of peptidoglycan",
                     "source": "Vancomycin",
-                    "id": "VancomycinSerum albumin"
+                    "target": "D-Ala-D-Ala moiety of NAM/NAG peptide subunits of peptidoglycan"
                 }
             },
             {
                 "data": {
-                    "target": "Gamma Globulin",
+                    "id": "VancomycinSerum albumin",
                     "source": "Vancomycin",
-                    "id": "VancomycinGamma Globulin"
+                    "target": "Serum albumin"
                 }
             },
             {
                 "data": {
-                    "target": "D-Ala-D-Ala moiety of NAM/NAG peptide subunits of peptidoglycan",
+                    "id": "Vancomycinalpha1-acid glycoprotein",
                     "source": "Vancomycin",
-                    "id": "VancomycinD-Ala-D-Ala moiety of NAM/NAG peptide subunits of peptidoglycan"
+                    "target": "alpha1-acid glycoprotein"
                 }
             },
             {
                 "data": {
-                    "target": "alpha1-acid glycoprotein",
+                    "id": "VancomycinHistamine H1 receptor",
                     "source": "Vancomycin",
-                    "id": "Vancomycinalpha1-acid glycoprotein"
+                    "target": "Histamine H1 receptor"
                 }
             },
             {
                 "data": {
-                    "target": "50S ribosomal protein L3",
-                    "source": "Spiramycin",
-                    "id": "Spiramycin50S ribosomal protein L3"
+                    "id": "CeftriaxonePenicillin-binding protein 2B",
+                    "source": "Ceftriaxone",
+                    "target": "Penicillin-binding protein 2B"
                 }
             },
             {
                 "data": {
-                    "target": "Cytochrome P450 3A4",
-                    "source": "Spiramycin",
-                    "id": "SpiramycinCytochrome P450 3A4"
+                    "id": "CeftriaxoneSolute carrier family 22 member 11",
+                    "source": "Ceftriaxone",
+                    "target": "Solute carrier family 22 member 11"
+                }
+            },
+            {
+                "data": {
+                    "id": "CeftriaxoneSolute carrier family 22 member 6",
+                    "source": "Ceftriaxone",
+                    "target": "Solute carrier family 22 member 6"
+                }
+            },
+            {
+                "data": {
+                    "id": "CeftriaxoneSolute carrier family 22 member 8",
+                    "source": "Ceftriaxone",
+                    "target": "Solute carrier family 22 member 8"
+                }
+            },
+            {
+                "data": {
+                    "id": "CeftriaxoneSolute carrier family 15 member 1",
+                    "source": "Ceftriaxone",
+                    "target": "Solute carrier family 15 member 1"
+                }
+            },
+            {
+                "data": {
+                    "id": "CeftriaxoneGlutamine synthetase",
+                    "source": "Ceftriaxone",
+                    "target": "Glutamine synthetase"
+                }
+            },
+            {
+                "data": {
+                    "id": "CeftriaxoneSolute carrier family 15 member 2",
+                    "source": "Ceftriaxone",
+                    "target": "Solute carrier family 15 member 2"
+                }
+            },
+            {
+                "data": {
+                    "id": "CeftriaxoneP-glycoprotein 1",
+                    "source": "Ceftriaxone",
+                    "target": "P-glycoprotein 1"
+                }
+            },
+            {
+                "data": {
+                    "id": "CeftriaxoneSerum albumin",
+                    "source": "Ceftriaxone",
+                    "target": "Serum albumin"
+                }
+            },
+            {
+                "data": {
+                    "id": "Omadacycline30S ribosomal protein S3",
+                    "source": "Omadacycline",
+                    "target": "30S ribosomal protein S3"
+                }
+            },
+            {
+                "data": {
+                    "id": "Omadacycline30S ribosomal protein S7",
+                    "source": "Omadacycline",
+                    "target": "30S ribosomal protein S7"
+                }
+            },
+            {
+                "data": {
+                    "id": "Omadacycline30S ribosomal protein S8",
+                    "source": "Omadacycline",
+                    "target": "30S ribosomal protein S8"
+                }
+            },
+            {
+                "data": {
+                    "id": "Omadacycline30S ribosomal protein S19",
+                    "source": "Omadacycline",
+                    "target": "30S ribosomal protein S19"
+                }
+            },
+            {
+                "data": {
+                    "id": "Omadacycline30S ribosomal protein S14",
+                    "source": "Omadacycline",
+                    "target": "30S ribosomal protein S14"
+                }
+            },
+            {
+                "data": {
+                    "id": "Omadacycline16S ribosomal RNA",
+                    "source": "Omadacycline",
+                    "target": "16S ribosomal RNA"
+                }
+            },
+            {
+                "data": {
+                    "id": "OmadacyclineP-glycoprotein 1",
+                    "source": "Omadacycline",
+                    "target": "P-glycoprotein 1"
+                }
+            },
+            {
+                "data": {
+                    "id": "OmadacyclineSerum albumin",
+                    "source": "Omadacycline",
+                    "target": "Serum albumin"
                 }
             }
         ]
@@ -1141,21 +1615,23 @@
         {
             "selector": "node",
             "style": {
-                "label": "data(id)",
-                "background-color": "#666"
+                "background-color": "#666",
+                "label": "data(id)"
             }
         },
         {
             "selector": "edge",
             "style": {
                 "width": 3,
-                "target-arrow-shape": "triangle",
+                "line-color": "#ccc",
                 "target-arrow-color": "#ccc",
-                "line-color": "#ccc"
+                "target-arrow-shape": "triangle"
             }
         }
     ],
-    "data": {
-        "name": "carriers"
+    "layout": {
+        "name": "cose",
+        "directed": true,
+        "nodeDimensionsIncludeLabels": true
     }
 }

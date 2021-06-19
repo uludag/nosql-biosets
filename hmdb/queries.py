@@ -59,17 +59,19 @@ class QueryDrugBank(Query):
         return r
 
     def kegg_target_id_to_drugbank_entity_id(self, keggtid, etype='targets',
+                                             mdbdb=DATABASE,
                                              uniprotcollection='uniprot'):
         """
         Get drugbank target ids for given KEGG target ids
         The two databases are connected by first making a UniProt query
         :param keggtid: KEGG target id
         :param etype: Drugbank entity type, 'targets' or 'enzymes'
+        :param mdbdb: MongoDB database name
         :param uniprotcollection: UniProt collection to search
         :return: Drugbank target id
         """
 
-        qryuniprot = QueryUniProt("MongoDB", DATABASE, uniprotcollection)
+        qryuniprot = QueryUniProt("MongoDB", mdbdb, uniprotcollection)
         qc = {"dbReference.id": keggtid}
         key = 'name'
         uniprotid = qryuniprot.dbc.mdbi[uniprotcollection].distinct(key,
