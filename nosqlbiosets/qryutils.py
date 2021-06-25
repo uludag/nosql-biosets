@@ -54,10 +54,9 @@ class Query:
         return r
 
     def esquery(self, index, qc, size=10):
-        import json
         print("Querying '%s': %s" % (index, json.dumps(qc, indent=4)))
-        es = DBconnection("Elasticsearch", index).es
-        r = es.search(index=index, body=qc, size=size)
+        assert self.dbc.db == 'Elasticsearch'
+        r = self.dbc.es.search(index=index, body=qc, size=size)
         nhits = r['hits']['total']
         aggs = r["aggregations"] if "aggregations" in r else None
         return r['hits']['hits'], nhits, aggs

@@ -5,12 +5,13 @@ import unittest
 
 from nosqlbiosets.uniprot.query import QueryUniProt, idmatch
 
-MDB_COLLECTION = "uniprot"
-ESINDEX = "uniprot"
 MDBHOST = "tests.cbrc.kaust.edu.sa"
+MDB_DB = "embm"
+MDB_COLLECTION = "uniprot-jun2021"
 ESHOST = "tests.cbrc.kaust.edu.sa"
+ESINDEX = "uniprot-jun2021"
 
-qryuniprot = QueryUniProt("MongoDB", "biosets", MDB_COLLECTION,
+qryuniprot = QueryUniProt("MongoDB", MDB_DB, MDB_COLLECTION,
                           host=MDBHOST)
 qryuniprot_es = QueryUniProt("Elasticsearch", ESINDEX, None,
                              host=ESHOST, port=9200)
@@ -45,13 +46,13 @@ class TestQueryUniProt(unittest.TestCase):
         tests = [
             (['CLPC1_ARATH', 'CLPB_GLOVI', 'CLPC2_ORYSJ', 'CLPB_CHLCV'], None),
             (['RPOB_RHOS1', 'RPOB_RHOS4', 'RPOB_RHOSK', 'RPOB_RHOS5'],
-             'Rhodobacter')]
+             ['Rhodobacteraceae', 'Luteovulum'])]
         for ids, taxon in tests:
             r = qryuniprot.get_lca({'_id': {"$in": ids}})
             if taxon is None:
                 assert [] == r
             else:
-                assert taxon == r[-1]
+                assert taxon == r[-2:]
 
     def test_get_getorganismnames(self):
         ecn = "4.2.1.-"
@@ -119,13 +120,14 @@ class TestQueryUniProt(unittest.TestCase):
     def test_evidence_codes(self):
         ecodes = {  # http://www.uniprot.org/help/evidences
             255: 4200,  # match to sequence model evidence, manual assertion
+            256:  560,  # match to sequence model evidence, automatic assertion
             269: 7130,  # experimental evidence used in manual assertion
             305: 5140,  # curator inference used in manual assertion
-            250: 3520,  # sequence similarity evidence used in manual assertion
+            250: 3668,  # sequence similarity evidence used in manual assertion
             303: 2400,  # non-traceable author statement, manual assertion
-            244:  891,   # combinatorial evidence used in manual assertion
-            312:  940,   # imported information used in manual assertion
-            744:  940  # imported information used in manual assertion
+            829:  891,  # combinatorial evidence, automatic assertion
+            312:  940,  # imported information used in manual assertion
+            744:  315   # combinatorial evidence, manual assertion
         }
         qc = {'$text': {'$search': 'antimicrobial'}}
         self.assertAlmostEqual(5000,
@@ -141,11 +143,11 @@ class TestQueryUniProt(unittest.TestCase):
         cr = qryuniprot.aggregate_query(aggqc)
         for i in cr:
             self.assertAlmostEqual(i['sum'], ecodes[int(i['_id'][8:])],
-                                   delta=100)
+                                   delta=140, msg=i)
         # Distribution of evidence types for the same example query
         etypes = {
-            "evidence at protein level": 2705,
-            "evidence at transcript level": 627,
+            "evidence at protein level": 2736,
+            "evidence at transcript level": 661,
             "inferred from homology": 1623,
             "predicted": 6,
             "uncertain": 29

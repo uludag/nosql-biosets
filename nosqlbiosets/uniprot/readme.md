@@ -41,7 +41,7 @@ Example command lines for downloading `uniprot_sprot.xml` file and for indexing:
 
 ```bash
 mkdir -p data
-# ~720M(compressed), ~165.6 million lines, ~560,500 entries
+# ~760M(compressed), ~173.5 million lines, ~565,000 entries
 wget -nc -P ./data ftp://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/\
 knowledgebase/complete/uniprot_sprot.xml.gz
 ```
@@ -55,7 +55,7 @@ _Server default connection settings are read from [../../conf/dbservers.json](
 )_
 
 ```bash
-# Index with Elasticsearch, typically requires about 2 to 8 hours
+# Index with Elasticsearch, typically requires about 1 to 8 hours
 ./nosqlbiosets/uniprot/index.py ./data/uniprot_sprot.xml.gz\
  --host localhost --db Elasticsearch  --esindex uniprot
 

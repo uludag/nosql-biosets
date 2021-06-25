@@ -43,10 +43,7 @@ Datasets that had more attention and have more stable support:
   ftp://ftp.ebi.ac.uk/pub/databases/genenames/new/json/hgnc_complete_set.json)_)
 
 * PubMed and PMC [articles](https://www.nlm.nih.gov/bsd/difference.html):
-  [`./nosqlbiosets/pubmed/index_pubmed_articles.py`](
-  ./nosqlbiosets/pubmed/index_pubmed_articles.py)
-  [`./nosqlbiosets/pubmed/index_pmc_articles.py`](
-  ./nosqlbiosets/pubmed/index_pmc_articles.py)
+  [`./nosqlbiosets/pubmed`](./nosqlbiosets/pubmed)
 
 Datasets that has been added recently:
 
@@ -192,13 +189,13 @@ curl -XGET "http://localhost:9200/uniprot/_search?pretty=true"\
 }'
 ```
 
-Check [`./tests/test_uniprot_queries.py`](tests/test_uniprot_queries.py) 
+Check [`./tests/test_uniprot_queries.py`](tests/test_uniprot_queries.py)
 and [`./nosqlbiosets/uniprot/query.py`](./nosqlbiosets/uniprot/query.py) for
 example queries with Elasticsearch and MongoDB.
 
 ## Similar Work
 
-* https://github.com/daler/gffutils:
+* [https://github.com/daler/gffutils](https://github.com/daler/gffutils):
   "GFF and GTF files are loaded into SQLite3 databases,
   allowing much more complex manipulation of hierarchical features
   (e.g., genes, transcripts, and exons) than is possible with plain-text methods
@@ -207,7 +204,7 @@ example queries with Elasticsearch and MongoDB.
     _We are inspired by the gffutils project. Needless to say, nosql-biosets
     project doesn't yet have a level of maturity comparable to the gffutils library_.
   
-* https://github.com/quinlan-lab/vcf2db (SQLite, MySQL, PostgreSQL)
+* [https://github.com/quinlan-lab/vcf2db](https://github.com/quinlan-lab/vcf2db) (SQLite, MySQL, PostgreSQL)
 
 ## Copyright
 
@@ -223,4 +220,4 @@ by contacting the [relevant offices of KAUST](https://osr.kaust.edu.sa/Pages/Con
 ## Acknowledgements
 
 * Computers and systems used in developing this work have been maintained
-  by John Hanks and Arnaud Hungler
+  by John Hanks, Arnaud Hungler, and Mohammed Saif
