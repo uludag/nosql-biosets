@@ -4,72 +4,6 @@ import json
 import networkx as nx
 
 
-# Return input NetworkX graph in Cytoscape.js JSON format
-# TODO: replace with py2cytoscape calls, https://py2cytoscape.readthedocs.io/
-def networkx2cytoscape_json(networkxgraph):
-    nodes = []
-    edges = []
-
-    for node in networkxgraph.nodes():
-        node_ = {'data': {
-            'id': node,
-            'name': networkxgraph.nodes[node]['name']
-            if 'name' in networkxgraph.nodes[node] else node,
-            'label': networkxgraph.nodes[node]['label']
-            if 'label' in networkxgraph.nodes[node] else node}
-        }
-        if 'viz_color' in networkxgraph.nodes[node]:
-            node_['data']['viz_color'] = networkxgraph.nodes[node]['viz_color']
-        nodes.append(node_)
-    for edge in networkxgraph.edges():
-        data = {
-            "id": edge[0] + edge[1],
-            "source": edge[0],
-            "target": edge[1]
-        }
-        ed = networkxgraph.get_edge_data(edge[0], edge[1])
-        if 0 in ed:  # MultiDiGraph, select the first edge only
-            ed = ed[0]
-
-        for key in ed:
-            val = ed[key]
-            if isinstance(val, set):
-                val = list(val)
-            data[key] = val
-
-        edges.append({'data': data})
-    cygraph = {
-        'data': {
-            'name': networkxgraph.name
-        },
-        'elements': {
-            'nodes': nodes, 'edges': edges
-        },
-        'style': [
-            {
-                'selector': 'node',
-                'style': {
-                    'background-color': '#666',
-                    'label': 'data(id)'
-                }},
-            {
-                'selector': 'edge',
-                'style': {
-                    'width': 3,
-                    'line-color': '#ccc',
-                    'target-arrow-color': '#ccc',
-                    'target-arrow-shape': 'triangle'
-                }}
-        ],
-        'layout': {
-            'name': 'cose',
-            'directed': True,
-            'nodeDimensionsIncludeLabels': True
-        }
-    }
-    return cygraph
-
-
 def networkx2d3_json(networkxgraph):
     d3 = dict()
     d3["nodes"] = []
@@ -97,7 +31,7 @@ def save_graph(graph, outfile):
         cygraph = networkx2d3_json(graph)
         json.dump(cygraph, open(outfile, "w"), indent=4)
     elif outfile.endswith(".json"):
-        cygraph = networkx2cytoscape_json(graph)
+        cygraph = nx.readwrite.cytoscape_data(graph)
         json.dump(cygraph, open(outfile, "w"), indent=4)
     else:  # Assume GML format
         nx.write_gml(graph, outfile)
@@ -138,10 +72,12 @@ def shortest_paths(dg, source, target, k=None, cutoff=10,
         return r
 
 
-def neighbors_graph(ingraph, source, beamwidth=4, maxnodes=10):
+def neighbors_graph(ingraph, source, beamwidth=4, maxnodes=10,
+                    max_iter=100, tol=1e-4):
     """ Neighbors of source node in ingraph """
     assert ingraph.is_directed(), "not implemented for undirected graphs"
-    centrality = nx.eigenvector_centrality_numpy(ingraph)  # max_iter=10 tol=0.1
+    centrality = nx.eigenvector_centrality_numpy(ingraph,
+                                                 max_iter=max_iter, tol=tol)
     outgraph = nx.MultiDiGraph()
     for u, v in nx.bfs_beam_edges(ingraph, source, centrality.get, beamwidth):
         if isinstance(ingraph, nx.MultiDiGraph):
@@ -163,7 +99,7 @@ def remove_highly_connected_nodes(network, max_degree=10):
 
 def remove_least_connected_nodes(network, min_degree=1):
     to_remove = [node for node, degree in network.degree()
-                 if degree <= min_degree]
+                 if degree < min_degree]
     network.remove_nodes_from(to_remove)
 
 
