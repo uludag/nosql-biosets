@@ -1,0 +1,36 @@
+{
+    "mappings": {
+        "properties": {
+            "sequence": {
+                "properties": {
+                    "checksum": {
+                        "type": "object",
+                        "enabled": "false"
+                    },
+                    "fragment": {
+                        "type": "keyword"
+                    },
+                    "length": {
+                        "type": "integer"
+                    },
+                    "mass": {
+                        "type": "integer"
+                    },
+                    "modified": {
+                        "type": "date"
+                    },
+                    "precursor": {
+                        "type": "boolean"
+                    },
+                    "seq": {
+                        "type": "object",
+                        "enabled": "false"
+                    },
+                    "version": {
+                        "type": "short"
+                    }
+                }
+            }
+        }
+    }
+}

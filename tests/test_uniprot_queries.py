@@ -7,14 +7,15 @@ from nosqlbiosets.uniprot.query import QueryUniProt, idmatch
 
 MDBHOST = "tests.cbrc.kaust.edu.sa"
 MDB_DB = "embm"
-MDB_COLLECTION = "uniprot-jun2021"
+MDB_COLLECTION = "uniprot-aug2022"
 ESHOST = "tests.cbrc.kaust.edu.sa"
-ESINDEX = "uniprot-jun2021"
+ESINDEX = "uniprot-aug2022"
+ESPORT = 9200
 
 qryuniprot = QueryUniProt("MongoDB", MDB_DB, MDB_COLLECTION,
                           host=MDBHOST)
 qryuniprot_es = QueryUniProt("Elasticsearch", ESINDEX, None,
-                             host=ESHOST, port=9200)
+                             host=ESHOST, port=ESPORT)
 
 
 class TestQueryUniProt(unittest.TestCase):
@@ -45,14 +46,14 @@ class TestQueryUniProt(unittest.TestCase):
         assert len(qryuniprot.get_lca(qc)) == 0
         tests = [
             (['CLPC1_ARATH', 'CLPB_GLOVI', 'CLPC2_ORYSJ', 'CLPB_CHLCV'], None),
-            (['RPOB_RHOS1', 'RPOB_RHOS4', 'RPOB_RHOSK', 'RPOB_RHOS5'],
-             ['Rhodobacteraceae', 'Luteovulum'])]
+            (['AMPA_CERS5', 'BCHN_CERSK', 'C553_PARDE'],
+             ['Rhodobacterales', 'Rhodobacteraceae'])]
         for ids, taxon in tests:
             r = qryuniprot.get_lca({'_id': {"$in": ids}})
             if taxon is None:
                 assert [] == r
             else:
-                assert taxon == r[-2:]
+                assert taxon == r[-2:], ids
 
     def test_get_getorganismnames(self):
         ecn = "4.2.1.-"
@@ -74,12 +75,12 @@ class TestQueryUniProt(unittest.TestCase):
             (['CLPC1_ARATH', 'CLPB_GLOVI', 'CLPC2_ORYSJ', 'CLPB_CHLCV'],
              {"clpB": 2, "CLPC2": 1, "CLPC1": 1},
              {2601981, 4351828, 835165}),
-            (['RPOB_RHOS1', 'RPOB_RHOS4', 'RPOB_RHOSK', 'RPOB_RHOS5'],
-             {"rpoB": 3, "rpoB1": 1, "rpoB2": 1}, {3718913})
+            (['RPOB_CERS1', 'RPO2N_HALSA', 'RPO2N_HALS3'],
+             {"rpo2N": 2, "rpoB1": 1, "rpoB2": 1}, {3718913})
         ]
         for ids, genes, egids in tests:
             r = qryuniprot.getgenes(None, qc={'_id': {"$in": ids}})
-            assert genes == r['primary']
+            assert genes == r['primary'], r
 
     def test_getgeneids(self):
         tests = [
@@ -94,7 +95,7 @@ class TestQueryUniProt(unittest.TestCase):
             ({"name": "BIEA_HUMAN"}, 1, ("BIEA_HUMAN", 644, 'BLVRA')),
             ({'$text': {'$search': 'bilirubin'},
               "organism.dbReference.id": "9606"},
-             20, ("BIEA_HUMAN", 644, 'BLVRA'))
+             18, ("BIEA_HUMAN", 644, 'BLVRA'))
         ]
         for qc, nids, ids in tests:
             r = qryuniprot.getgeneids(qc, limit=20000)
@@ -119,12 +120,12 @@ class TestQueryUniProt(unittest.TestCase):
     # Distribution of evidence codes in a text query result set
     def test_evidence_codes(self):
         ecodes = {  # http://www.uniprot.org/help/evidences
-            255: 4200,  # match to sequence model evidence, manual assertion
+            255: 4400,  # match to sequence model evidence, manual assertion
             256:  560,  # match to sequence model evidence, automatic assertion
-            269: 7130,  # experimental evidence used in manual assertion
-            305: 5140,  # curator inference used in manual assertion
-            250: 3668,  # sequence similarity evidence used in manual assertion
-            303: 2400,  # non-traceable author statement, manual assertion
+            269: 7840,  # experimental evidence used in manual assertion
+            305: 5600,  # curator inference used in manual assertion
+            250: 3850,  # sequence similarity evidence used in manual assertion
+            303: 2800,  # non-traceable author statement, manual assertion
             829:  891,  # combinatorial evidence, automatic assertion
             312:  940,  # imported information used in manual assertion
             744:  315   # combinatorial evidence, manual assertion
@@ -146,8 +147,8 @@ class TestQueryUniProt(unittest.TestCase):
                                    delta=140, msg=i)
         # Distribution of evidence types for the same example query
         etypes = {
-            "evidence at protein level": 2736,
-            "evidence at transcript level": 661,
+            "evidence at protein level": 2860,
+            "evidence at transcript level": 692,
             "inferred from homology": 1623,
             "predicted": 6,
             "uncertain": 29
@@ -191,13 +192,13 @@ class TestQueryUniProt(unittest.TestCase):
     def test_annotation_pairs(self):
         qc = {'organism.name.#text': 'Rice'}
         r = list(qryuniprot.top_annotation_pairs(qc))
-        go = {i['_id']['go']['property'][0]['value'] for i in r[:3]}
-        assert go == {
+        go = {i['_id']['go']['property'][0]['value']
+              for i in r[:2]}
+        assert len(go.difference({
             'C:apoplast',
-            "F:manganese ion binding",
-            'C:cell wall'}
+            "F:manganese ion binding"})) == 0, go
         assert all(i['_id']['pfam']['property'][0]['value'] == 'Cupin_1'
-                   for i in r[:3])
+                   for i in r[:2])
 
     def test_getenzymedata(self):
         enzys = [
@@ -209,7 +210,7 @@ class TestQueryUniProt(unittest.TestCase):
             ('2.5.1.-', {'Q5AR51'}, ("primary", 'UBIAD1', 3),
              "Cofactor biosynthesis; ubiquinone biosynthesis.",
              'hydrogen sulfide + O-acetyl-L-serine = acetate + L-cysteine',
-             'Arabidopsis thaliana', 'scientific', 18, 430),
+             'Arabidopsis thaliana', 'scientific', 18, 486),
             ('5.4.2.2', {'P93804'}, ("primary", 'PGM1', 10),
              "Glycolipid metabolism;"
              " diglucosyl-diacylglycerol biosynthesis.",
@@ -218,7 +219,9 @@ class TestQueryUniProt(unittest.TestCase):
         ]
         for ecn, accs, gene, pathway, reaction, org, nametype, n, orgs in enzys:
             genetype, genename, abundance = gene
-            r = qryuniprot_es.getgenes(ecn, limit=100)  # Elasticsearch
+            r = qryuniprot_es.getgenes("",
+                                       qc={"match": {"dbReference.id": ecn}},
+                                       limit=100)  # Elasticsearch
             assert abundance == r[genetype][genename], r
             r = qryuniprot.getgenes(ecn)
             assert abundance == r[genetype][genename]

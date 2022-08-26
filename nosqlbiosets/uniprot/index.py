@@ -5,6 +5,9 @@
 #   (unhandled attributes are deleted for now)
 
 import argparse
+import json
+import logging
+import os
 import traceback
 from gzip import GzipFile
 from multiprocessing.pool import ThreadPool
@@ -15,6 +18,9 @@ from six import string_types
 
 from nosqlbiosets.dbutils import DBconnection, dbargs
 
+logging.basicConfig(filename='uniprot-indexer.log',
+                    format='%(message)s',
+                    level=logging.WARNING)
 pool = ThreadPool(14)   # Threads for index calls, parsing is in the main thread
 MAX_QUEUED_JOBS = 1400  # Maximum number of index jobs in queue
 MDBCOLLECTION = 'uniprot'
@@ -30,10 +36,15 @@ class Indexer(DBconnection):
         indxcfg = {  # for Elasticsearch
             "index.number_of_replicas": 0,
             "index.number_of_shards": 5,
-            "index.refresh_interval": "1m"}
+            "index.refresh_interval": "18m",
+        }
+        mappings = json.load(open(
+            os.path.dirname(os.path.abspath(__file__)) +
+            "/../../mappings/uniprot.json", "r"))['mappings']
         super(Indexer, self).__init__(db, self.index, host, port,
                                       mdbcollection=mdbcollection,
                                       es_indexsettings=indxcfg,
+                                      es_indexmappings=mappings,
                                       recreateindex=recreateindex)
         if db == "MongoDB":
             self.mcl = self.mdbi[mdbcollection]
@@ -64,14 +75,16 @@ class Indexer(DBconnection):
                     self.es.index(index=self.index,
                                   op_type='create', ignore=409,
                                   filter_path=['hits.hits._id'],
-                                  id=docid, body=entry)
+                                  id=docid, document=entry)
                 else:  # assume MongoDB
                     spec = {"_id": docid}
                     self.mcl.update(spec, entry, upsert=True)
             except Exception as e:
                 print("ERROR: %s" % e)
                 print(traceback.format_exc())
-                exit(-1)
+                logging.error(e)
+                logging.error(traceback.format_exc())
+                pool.close()
             self.reportprogress(1000)
         if isinstance(entry, string_types):  # Assume <copyright> notice
             print("\nUniProt copyright notice: %s " % entry.strip())
@@ -90,13 +103,21 @@ class Indexer(DBconnection):
         if 'text' in c:
             if isinstance(c['text'], string_types):
                 c['text'] = {'#text': c['text']}
-        # Following attributes are deleted for various reasons
-        # We want to implement support for all UniProt attributes
+        # Following comments are deleted
+        # if the text of the comment is not in the top level of the comment obj.
         al = ['isoform', 'subcellularLocation', 'kinetics', 'phDependence',
               'temperatureDependence', 'redoxPotential', 'absorption']
         for a in al:
             if a in c:
-                del c[a]
+                if isinstance(c[a], string_types):
+                    text = {'#text': c[a]}
+                    c[a] = text
+                elif '#text' not in c[a]:
+                    logging.info("deleting: "+json.dumps(c[a], indent=5))
+                    del c[a]
+                else:
+                    logging.warning("seeme: "+json.dumps(c, indent=5))
+
         if hasattr(c, 'location'):
             c['location']['begin']['position'] =\
                 int(c['location']['begin']['position'])
@@ -124,20 +145,19 @@ class Indexer(DBconnection):
 
     # Prepare 'positions' for indexing
     @staticmethod
-    def updateposition(l):
-        if 'position' in l:
-            l['position']['position'] = int(l['position']['position'])
+    def updateposition(loc):
+        if 'position' in loc:
+            loc['position']['position'] = int(loc['position']['position'])
         else:
             for i in ['begin', 'end']:
-                if 'position' in l[i]:
-                    l[i]['position'] = int(l[i]['position'])
+                if 'position' in loc[i]:
+                    loc[i]['position'] = int(loc[i]['position'])
 
     # Update UniProt entries 'protein' field
-    # Sample err msg:failed to parse [protein.domain.recommendedName.fullName
     @staticmethod
     def updateprotein(e):
         al = ['recommendedName', 'alternativeName', 'allergenName',
-              'component', 'cdAntigenName', 'innName']
+              'component', 'cdAntigenName', 'innName', 'submittedName']
         
         if 'domain' in e['protein']:
             del e['protein']['domain']
@@ -163,6 +183,7 @@ class Indexer(DBconnection):
 
     @staticmethod
     def updatesequence(s):
+        s['seq'] = s['#text']
         del(s['#text'])
         s['mass'] = int(s['mass'])
         s['length'] = int(s['length'])
@@ -179,14 +200,11 @@ class Indexer(DBconnection):
         elif c == 3:
             r = datetime.datetime.strptime(d, "%Y-%m-%d")
         else:
-            # approx. date until we have a better solution
+            # arbitrary date until we have a better solution
             r = datetime.datetime(2000, 1, 1)
         return r
 
     # Prepare UniProt entry for indexing
-    # organism.name should always be list?
-    # organism.lineage.taxon should be list
-    # all has scientific name, half has common name, 1/10th has synonym(s?)
     def update_entry(self, entry):
         # Make sure type of 'gene' attr is list
         if 'gene' in entry:
@@ -205,19 +223,24 @@ class Indexer(DBconnection):
                 self.updatecomment(entry['comment'])
                 self.updatelocation(entry['comment'])
                 entry['comment'] = [entry['comment']]
-        self.updateprotein(entry)
+        if 'protein' in entry:
+            self.updateprotein(entry)
         if 'reference' in entry:
             if isinstance(entry['reference'], list):
                 for r in entry['reference']:
                     if 'source' in r:
                         del r['source']
-                    c = r['citation']['date']
-                    r['citation']['date'] = self.checkdate(c)
+                    if 'date' in r['citation']:
+                        c = r['citation']['date']
+                        r['citation']['date'] = self.checkdate(c)
             elif 'source' in entry['reference']:
                 del entry['reference']['source']
-                c = entry['reference']['citation']['date']
-                entry['reference']['citation']['date'] = self.checkdate(c)
-        self.updatefeatures(entry)
+                if 'date' in entry['reference']['citation']:
+                    c = entry['reference']['citation']['date']
+                    entry['reference']['citation']['date'] = self.checkdate(c)
+
+        if 'feature' in entry:
+            self.updatefeatures(entry)
         self.updatesequence(entry['sequence'])
 
 
@@ -243,7 +266,7 @@ def mongodb_indices(mdb):
 
 
 def main(infile, esindex, mdbdb, mdbcollection, db, host=None, port=None,
-         recreateindex=True):
+         recreateindex=False):
     indxr = Indexer(db, esindex, mdbdb, mdbcollection, host, port,
                     recreateindex=recreateindex)
     indxr.parse_uniprot_xmlfiles(infile)
