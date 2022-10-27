@@ -1,9 +1,9 @@
 # Project aim and summary
 
 NoSQL-biosets project includes scripts for indexing and querying
-selected free bioinformatics datasets. In addition to datasets, project aims
-to support common bioinformatics data types
-and formats, such as GFF. Elasticsearch and MongoDB are two databases
+selected free bioinformatics datasets.
+
+Elasticsearch and MongoDB are two databases
 supported for most datasets included in the project.
 Neo4j and PostgreSQL support was implemented as the third database option
 for few datasets, namely for IntEnz, PubTator and HGNC.
@@ -120,11 +120,9 @@ cd nosql-biosets
 pip install -r requirements.txt --user
 ```
 
-Since this project is yet in early stages you may need to check and modify
-source code of the scripts time to time, for this reason _light install_
-nosqlbiosets project to your local Python library/package folders
+Project could be installed
 using the `setup.py` `develop` and `--user` options
-that should allow you to run the index scripts from project
+that should allow running the index scripts from project
 source folders:
 
 ```bash
@@ -213,9 +211,8 @@ at King Abdullah University of Science and Technology,
 [http://www.kaust.edu.sa](http://www.kaust.edu.sa)
 
 NoSQL-biosets project is licensed with MIT license.
-If you would like to support the project
-with selecting a different license you can discuss this
-by contacting the [relevant offices of KAUST](https://osr.kaust.edu.sa/Pages/ContactUs.aspx).
+
+_This project has not reached to a good level of maturity and stalled._
 
 ## Acknowledgements
 
