@@ -1,16 +1,20 @@
+
+_This project has been in archive state since about year 2020.
+It did not reeach to a good level of maturity before moving to the archive state._
+
 # Project aim and summary
 
-NoSQL-biosets project includes scripts for indexing and querying
+NoSQL-biosets project included naive scripts for indexing and querying
 selected free bioinformatics datasets.
 
-Elasticsearch and MongoDB are two databases
+Elasticsearch and MongoDB were two databases
 supported for most datasets included in the project.
-Neo4j and PostgreSQL support was implemented as the third database option
+Naive Neo4j and PostgreSQL support was implemented
 for few datasets, namely for IntEnz, PubTator and HGNC.
 
 ## Datasets supported
 
-Datasets that had more attention and have more stable support: 
+Datasets that had more attention were: 
 
 * UniProtKB [datasets](
   ftp://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/knowledgebase/complete
@@ -45,7 +49,7 @@ Datasets that had more attention and have more stable support:
 * PubMed and PMC [articles](https://www.nlm.nih.gov/bsd/difference.html):
   [`./nosqlbiosets/pubmed`](./nosqlbiosets/pubmed)
 
-Datasets that has been added recently:
+Datasets that had less attention:
 
 * ClinVar, aggregated information about genomic variation
   and its relationship to human health
@@ -57,8 +61,6 @@ Datasets that has been added recently:
 
 * InterPro, protein families, http://www.ebi.ac.uk/interpro/
    [`./nosqlbiosets/uniprot/interpro.py`](nosqlbiosets/uniprot/interpro.py)
-
-Datasets that had less attention after the initial support added to the project:
 
 * Metabolic network files in [SBML](http://sbml.org) format or
  [PSAMM project](https://github.com/zhanglab/psamm-model-collection)'s
@@ -79,7 +81,6 @@ http://www.wikipathways.org/index.php/Download_Pathways):
 * Ensembl regulatory build [GFF files](
 http://ftp.ensemblorg.ebi.ac.uk/pub/current_regulation/homo_sapiens):
   [`./geneinfo/ensembl_regbuild.py`](geneinfo/ensembl_regbuild.py)
-  _at early stages of development_
 
 * PubTator [gene2pub and disease2pub mappings](
 http://ftp.ncbi.nlm.nih.gov/pub/lu/PubTator):
@@ -92,23 +93,14 @@ http://ftp.ebi.ac.uk/pub/databases/RNAcentral/current_release/id_mapping),
 * KEGG [pathway kgml/xml files](
 http://www.kegg.jp/kegg/download/Readme/README.kgml):
   [`./nosqlbiosets/kegg/index.py`](nosqlbiosets/kegg/index.py)
-  _at its early stages of development_ 
   (_KEGG data distribution policy lets us think twice when spending
    time on KEGG data_)
 
-Project aims to connect above datasets by implementing query APIs
-for common query patterns with individual and multiple indexes.
-It also includes initial work on returning query results of IntEnz, DrugBank, HMDB,
+Project aimed to connect above datasets by implementing query APIs
+for common query patterns.
+It included initial work on returning query results of IntEnz, DrugBank, HMDB,
 ModelSEEDdb, and MetaNetX datasets as graphs.
 
-A sister [project](https://github.com/uludag/hspsdb-indexer)
-aims to develop index scripts for sequence
-similarity search results, either in NCBI-BLAST json format
-or in BLAST tabular format which is used by other search programs as well,
-such as [LAMBDA](https://github.com/seqan/lambda) and
-[DIAMOND](https://github.com/bbuchfink/diamond).
-HSPsDB project aims to link the indexed search results
-to the datasets indexed with this project, nosqlbiosets.
 
 ## Installation
 
@@ -200,21 +192,14 @@ example queries with Elasticsearch and MongoDB.
   alone"
   
     _We are inspired by the gffutils project. Needless to say, nosql-biosets
-    project doesn't yet have a level of maturity comparable to the gffutils library_.
+    project doesn't have a level of maturity comparable to the gffutils library_.
   
 * [https://github.com/quinlan-lab/vcf2db](https://github.com/quinlan-lab/vcf2db) (SQLite, MySQL, PostgreSQL)
 
 ## Copyright
 
-NoSQL-biosets project has been developed
+NoSQL-biosets project was developed
 at King Abdullah University of Science and Technology,
 [http://www.kaust.edu.sa](http://www.kaust.edu.sa)
 
 NoSQL-biosets project is licensed with MIT license.
-
-_This project has not reached to a good level of maturity and stalled._
-
-## Acknowledgements
-
-* Computers and systems used in developing this work have been maintained
-  by John Hanks, Arnaud Hungler, and Mohammed Saif

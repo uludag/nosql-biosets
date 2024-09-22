@@ -1,4 +1,4 @@
-elasticsearch
+elasticsearch==7.16.3
 neo4j-driver
 pymongo
 networkx

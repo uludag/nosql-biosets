@@ -15,7 +15,7 @@ setup(
        license='MIT License',
        install_requires=[
            'argh',
-           'elasticsearch',
+           'elasticsearch==7.16.3',
            'networkx' if py35 else 'networkx==2.2',
            'pymongo',
            'six',
